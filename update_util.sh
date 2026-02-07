@@ -123,5 +123,12 @@ echo "====================================="
 
 echo "******** End of System Update Utility ********"
 
-echo "$(date) - System update completed successfully." | sudo tee -a /var/log/sysupdate.log
+# Prompt for clearing terminal history
+read -p "Would you like to clear the terminal history (y/n)? " CLEAR_HISTORY
+if [[ "$CLEAR_HISTORY" =~ ^[Yy]$ ]]; then
+    echo "Clearing terminal history..."
+    history -c
+    history -w
+fi
 
+echo "$(date) - System update completed successfully." | sudo tee -a /var/log/sysupdate.log
