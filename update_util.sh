@@ -123,12 +123,21 @@ echo "====================================="
 
 echo "******** End of System Update Utility ********"
 
-# Prompt for clearing terminal history
-read -p "Would you like to clear the terminal history (y/n)? " CLEAR_HISTORY
-if [[ "$CLEAR_HISTORY" =~ ^[Yy]$ ]]; then
-    echo "Clearing terminal history..."
-    history -c
-    history -w
+# Prompt for clearing terminal history with 5-second timeout
+echo "You have 5 seconds to choose whether to clear the terminal history."
+echo "Press any key to skip or wait for 5 seconds to decide."
+
+# Timeout for 5 seconds. If the user presses a key, it skips; otherwise, it proceeds to clear history.
+if read -t 5 -p "Would you like to clear the terminal history (y/n)? " CLEAR_HISTORY; then
+    if [[ "$CLEAR_HISTORY" =~ ^[Yy]$ ]]; then
+        echo "Clearing terminal history..."
+        history -c
+        history -w
+    else
+        echo "Skipping terminal history clear."
+    fi
+else
+    echo "No input detected. Skipping terminal history clear."
 fi
 
 echo "$(date) - System update completed successfully." | sudo tee -a /var/log/sysupdate.log
