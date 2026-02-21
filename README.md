@@ -4,62 +4,77 @@
 [![ShellCheck](https://img.shields.io/badge/ShellCheck-Passed-brightgreen)](https://www.shellcheck.net/)
 [![Last Commit](https://img.shields.io/github/last-commit/yourusername/system-update-utility)](https://github.com/yourusername/system-update-utility/commits/main)
 
-> Automated system maintenance script for Debian/Ubuntu-based systems.
-> Keeps your system updated, cleans cache, manages journal logs, and frees disk space.
+> Automated system maintenance scripts for **Debian/Ubuntu Linux** and **macOS**.
+> Keep your system updated, clean, and optimized while freeing disk space.
 
 ---
 
 ## 🚀 Features
 
+### Linux (Debian/Ubuntu)
+
 * Updates package lists and upgrades installed packages
 * Fixes broken packages and installs missing dependencies
 * Removes unused packages (`autoremove --purge`)
-* Cleans APT cache and system/application caches
-* Removes old thumbnail files
-* Cleans systemd journal logs (keeps last 7 days)
+* Cleans APT cache, application caches, and thumbnail caches
+* Cleans systemd journal logs (retains last 7 days)
 * Updates Snap packages (if installed) and removes old revisions
 * Displays a cleanup summary (disk space recovered)
 * Optional terminal history clearing
 * POSIX-compatible: works with both `sh` and `./` execution
 * Logs output to `/var/log/sysupdate.log`
 
+### macOS (Homebrew)
+
+* Updates Homebrew itself
+* Upgrades installed formulae and casks
+* Cleans up old formulae and cask versions
+* Optionally removes old cached downloads from `~/Library/Caches/Homebrew`
+* Displays a cleanup summary (disk space freed)
+* Optional terminal history clearing
+* POSIX-compatible: works with both `sh` and `./` execution
+
 ---
 
 ## 🛠 Requirements
 
-* Debian/Ubuntu-based Linux
+### Linux
+
+* Debian/Ubuntu-based system
 * `sudo` privileges
 * Required commands: `apt`, `journalctl`, `numfmt`
 * Optional: `snap`, `debsums`
 
-> ⚠ **Note:** The script will remove cached files and old logs. Personal files remain untouched.
+### macOS
+
+* macOS with Homebrew installed
+* `brew` command available
+* Optional: `numfmt` (coreutils)
+* Optional: `osascript` for notifications
+
+> ⚠ **Note:** Both scripts remove caches and old logs. Personal files remain untouched.
 
 ---
 
 ## 📝 Installation & Usage
 
-### 1️⃣ Clone or Create the Script
+### Linux
+
+1. Create the script:
 
 ```bash
 cd ~/your-project
 nano update_util.sh
 ```
 
-Paste the script content into the file.
-
----
-
-### 2️⃣ Make It Executable
+2. Paste the Linux script content and save.
+3. Make it executable:
 
 ```bash
 chmod +x update_util.sh
 ```
 
----
-
-### 3️⃣ Run the Script
-
-Recommended:
+4. Run the script:
 
 ```bash
 sudo ./update_util.sh
@@ -71,11 +86,43 @@ POSIX-compatible:
 sudo sh update_util.sh
 ```
 
-> The script will prompt whether to clear terminal history (optional).
+> The script prompts whether to clear terminal history (optional).
+
+### macOS
+
+1. Create the script:
+
+```bash
+cd ~/your-project
+nano brew_update_util.sh
+```
+
+2. Paste the macOS script content and save.
+3. Make it executable:
+
+```bash
+chmod +x brew_update_util.sh
+```
+
+4. Run the script:
+
+```bash
+./brew_update_util.sh
+```
+
+POSIX-compatible:
+
+```bash
+sh brew_update_util.sh
+```
+
+> The script prompts whether to remove Homebrew caches and optionally clear terminal history.
 
 ---
 
-## 📊 What Gets Cleaned
+## 📊 Cleanup Summary Tables
+
+### Linux
 
 | Component                      | Action                         |
 | ------------------------------ | ------------------------------ |
@@ -86,54 +133,67 @@ sudo sh update_util.sh
 | Journal Logs                   | Older than 7 days removed      |
 | Old Snap Revisions             | Removed (if Snap is installed) |
 
+### macOS (Homebrew)
+
+| Component                                    | Action                   |
+| -------------------------------------------- | ------------------------ |
+| Homebrew Formulae                            | Updated and upgraded     |
+| Homebrew Casks                               | Updated and upgraded     |
+| Old Formulae & Cask Versions                 | Removed (`brew cleanup`) |
+| Homebrew Cache (`~/Library/Caches/Homebrew`) | Optionally removed       |
+| Terminal History                             | Optionally cleared       |
+
 ---
 
 ## ⚙️ Troubleshooting
 
-### Permission Errors
+### Linux
 
-Ensure you run the script with `sudo`:
-
-```bash
-sudo ./update_util.sh
-```
-
-### Missing Utilities
-
-Install missing dependencies:
+* **Permissions:** Use `sudo ./update_util.sh`
+* **Missing utilities:** Install `debsums` or `snapd`:
 
 ```bash
 sudo apt install debsums snapd
 ```
 
-### Snap Not Installed
+* **Snap not installed:** Snap steps are skipped automatically.
 
-The Snap update/cleanup steps are skipped automatically if Snap is not installed.
+### macOS
+
+* **Homebrew not installed:** Install via:
+
+```bash
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+```
+
+* **Permissions:** Homebrew usually does not require `sudo`. Ensure your user has write access.
+* **Missing utilities:** Install `coreutils` for `numfmt`:
+
+```bash
+brew install coreutils
+```
 
 ---
 
-## 📁 Log File
+## 📁 Logs
 
-Execution results are logged at:
-
-```bash
-/var/log/sysupdate.log
-```
+* Linux: `/var/log/sysupdate.log`
+* macOS: Optional `~/brew_update.log` via `tee`
 
 ---
 
 ## 🧠 Recommended Usage
 
 * Run weekly or bi-weekly
-* Avoid interrupting during package upgrades
-* Reboot if kernel updates were applied
+* Avoid interrupting during updates
 * Keep only required Python or other versions to save space
+* Optional: automate via `cron` (Linux) or `launchd` (macOS)
 
 ---
 
 ## 💡 Contribution
 
-Contributions are welcome! Please open issues or pull requests for bug fixes, improvements, or feature requests.
+Contributions welcome! Open issues or pull requests for bug fixes, improvements, or new features.
 
 ---
 
