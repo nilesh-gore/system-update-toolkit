@@ -89,28 +89,15 @@ APT_DIFF=$((APT_CACHE_BEFORE - APT_CACHE_AFTER))
 APP_DIFF=$((APP_CACHE_BEFORE - APP_CACHE_AFTER))
 JOURNAL_DIFF=$((JOURNAL_BEFORE - JOURNAL_AFTER))
 
-numfmt --to=iec "$APT_DIFF" 2>/dev/null
-numfmt --to=iec "$APP_DIFF" 2>/dev/null
-
-echo "Journal size before: $(numfmt --to=iec "$JOURNAL_BEFORE" 2>/dev/null)"
-echo "Journal size after : $(numfmt --to=iec "$JOURNAL_AFTER" 2>/dev/null)"
-echo "Journal cleared    : $(numfmt --to=iec "$JOURNAL_DIFF" 2>/dev/null)"
+echo "APT cache cleared     : $(numfmt --to=iec "$APT_DIFF" 2>/dev/null)"
+echo "App cache cleared     : $(numfmt --to=iec "$APP_DIFF" 2>/dev/null)"
+echo "Journal size before   : $(numfmt --to=iec "$JOURNAL_BEFORE" 2>/dev/null)"
+echo "Journal size after    : $(numfmt --to=iec "$JOURNAL_AFTER" 2>/dev/null)"
+echo "Journal cleared       : $(numfmt --to=iec "$JOURNAL_DIFF" 2>/dev/null)"
 
 echo "====================================="
 echo "******** End of System Update Utility ********"
 
-echo "Clear terminal history? (y/n): "
-read CLEAR_HISTORY
-
-case "$CLEAR_HISTORY" in
-    y|Y)
-        echo "Clearing terminal history..."
-        history -c 2>/dev/null
-        history -w 2>/dev/null
-        ;;
-    *)
-        echo "Skipping terminal history clear."
-        ;;
-esac
+echo "Skipping terminal history clear."
 
 echo "$(date) - System update completed successfully." | sudo tee -a /var/log/sysupdate.log
