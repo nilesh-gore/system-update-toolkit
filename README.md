@@ -1,58 +1,40 @@
-# ![System Update Utility](https://img.shields.io/badge/System%20Update-Utility-blue) System Update Utility
+# <img src="https://raw.githubusercontent.com/FortAwesome/Font-Awesome/master/svgs/solid/rocket.svg" width="32" height="32"> System Update Utility
 
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![ShellCheck](https://img.shields.io/badge/ShellCheck-Passed-brightgreen)](https://www.shellcheck.net/)
-[![Last Commit](https://img.shields.io/github/last-commit/yourusername/system-update-utility)](https://github.com/yourusername/system-update-utility/commits/main)
+[![Last Commit](https://img.shields.io/github/last-commit/nilesh-gore/system-update-utility-ubuntu-and-macbook)](https://github.com/nilesh-gore/system-update-utility-ubuntu-and-macbook/commits/main)
+[![Platform](https://img.shields.io/badge/platform-Linux%20%7C%20macOS%20%7C%20Windows%20%7C%20ChromeOS-lightgrey)](#-features)
 
-> 🚀 **Automate system updates and cleanup** for **Debian/Ubuntu Linux** & **macOS**.
-> Save time, free disk space, and keep your system optimized—effortlessly.
-
----
-
-## 🌟 Features
-
-### 🐧 Linux (Debian/Ubuntu)
-*   **Premium Visuals:** ANSI color-coded output.
-*   **Maintenance:** Updates package lists, upgrades packages, and fixes broken dependencies.
-*   **Deep Cleanup:** Clears APT cache, app caches, and vacuums journal logs.
-
-### 🍎 macOS (Homebrew)
-*   **Smart Updates:** Checks for outdated packages before upgrading.
-*   **Cask Support:** Optional **Greedy Mode** for auto-updating casks.
--   **Health Check:** Optional `brew doctor` and services check.
-
-### 🪟 Windows (PowerShell)
-*   **Winget Integration:** Updates all applications installed via Winget.
-*   **System Maintenance:** WSL kernel updates and Disk Cleanup (`cleanmgr`) integration.
-*   **Temp Cleanup:** Optional purging of system and user temporary folders.
-
-### 💻 ChromeOS (Crostini)
-*   **Linux Container:** Specialized for the ChromeOS Linux environment.
-*   **Flatpak Support:** Updates Flatpak apps and removes unused runtimes (essential for ChromeOS GUI apps).
-*   **Dev Tools:** Optional global `npm` and `pip` package updates.
+> **The ultimate cross-platform maintenance suite.** Automate system updates, purge caches, and recover disk space with a single command on **Linux**, **macOS**, **Windows**, and **ChromeOS**.
 
 ---
 
-## 🛠 Requirements
+## 🌟 Why Use This?
 
-| Platform | Requirements | Optional |
-| :--- | :--- | :--- |
-| Linux | Debian/Ubuntu, sudo, `apt` | `snap`, `debsums`, `numfmt` |
-| macOS | Homebrew, `brew` command | `numfmt` (coreutils) |
-| Windows | PowerShell 5.1+, `winget` | Admin privileges |
-| ChromeOS | Linux (Crostini) enabled | `flatpak`, `npm`, `pip3` |
+Keeping a system updated manually is tedious. This utility bundles the best practices for each OS into a **premium terminal experience**:
+- ✅ **Cross-Platform**: One repo to rule them all.
+- ✅ **Safe**: Non-destructive cleanup of temporary files and caches.
+- ✅ **Informative**: Clear summaries of what was updated and how much space was recovered.
+- ✅ **Premium UI**: ANSI color-coded output and interactive prompts.
 
 ---
 
-## 📝 Installation & Usage
+## 🚀 Quick Start
 
-### Linux / macOS / ChromeOS
+### 🐧 Linux / 🍎 macOS / 💻 ChromeOS
 ```bash
+# Clone the repository
+git clone https://github.com/nilesh-gore/system-update-utility-ubuntu-and-macbook.git
+cd system-update-utility-ubuntu-and-macbook
+
+# Run the relevant script
 chmod +x *_update_util.sh
-./<script_name>.sh
+./brew_update_util.sh  # for macOS
+./update_util.sh       # for Ubuntu/Debian
+./chromeos_update_util.sh # for ChromeOS
 ```
 
-### Windows
+### 🪟 Windows
 ```powershell
 # Run in PowerShell
 .\win_update_util.ps1
@@ -60,43 +42,74 @@ chmod +x *_update_util.sh
 
 ---
 
-## 📊 Cleanup Summary
+## 💎 Features
 
-| Platform | Core Action | Cleanup Targets |
-| :--- | :--- | :--- |
-| **Linux** | `apt upgrade` | Cache, Journals, Snaps |
-| **macOS** | `brew upgrade` | Caches, Old Versions |
-| **Windows** | `winget upgrade` | Temp files, Disk Cleanup |
-| **ChromeOS** | `apt` + `flatpak` | Unused runtimes, Cache |
+### 🍎 macOS (Homebrew)
+- **Smart Updates**: Checks for outdated formulae and casks before initiating upgrades.
+- **Cask Support**: Optional **Greedy Mode** for auto-updating casks (Chrome, AnyDesk, etc.).
+- **Dependency Management**: Automatically removes unused dependencies (`brew autoremove`).
+- **Health Check**: Integrated `brew doctor` and background services monitor.
 
----
+### 🐧 Linux (Debian/Ubuntu)
+- **Full Upgrade**: Refreshes package lists and applies all security/software updates.
+- **Deep Cleanup**: Purges APT cache, application caches, and thumbnail directories.
+- **Log Rotation**: Vacuums systemd journal logs, retaining only the last 7 days.
+- **Snap Support**: Refreshes Snaps and purges disabled/old revisions.
 
-## ⚙️ Troubleshooting
+### 🪟 Windows (PowerShell)
+- **Winget Integration**: Upgrades all applications managed by the Windows Package Manager.
+- **System Maintenance**: WSL kernel updates and native Disk Cleanup (`cleanmgr`) integration.
+- **Temp Purge**: Safely removes system and user temporary files.
+- **Admin Aware**: Checks for elevated privileges to ensure successful execution.
 
-### Windows
-*   If script execution is disabled, run: `Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser`
-
-### ChromeOS
-*   Ensure "Linux development environment" is turned on in Settings.
-
----
-
-## 📁 Logs
-*   Linux: `/var/log/sysupdate.log`
-*   macOS/ChromeOS: Manual log via `| tee update.log`
-
----
-
-## 🧠 Recommended Usage
-*   Run weekly or after installing several new applications.
-*   Always check the summary to see how much space was recovered.
+### 💻 ChromeOS (Crostini)
+- **Flatpak Optimizer**: Updates Flatpak apps and purges unused runtimes (essential for GUI apps).
+- **Apt Management**: Full Debian-container system updates.
+- **Dev Tooling**: Optional global `npm` and `pip` update checks.
 
 ---
 
-## 💡 Contribution
-Contributions welcome! Open issues or pull requests for bug fixes or feature improvements.
+## 📊 Comparison Matrix
+
+| Feature | 🐧 Linux | 🍎 macOS | 🪟 Windows | 💻 ChromeOS |
+| :--- | :---: | :---: | :---: | :---: |
+| **Package Update** | `apt` | `brew` | `winget` | `apt` |
+| **GUI App Update** | `snap` | `cask` | `winget` | `flatpak` |
+| **Cache Cleanup** | ✅ | ✅ | ✅ | ✅ |
+| **Health Check** | ✅ | ✅ | ❌ | ✅ |
+| **Log Vacuuming** | ✅ | ❌ | ❌ | ✅ |
+| **Interactive** | ✅ | ✅ | ✅ | ✅ |
+
+---
+
+## 🛠 Troubleshooting
+
+> [!TIP]
+> **Windows**: If you get a script execution error, run: `Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser`
+
+> [!IMPORTANT]
+> **macOS**: Ensure Homebrew is in your PATH. If not installed, run: `/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"`
+
+---
+
+## 📁 Logging & Maintenance
+- **Logs**: Linux logs are stored in `/var/log/sysupdate.log`. For others, use `./script.sh | tee update.log`.
+- **Frequency**: Recommended to run **weekly** to keep your system lean and secure.
+
+---
+
+## 🤝 Contribution
+Contributions are what make the open-source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
+
+1. Fork the Project
+2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the Branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
 ---
 
 ## 📄 License
-This project is licensed under the [MIT License](LICENSE).
+Distributed under the MIT License. See `LICENSE` for more information.
+
+<p align="center">Made with ❤️ for a cleaner terminal</p>
