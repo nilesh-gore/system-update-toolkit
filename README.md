@@ -12,153 +12,91 @@
 ## 🌟 Features
 
 ### 🐧 Linux (Debian/Ubuntu)
-
-* Updates package lists & upgrades installed packages
-* Fixes broken packages & installs missing dependencies
-* Removes unused packages (`autoremove --purge`)
-* Cleans APT cache, application caches, & thumbnail caches
-* Cleans systemd journal logs (keeps last 7 days)
-* Updates Snap packages & removes old revisions
-* Displays disk space recovered
-* Optional terminal history clearing
-* POSIX-compatible (`sh` or `./`)
-* Logs output to `/var/log/sysupdate.log`
+*   **Premium Visuals:** ANSI color-coded output.
+*   **Maintenance:** Updates package lists, upgrades packages, and fixes broken dependencies.
+*   **Deep Cleanup:** Clears APT cache, app caches, and vacuums journal logs.
 
 ### 🍎 macOS (Homebrew)
+*   **Smart Updates:** Checks for outdated packages before upgrading.
+*   **Cask Support:** Optional **Greedy Mode** for auto-updating casks.
+-   **Health Check:** Optional `brew doctor` and services check.
 
-* Updates Homebrew itself
-* Upgrades installed formulae & casks
-* Cleans up old formulae & cask versions
-* Optionally removes Homebrew cache (`~/Library/Caches/Homebrew`)
-* Displays disk space freed
-* Optional terminal history clearing
-* POSIX-compatible (`sh` or `./`)
+### 🪟 Windows (PowerShell)
+*   **Winget Integration:** Updates all applications installed via Winget.
+*   **System Maintenance:** WSL kernel updates and Disk Cleanup (`cleanmgr`) integration.
+*   **Temp Cleanup:** Optional purging of system and user temporary folders.
+
+### 💻 ChromeOS (Crostini)
+*   **Linux Container:** Specialized for the ChromeOS Linux environment.
+*   **Flatpak Support:** Updates Flatpak apps and removes unused runtimes (essential for ChromeOS GUI apps).
+*   **Dev Tools:** Optional global `npm` and `pip` package updates.
 
 ---
 
 ## 🛠 Requirements
 
-| Platform | Requirements                                       | Optional                                            |
-| -------- | -------------------------------------------------- | --------------------------------------------------- |
-| Linux    | Debian/Ubuntu, sudo, `apt`, `journalctl`, `numfmt` | `snap`, `debsums`                                   |
-| macOS    | Homebrew installed, `brew` command                 | `numfmt` (coreutils), `osascript` for notifications |
-
-> ⚠ **Note:** Scripts remove caches & old logs, personal files remain safe.
+| Platform | Requirements | Optional |
+| :--- | :--- | :--- |
+| Linux | Debian/Ubuntu, sudo, `apt` | `snap`, `debsums`, `numfmt` |
+| macOS | Homebrew, `brew` command | `numfmt` (coreutils) |
+| Windows | PowerShell 5.1+, `winget` | Admin privileges |
+| ChromeOS | Linux (Crostini) enabled | `flatpak`, `npm`, `pip3` |
 
 ---
 
 ## 📝 Installation & Usage
 
-### Linux
-
+### Linux / macOS / ChromeOS
 ```bash
-# Create the script
-cd ~/your-project
-nano update_util.sh
-
-# Make it executable
-chmod +x update_util.sh
-
-# Run
-sudo ./update_util.sh
-# or POSIX-compatible
-sudo sh update_util.sh
+chmod +x *_update_util.sh
+./<script_name>.sh
 ```
 
-> Prompts optional terminal history clearing.
-
-### macOS
-
-```bash
-# Create the script
-cd ~/your-project
-nano brew_update_util.sh
-
-# Make it executable
-chmod +x brew_update_util.sh
-
-# Run
-./brew_update_util.sh
-# or POSIX-compatible
-sh brew_update_util.sh
+### Windows
+```powershell
+# Run in PowerShell
+.\win_update_util.ps1
 ```
-
-> Prompts optional Homebrew cache cleanup and terminal history clearing.
 
 ---
 
 ## 📊 Cleanup Summary
 
-### Linux
-
-| Component                      | Action                         |
-| ------------------------------ | ------------------------------ |
-| APT Cache                      | Fully cleared                  |
-| Unused Packages                | Removed (`autoremove --purge`) |
-| Application Cache (`~/.cache`) | Cleared                        |
-| Thumbnails                     | Removed                        |
-| Journal Logs                   | Older than 7 days removed      |
-| Old Snap Revisions             | Removed (if Snap installed)    |
-
-### macOS
-
-| Component                                    | Action                   |
-| -------------------------------------------- | ------------------------ |
-| Homebrew Formulae                            | Updated & upgraded       |
-| Homebrew Casks                               | Updated & upgraded       |
-| Old Formulae & Cask Versions                 | Removed (`brew cleanup`) |
-| Homebrew Cache (`~/Library/Caches/Homebrew`) | Optionally removed       |
-| Terminal History                             | Optionally cleared       |
+| Platform | Core Action | Cleanup Targets |
+| :--- | :--- | :--- |
+| **Linux** | `apt upgrade` | Cache, Journals, Snaps |
+| **macOS** | `brew upgrade` | Caches, Old Versions |
+| **Windows** | `winget upgrade` | Temp files, Disk Cleanup |
+| **ChromeOS** | `apt` + `flatpak` | Unused runtimes, Cache |
 
 ---
 
 ## ⚙️ Troubleshooting
 
-### Linux
+### Windows
+*   If script execution is disabled, run: `Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser`
 
-* Permissions: `sudo ./update_util.sh`
-* Missing utilities: `sudo apt install debsums snapd`
-* Snap not installed: skipped automatically
-
-### macOS
-
-* Homebrew not installed:
-
-```bash
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-```
-
-* Missing utilities: `brew install coreutils` for `numfmt`
+### ChromeOS
+*   Ensure "Linux development environment" is turned on in Settings.
 
 ---
 
 ## 📁 Logs
-
-* Linux: `/var/log/sysupdate.log`
-* macOS: optional `~/brew_update.log` via `tee`
+*   Linux: `/var/log/sysupdate.log`
+*   macOS/ChromeOS: Manual log via `| tee update.log`
 
 ---
 
 ## 🧠 Recommended Usage
-
-* Run weekly or bi-weekly
-* Avoid interrupting updates
-* Keep only required language versions to save space
-* Automate via `cron` (Linux) or `launchd` (macOS)
+*   Run weekly or after installing several new applications.
+*   Always check the summary to see how much space was recovered.
 
 ---
 
 ## 💡 Contribution
-
-Contributions welcome! Open issues or pull requests for:
-
-* Bug fixes
-* Feature improvements
-* New functionality
+Contributions welcome! Open issues or pull requests for bug fixes or feature improvements.
 
 ---
 
 ## 📄 License
-
 This project is licensed under the [MIT License](LICENSE).
-
