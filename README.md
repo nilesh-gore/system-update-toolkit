@@ -1,4 +1,4 @@
-# 🚀 System Update Utility — Cross-Platform Maintenance Suite
+# 🚀 System Update Toolkit — Cross-Platform System Maintenance & Cleanup Automation
 
 <div align="center">
 
@@ -9,11 +9,15 @@
 [![GitHub last commit](https://img.shields.io/github/last-commit/nilesh-gore/system-update-toolkit)](https://github.com/nilesh-gore/system-update-toolkit/commits/main)
 [![GitHub stars](https://img.shields.io/github/stars/nilesh-gore/system-update-toolkit?style=social)](https://github.com/nilesh-gore/system-update-toolkit/stargazers)
 [![GitHub forks](https://img.shields.io/github/forks/nilesh-gore/system-update-toolkit?style=social)](https://github.com/nilesh-gore/system-update-toolkit/network/members)
+[![GitHub repo size](https://img.shields.io/github/repo-size/nilesh-gore/system-update-toolkit)](https://github.com/nilesh-gore/system-update-toolkit)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/nilesh-gore/system-update-toolkit/pulls)
 
 **The ultimate open-source system maintenance toolkit.**
 Automate OS updates, purge caches, recover disk space, and keep your dev environment pristine — all from a single terminal command.
 
-<img src="assets/terminal_preview.png" alt="System Update Utility Terminal Preview" width="700">
+> *One script. All platforms. Gigabytes recovered.* 💾
+
+<img src="assets/terminal_preview.png" alt="System Update Toolkit - Automated system updates, cache cleanup, and disk space recovery for Linux macOS Windows ChromeOS" width="700">
 
 *Premium color-coded terminal output with interactive cleanup summary*
 
@@ -121,6 +125,11 @@ Whether you're a developer maintaining multiple machines, a sysadmin managing se
 ---
 
 ## 🚀 Quick Start
+
+### ⚡ One-Liner (macOS)
+```bash
+git clone https://github.com/nilesh-gore/system-update-toolkit.git && cd system-update-toolkit && chmod +x brew_update_util.sh && ./brew_update_util.sh
+```
 
 ### Step 1: Clone the Repository
 ```bash
@@ -454,7 +463,10 @@ Contributions are what make the open-source community such an amazing place to l
 
 ## ⭐ Star History
 
-If this project helped you, please consider giving it a ⭐ — it helps others discover it!
+If this project saved you time or disk space, **please give it a ⭐!**
+It costs nothing but helps others discover this toolkit. Every star counts! 🙏
+
+[![Star this repo](https://img.shields.io/github/stars/nilesh-gore/system-update-toolkit?style=for-the-badge&logo=github&label=Star%20This%20Repo&color=gold)](https://github.com/nilesh-gore/system-update-toolkit)
 
 ---
 
@@ -464,12 +476,20 @@ Distributed under the **MIT License**. See [`LICENSE`](LICENSE) for more informa
 
 ---
 
+## 🔍 Keywords
+
+`system-update` `system-maintenance` `cleanup-script` `disk-cleanup` `cache-cleaner` `homebrew-update` `apt-update` `winget-update` `shell-script` `powershell-script` `linux-maintenance` `macos-maintenance` `windows-maintenance` `chromeos` `devops-tools` `automation` `sysadmin` `terminal-utility` `package-manager` `disk-space-recovery`
+
+---
+
 <div align="center">
 
 **Made with ❤️ by [Nilesh Gore](https://github.com/nilesh-gore)**
 
 *Keep your systems clean. Keep your terminal beautiful.*
 
-[⬆ Back to Top](#-system-update-utility--cross-platform-maintenance-suite)
+⭐ **Found this useful? Star the repo and share it!** ⭐
+
+[⬆ Back to Top](#-system-update-toolkit--cross-platform-system-maintenance--cleanup-automation)
 
 </div>
