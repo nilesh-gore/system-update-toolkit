@@ -2,6 +2,26 @@
 # Brew System Update Utility - macOS
 # A premium, interactive script to keep your Homebrew environment in top shape.
 
+SCRIPT_VERSION="2.1"
+
+case "${1:-}" in
+    -h|--help)
+        echo "Usage: ./brew_update_util.sh [OPTIONS]"
+        echo ""
+        echo "Options:"
+        echo "  -h, --help       Show this help message and exit"
+        echo "  -v, --version    Show version information"
+        echo ""
+        echo "A premium system update utility for macOS (Homebrew)."
+        echo "Automates updates, cache cleanup, and disk recovery."
+        exit 0
+        ;;
+    -v|--version)
+        echo "System Update Utility (macOS) v$SCRIPT_VERSION"
+        exit 0
+        ;;
+esac
+
 set -eu
 
 # Color definitions for a premium look

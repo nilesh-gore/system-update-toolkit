@@ -1,6 +1,30 @@
 # Windows System Update Utility
 # A premium PowerShell script to keep your Windows environment in top shape.
 
+param(
+    [switch]$Help,
+    [switch]$Version
+)
+
+$ScriptVersion = "2.1"
+
+if ($Help) {
+    Write-Host "Usage: .\win_update_util.ps1 [-Help] [-Version]"
+    Write-Host ""
+    Write-Host "Options:"
+    Write-Host "  -Help       Show this help message and exit"
+    Write-Host "  -Version    Show version information"
+    Write-Host ""
+    Write-Host "A premium system update utility for Windows."
+    Write-Host "Automates updates, cache cleanup, and disk recovery."
+    exit 0
+}
+
+if ($Version) {
+    Write-Host "System Update Utility (Windows) v$ScriptVersion"
+    exit 0
+}
+
 $ErrorActionPreference = "Stop"
 
 # Visual settings
@@ -74,5 +98,10 @@ if ($choiceHist -eq 'y' -or $choiceHist -eq 'Y') {
     }
     Write-Host "${GREEN}PowerShell history cleared.${NC}"
 }
+
+Write-Host "`n${BOLD}${GREEN}========== CLEANUP SUMMARY ==========${NC}"
+Write-Host "Winget packages : ${BOLD}Checked & Updated${NC}"
+Write-Host "Temp files      : ${BOLD}Cleaned${NC}"
+Write-Host "${BOLD}${GREEN}=====================================${NC}"
 
 Write-Host "`n${CYAN}$(Get-Date) - Windows system update completed successfully.${NC}"

@@ -238,7 +238,7 @@ Step 8  →  Optional: Clear terminal history
 | **Cache Cleanup** | ✅ | ✅ | ✅ | ✅ |
 | **Disk Space Recovery** | ✅ | ✅ | ✅ | ✅ |
 | **Health Check** | `debsums` | `brew doctor` | — | `apt-get check` |
-| **Log Vacuuming** | ✅ (journald) | — | — | ✅ (journald) |
+| **Log Vacuuming** | ✅ (journald) | — | — | — |
 | **Service Monitor** | — | ✅ | — | — |
 | **Dev Tool Updates** | — | — | — | `npm` / `pip` |
 | **History Clearing** | ✅ | ✅ | ✅ | ✅ |
@@ -253,7 +253,7 @@ Step 8  →  Optional: Clear terminal history
 | Platform | Required | Optional |
 | :--- | :--- | :--- |
 | **Linux** | Ubuntu/Debian 18.04+, `sudo`, `apt`, `journalctl` | `snap`, `debsums`, `numfmt` (coreutils) |
-| **macOS** | macOS 12+, [Homebrew](https://brew.sh) | `numfmt` (`brew install coreutils`) |
+| **macOS** | macOS 12+, [Homebrew](https://brew.sh) | — |
 | **Windows** | Windows 10/11, PowerShell 5.1+, [Winget](https://github.com/microsoft/winget-cli) | Administrator privileges for full cleanup |
 | **ChromeOS** | Linux (Crostini) enabled in Settings | `flatpak`, `npm`, `pip3` |
 
@@ -442,6 +442,7 @@ Contributions are what make the open-source community such an amazing place to l
 
 | Version | Date | Changes |
 | :--- | :--- | :--- |
+| **v2.1** | 2026-05-08 | Added `--help`/`--version` flags to all scripts, made Linux cache wipes interactive, added disk stats & `apt-get check` to ChromeOS, added cleanup summary to Windows, fixed README inaccuracies, added LICENSE file |
 | **v2.0** | 2026-05-07 | Added Windows & ChromeOS support, premium ANSI visuals, `brew doctor`, `autoremove`, greedy cask upgrades, comparison matrix |
 | **v1.0** | Initial | Linux (`apt`) and macOS (`brew`) update utilities |
 

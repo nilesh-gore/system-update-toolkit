@@ -2,6 +2,26 @@
 # System Update Utility - ChromeOS (Linux/Crostini)
 # A premium script tailored for the ChromeOS Linux environment.
 
+SCRIPT_VERSION="2.1"
+
+case "${1:-}" in
+    -h|--help)
+        echo "Usage: ./chromeos_update_util.sh [OPTIONS]"
+        echo ""
+        echo "Options:"
+        echo "  -h, --help       Show this help message and exit"
+        echo "  -v, --version    Show version information"
+        echo ""
+        echo "A premium system update utility for ChromeOS (Crostini)."
+        echo "Automates updates, cache cleanup, and disk recovery."
+        exit 0
+        ;;
+    -v|--version)
+        echo "System Update Utility (ChromeOS) v$SCRIPT_VERSION"
+        exit 0
+        ;;
+esac
+
 set -eu
 
 # Color definitions for a premium look
@@ -16,6 +36,11 @@ NC='\033[0m' # No Color
 echo "${BOLD}${CYAN}**************************************************${NC}"
 echo "${BOLD}${CYAN}*       ChromeOS Linux Update Utility            *${NC}"
 echo "${BOLD}${CYAN}**************************************************${NC}"
+
+# Capture disk usage before cleanup
+echo "\n${BLUE}==>${NC} ${BOLD}Collecting disk usage before cleanup...${NC}"
+APT_CACHE_BEFORE=$(du -sk /var/cache/apt/archives 2>/dev/null | awk '{print $1}')
+APT_CACHE_BEFORE=${APT_CACHE_BEFORE:-0}
 
 # 1. Update Debian System (Crostini base)
 echo "\n${BLUE}==>${NC} ${BOLD}Updating system package definitions...${NC}"
@@ -66,11 +91,22 @@ if command -v pip3 >/dev/null 2>&1; then
     esac
 fi
 
-# 6. Disk Space Summary
+# 6. System consistency check
+echo "\n${BLUE}==>${NC} ${BOLD}Checking for system file inconsistencies...${NC}"
+sudo apt-get check
+
+# 7. Disk Space Summary
+APT_CACHE_AFTER=$(du -sk /var/cache/apt/archives 2>/dev/null | awk '{print $1}')
+APT_CACHE_AFTER=${APT_CACHE_AFTER:-0}
+
+CLEARED=$((APT_CACHE_BEFORE - APT_CACHE_AFTER))
+if [ "$CLEARED" -lt 0 ]; then CLEARED=0; fi
+
 echo "\n${BOLD}${GREEN}========== CLEANUP SUMMARY ==========${NC}"
-echo "System packages: ${BOLD}Updated & Cleaned${NC}"
+echo "APT cache cleared : ${BOLD}${CLEARED} KB${NC}"
+echo "System packages   : ${BOLD}Updated & Cleaned${NC}"
 if command -v flatpak >/dev/null 2>&1; then
-    echo "Flatpak apps:    ${BOLD}Updated${NC}"
+    echo "Flatpak apps      : ${BOLD}Updated${NC}"
 fi
 echo "${BOLD}${GREEN}=====================================${NC}"
 

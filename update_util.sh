@@ -2,6 +2,26 @@
 # System Update Utility - Ubuntu/Debian
 # A premium, robust script to keep your Linux environment in top shape.
 
+SCRIPT_VERSION="2.1"
+
+case "${1:-}" in
+    -h|--help)
+        echo "Usage: sudo ./update_util.sh [OPTIONS]"
+        echo ""
+        echo "Options:"
+        echo "  -h, --help       Show this help message and exit"
+        echo "  -v, --version    Show version information"
+        echo ""
+        echo "A premium system update utility for Ubuntu/Debian."
+        echo "Automates updates, cache cleanup, and disk recovery."
+        exit 0
+        ;;
+    -v|--version)
+        echo "System Update Utility (Linux) v$SCRIPT_VERSION"
+        exit 0
+        ;;
+esac
+
 set -eu
 
 # Color definitions for a premium look
@@ -51,12 +71,21 @@ echo "${BLUE}==>${NC} ${BOLD}Cleaning up retrieved package files...${NC}"
 sudo apt-get autoclean -y
 sudo apt-get clean -y
 
-echo "${BLUE}==>${NC} ${BOLD}Clearing user application cache...${NC}"
-sudo rm -rf /home/*/.cache/* 2>/dev/null
+echo "\n${YELLOW}Do you want to clear user application caches (~/.cache)? (y/n): ${NC}"
+read CLEAR_APP_CACHE
+case "$CLEAR_APP_CACHE" in
+    y|Y)
+        echo "${BLUE}==>${NC} ${BOLD}Clearing user application cache...${NC}"
+        sudo rm -rf /home/*/.cache/* 2>/dev/null
 
-echo "${BLUE}==>${NC} ${BOLD}Clearing thumbnail cache...${NC}"
-sudo rm -rf /home/*/.cache/thumbnails/* 2>/dev/null
-sudo rm -rf /home/*/.thumbnails/* 2>/dev/null
+        echo "${BLUE}==>${NC} ${BOLD}Clearing thumbnail cache...${NC}"
+        sudo rm -rf /home/*/.cache/thumbnails/* 2>/dev/null
+        sudo rm -rf /home/*/.thumbnails/* 2>/dev/null
+        ;;
+    *)
+        echo "Skipping user cache cleanup."
+        ;;
+esac
 
 echo "${BLUE}==>${NC} ${BOLD}Cleaning systemd journal logs (keeping last 7 days)...${NC}"
 sudo journalctl --vacuum-time=7d
