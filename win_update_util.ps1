@@ -6,7 +6,7 @@ param(
     [switch]$Version
 )
 
-$ScriptVersion = "2.1"
+$ScriptVersion = "2.2"
 $script:AutoYes = $false
 
 if ($Help) {

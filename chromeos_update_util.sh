@@ -2,7 +2,7 @@
 # System Update Utility - ChromeOS (Linux/Crostini)
 # A premium script tailored for the ChromeOS Linux environment.
 
-SCRIPT_VERSION="2.1"
+SCRIPT_VERSION="2.2"
 AUTO_YES=false
 
 case "${1:-}" in

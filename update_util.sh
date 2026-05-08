@@ -2,7 +2,7 @@
 # System Update Utility - Ubuntu/Debian
 # A premium, robust script to keep your Linux environment in top shape.
 
-SCRIPT_VERSION="2.1"
+SCRIPT_VERSION="2.2"
 AUTO_YES=false
 
 case "${1:-}" in
