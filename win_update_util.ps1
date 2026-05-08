@@ -3,21 +3,18 @@
 
 param(
     [switch]$Help,
-    [switch]$Version,
-    [Alias("y")]
-    [switch]$Yes
+    [switch]$Version
 )
 
 $ScriptVersion = "2.1"
-$script:AutoYes = $Yes.IsPresent
+$script:AutoYes = $false
 
 if ($Help) {
-    Write-Host "Usage: .\win_update_util.ps1 [-Help] [-Version] [-Yes]"
+    Write-Host "Usage: .\win_update_util.ps1 [-Help] [-Version]"
     Write-Host ""
     Write-Host "Options:"
     Write-Host "  -Help       Show this help message and exit"
     Write-Host "  -Version    Show version information"
-    Write-Host "  -Yes (-y)   Answer yes to all prompts (non-interactive mode)"
     Write-Host ""
     Write-Host "A premium system update utility for Windows."
     Write-Host "Automates updates, cache cleanup, and disk recovery."

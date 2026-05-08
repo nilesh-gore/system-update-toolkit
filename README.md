@@ -84,7 +84,7 @@ Whether you're a developer maintaining multiple machines, a sysadmin managing se
 - ✅ Detects and displays running Homebrew background services
 - ✅ Interactive terminal history clearing (supports both Zsh and Bash)
 - ✅ Human-readable disk space recovery summary
-- ✅ **Yes to All** mode: type `a` at any prompt or use `--yes` flag to skip all prompts
+- ✅ **Yes to All** mode: type `a` at any prompt to auto-approve all remaining prompts
 
 ### 🐧 Linux — `update_util.sh`
 - ✅ Full system update (`apt-get update` + `full-upgrade`)
@@ -96,7 +96,7 @@ Whether you're a developer maintaining multiple machines, a sysadmin managing se
 - ✅ System file consistency check (`apt-get check`)
 - ✅ Logs all operations to `/var/log/sysupdate.log`
 - ✅ Human-readable cleanup summary with before/after comparison
-- ✅ **Yes to All** mode: type `a` at any prompt or use `--yes` flag to skip all prompts
+- ✅ **Yes to All** mode: type `a` at any prompt to auto-approve all remaining prompts
 
 ### 🪟 Windows — `win_update_util.ps1`
 - ✅ Lists and upgrades all apps via **Winget** (Windows Package Manager)
@@ -107,7 +107,7 @@ Whether you're a developer maintaining multiple machines, a sysadmin managing se
 - ✅ Clears PowerShell command history and PSReadLine history
 - ✅ Admin privilege detection with warnings
 - ✅ Windows Store app update reminder
-- ✅ **Yes to All** mode: type `a` at any prompt or use `-Yes` switch to skip all prompts
+- ✅ **Yes to All** mode: type `a` at any prompt to auto-approve all remaining prompts
 
 ### 💻 ChromeOS — `chromeos_update_util.sh`
 - ✅ Full Debian container update (`apt-get update` + `full-upgrade`)
@@ -116,7 +116,7 @@ Whether you're a developer maintaining multiple machines, a sysadmin managing se
 - ✅ Optional global NPM package updates
 - ✅ Optional Python pip upgrade and outdated package listing
 - ✅ Interactive terminal history clearing
-- ✅ **Yes to All** mode: type `a` at any prompt or use `--yes` flag to skip all prompts
+- ✅ **Yes to All** mode: type `a` at any prompt to auto-approve all remaining prompts
 
 ---
 
@@ -138,9 +138,6 @@ chmod +x brew_update_util.sh
 ./brew_update_util.sh
 # or
 sh brew_update_util.sh
-
-# Non-interactive (yes to all prompts):
-./brew_update_util.sh --yes
 ```
 </details>
 
@@ -152,9 +149,6 @@ chmod +x update_util.sh
 sudo ./update_util.sh
 # or
 sudo sh update_util.sh
-
-# Non-interactive (yes to all prompts):
-sudo ./update_util.sh --yes
 ```
 </details>
 
@@ -165,9 +159,6 @@ sudo ./update_util.sh --yes
 # Open PowerShell as Administrator (recommended)
 Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 .\win_update_util.ps1
-
-# Non-interactive (yes to all prompts):
-.\win_update_util.ps1 -Yes
 ```
 </details>
 
@@ -178,9 +169,6 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 # Open the Linux terminal from your ChromeOS app drawer
 chmod +x chromeos_update_util.sh
 ./chromeos_update_util.sh
-
-# Non-interactive (yes to all prompts):
-./chromeos_update_util.sh --yes
 ```
 </details>
 
@@ -261,7 +249,7 @@ Step 8  →  Optional: Clear terminal history
 | **Color-coded Output** | ✅ | ✅ | ✅ | ✅ |
 | **Interactive Prompts** | ✅ | ✅ | ✅ | ✅ |
 | **POSIX Compatible** | ✅ | ✅ | — | ✅ |
-| **Yes to All (`-y`)** | ✅ | ✅ | ✅ | ✅ |
+| **Yes to All (`a`)** | ✅ | ✅ | ✅ | ✅ |
 
 ---
 
@@ -410,10 +398,7 @@ crontab -e
 <details>
 <summary><b>Can I run this on a server?</b></summary>
 
-**Yes.** The Linux script (`update_util.sh`) works great on headless servers. Use the `--yes` flag to skip all interactive prompts:
-```bash
-sudo ./update_util.sh --yes
-```
+**Yes.** The Linux script (`update_util.sh`) works great on headless servers. All interactive prompts can be bypassed by piping input: `echo "y" | sudo ./update_util.sh`
 </details>
 
 <details>
@@ -461,7 +446,7 @@ Contributions are what make the open-source community such an amazing place to l
 
 | Version | Date | Changes |
 | :--- | :--- | :--- |
-| **v2.1** | 2026-05-08 | Added `--yes` flag and `a` (yes to all) interactive option across all scripts, `--help`/`--version` flags, made Linux cache wipes interactive, added disk stats & `apt-get check` to ChromeOS, added cleanup summary to Windows, fixed README inaccuracies, added LICENSE file |
+| **v2.1** | 2026-05-08 | Added `a` (yes to all) interactive option across all prompts, `--help`/`--version` flags, made Linux cache wipes interactive, added disk stats & `apt-get check` to ChromeOS, added cleanup summary to Windows, fixed README inaccuracies, added LICENSE file |
 | **v2.0** | 2026-05-07 | Added Windows & ChromeOS support, premium ANSI visuals, `brew doctor`, `autoremove`, greedy cask upgrades, comparison matrix |
 | **v1.0** | Initial | Linux (`apt`) and macOS (`brew`) update utilities |
 

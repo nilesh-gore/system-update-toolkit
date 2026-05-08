@@ -12,7 +12,6 @@ case "${1:-}" in
         echo "Options:"
         echo "  -h, --help       Show this help message and exit"
         echo "  -v, --version    Show version information"
-        echo "  -y, --yes        Answer yes to all prompts (non-interactive mode)"
         echo ""
         echo "A premium system update utility for ChromeOS (Crostini)."
         echo "Automates updates, cache cleanup, and disk recovery."
@@ -21,9 +20,6 @@ case "${1:-}" in
     -v|--version)
         echo "System Update Utility (ChromeOS) v$SCRIPT_VERSION"
         exit 0
-        ;;
-    -y|--yes)
-        AUTO_YES=true
         ;;
 esac
 
