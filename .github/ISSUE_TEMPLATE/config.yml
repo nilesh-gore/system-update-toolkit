@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: 💬 Discussions
+    url: https://github.com/nilesh-gore/system-update-toolkit/discussions
+    about: Ask questions, share ideas, or discuss the project
+  - name: 📖 Documentation
+    url: https://github.com/nilesh-gore/system-update-toolkit#-quick-start
+    about: Read the docs before opening an issue
