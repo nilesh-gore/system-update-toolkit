@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Update Toolkit — Cross-Platform System Maintenance & Cleanup Automation</title>
+    <meta name="description" content="Automate OS updates, clean caches, and recover disk space on Linux, macOS, Windows & ChromeOS with one command. Open-source shell scripts with interactive prompts and cleanup summaries.">
+    <meta name="keywords" content="system update, system maintenance, cleanup script, disk cleanup, cache cleaner, homebrew update, apt update, winget, shell script, automation, devops, sysadmin, linux, macos, windows, chromeos">
+    <meta name="author" content="Nilesh Gore">
+    <meta property="og:title" content="System Update Toolkit — Cross-Platform System Maintenance">
+    <meta property="og:description" content="One command to update, clean, and optimize your entire system. Supports Linux, macOS, Windows & ChromeOS.">
+    <meta property="og:image" content="https://raw.githubusercontent.com/nilesh-gore/system-update-toolkit/main/assets/social_preview.png">
+    <meta property="og:url" content="https://nilesh-gore.github.io/system-update-toolkit">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="System Update Toolkit">
+    <meta name="twitter:description" content="One command to update, clean, and optimize your entire system.">
+    <meta name="twitter:image" content="https://raw.githubusercontent.com/nilesh-gore/system-update-toolkit/main/assets/social_preview.png">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚀</text></svg>">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg-primary: #0a0e1a;
+            --bg-secondary: #111827;
+            --bg-card: #1a1f35;
+            --text-primary: #f0f4ff;
+            --text-secondary: #94a3b8;
+            --accent: #6366f1;
+            --accent-glow: rgba(99, 102, 241, 0.3);
+            --green: #10b981;
+            --cyan: #06b6d4;
+            --yellow: #f59e0b;
+            --pink: #ec4899;
+            --border: rgba(255, 255, 255, 0.08);
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Animated background */
+        .bg-grid {
+            position: fixed;
+            inset: 0;
+            background-image:
+                radial-gradient(ellipse 80% 50% at 50% -20%, var(--accent-glow), transparent),
+                radial-gradient(circle at 80% 80%, rgba(236, 72, 153, 0.1), transparent);
+            z-index: 0;
+        }
+
+        .container { max-width: 1100px; margin: 0 auto; padding: 0 24px; position: relative; z-index: 1; }
+
+        /* Hero */
+        .hero {
+            text-align: center;
+            padding: 100px 0 60px;
+            position: relative;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(99, 102, 241, 0.15);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            border-radius: 50px;
+            padding: 8px 20px;
+            font-size: 0.85rem;
+            color: var(--accent);
+            font-weight: 500;
+            margin-bottom: 32px;
+            animation: fadeInUp 0.6s ease;
+        }
+
+        .hero h1 {
+            font-size: clamp(2.5rem, 6vw, 4rem);
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: 20px;
+            animation: fadeInUp 0.6s ease 0.1s both;
+        }
+
+        .hero h1 .gradient-text {
+            background: linear-gradient(135deg, var(--accent), var(--cyan), var(--pink));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            max-width: 640px;
+            margin: 0 auto 40px;
+            animation: fadeInUp 0.6s ease 0.2s both;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+            animation: fadeInUp 0.6s ease 0.3s both;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 14px 28px;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent), #8b5cf6);
+            color: white;
+            box-shadow: 0 4px 20px var(--accent-glow);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px var(--accent-glow);
+        }
+
+        .btn-secondary {
+            background: var(--bg-card);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--accent);
+            transform: translateY(-2px);
+        }
+
+        /* Install box */
+        .install-box {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 20px 28px;
+            margin: 48px auto 0;
+            max-width: 720px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            animation: fadeInUp 0.6s ease 0.4s both;
+        }
+
+        .install-box code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            color: var(--green);
+            flex: 1;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+
+        .install-box .copy-btn {
+            background: rgba(99, 102, 241, 0.2);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            color: var(--accent);
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .install-box .copy-btn:hover { background: rgba(99, 102, 241, 0.3); }
+
+        /* Platforms */
+        .platforms {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 20px;
+            padding: 60px 0;
+        }
+
+        .platform-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 32px 24px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .platform-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--accent);
+            box-shadow: 0 8px 30px rgba(99, 102, 241, 0.15);
+        }
+
+        .platform-card .icon { font-size: 2.5rem; margin-bottom: 16px; }
+
+        .platform-card h3 { font-size: 1.1rem; margin-bottom: 8px; font-weight: 600; }
+
+        .platform-card p { color: var(--text-secondary); font-size: 0.9rem; }
+
+        .platform-card code {
+            display: inline-block;
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--green);
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            margin-top: 12px;
+        }
+
+        /* Features */
+        .section-title {
+            text-align: center;
+            margin-bottom: 48px;
+        }
+
+        .section-title h2 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        .section-title p { color: var(--text-secondary); font-size: 1.05rem; }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            padding-bottom: 80px;
+        }
+
+        .feature {
+            display: flex;
+            gap: 16px;
+            padding: 24px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .feature:hover { border-color: var(--accent); transform: translateY(-2px); }
+
+        .feature .emoji {
+            font-size: 1.6rem;
+            flex-shrink: 0;
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(99, 102, 241, 0.1);
+            border-radius: 10px;
+        }
+
+        .feature h4 { font-size: 1rem; font-weight: 600; margin-bottom: 6px; }
+
+        .feature p { color: var(--text-secondary); font-size: 0.9rem; }
+
+        /* Stats */
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 48px;
+            padding: 40px 0 80px;
+            flex-wrap: wrap;
+        }
+
+        .stat { text-align: center; }
+
+        .stat .number {
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--accent), var(--cyan));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat .label { color: var(--text-secondary); font-size: 0.9rem; margin-top: 4px; }
+
+        /* CTA */
+        .cta {
+            text-align: center;
+            padding: 80px 0;
+            border-top: 1px solid var(--border);
+        }
+
+        .cta h2 { font-size: 2rem; font-weight: 700; margin-bottom: 16px; }
+        .cta p { color: var(--text-secondary); margin-bottom: 32px; font-size: 1.05rem; }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 40px 0;
+            border-top: 1px solid var(--border);
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        footer a { color: var(--accent); text-decoration: none; }
+        footer a:hover { text-decoration: underline; }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 600px) {
+            .hero { padding: 60px 0 40px; }
+            .install-box { flex-direction: column; text-align: center; }
+            .stats { gap: 24px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-grid"></div>
+
+    <div class="container">
+        <!-- Hero -->
+        <section class="hero">
+            <div class="hero-badge">🚀 Open Source &middot; MIT License &middot; v2.1</div>
+            <h1>
+                <span class="gradient-text">System Update</span><br>Toolkit
+            </h1>
+            <p>One command to update packages, clean caches, and recover gigabytes of disk space — across every major platform.</p>
+
+            <div class="hero-buttons">
+                <a href="https://github.com/nilesh-gore/system-update-toolkit" class="btn btn-primary" id="github-btn">
+                    ⭐ Star on GitHub
+                </a>
+                <a href="https://github.com/nilesh-gore/system-update-toolkit#-quick-start" class="btn btn-secondary" id="docs-btn">
+                    📖 Documentation
+                </a>
+            </div>
+
+            <div class="install-box">
+                <code id="install-cmd">curl -fsSL https://raw.githubusercontent.com/nilesh-gore/system-update-toolkit/main/install.sh | sh</code>
+                <button class="copy-btn" onclick="copyInstall()" id="copy-btn">📋 Copy</button>
+            </div>
+        </section>
+
+        <!-- Platforms -->
+        <section class="platforms">
+            <div class="platform-card">
+                <div class="icon">🍎</div>
+                <h3>macOS</h3>
+                <p>Homebrew formulae, casks, cache cleanup, brew doctor</p>
+                <code>brew_update_util.sh</code>
+            </div>
+            <div class="platform-card">
+                <div class="icon">🐧</div>
+                <h3>Linux</h3>
+                <p>APT upgrade, Snap refresh, journal vacuum, debsums</p>
+                <code>update_util.sh</code>
+            </div>
+            <div class="platform-card">
+                <div class="icon">🪟</div>
+                <h3>Windows</h3>
+                <p>Winget upgrades, WSL update, Disk Cleanup, temp purge</p>
+                <code>win_update_util.ps1</code>
+            </div>
+            <div class="platform-card">
+                <div class="icon">💻</div>
+                <h3>ChromeOS</h3>
+                <p>Debian updates, Flatpak refresh, npm &amp; pip upgrades</p>
+                <code>chromeos_update_util.sh</code>
+            </div>
+        </section>
+
+        <!-- Features -->
+        <section>
+            <div class="section-title">
+                <h2>Why System Update Toolkit?</h2>
+                <p>Everything you need to keep your system clean and fast</p>
+            </div>
+
+            <div class="features">
+                <div class="feature">
+                    <div class="emoji">⏱️</div>
+                    <div>
+                        <h4>One Command</h4>
+                        <p>Replace 10+ manual steps with a single script execution</p>
+                    </div>
+                </div>
+                <div class="feature">
+                    <div class="emoji">💾</div>
+                    <div>
+                        <h4>Recover Gigabytes</h4>
+                        <p>Typically recovers 200MB – 10GB of disk space per run</p>
+                    </div>
+                </div>
+                <div class="feature">
+                    <div class="emoji">🛡️</div>
+                    <div>
+                        <h4>Safe & Interactive</h4>
+                        <p>Nothing runs without confirmation. Your files are never touched</p>
+                    </div>
+                </div>
+                <div class="feature">
+                    <div class="emoji">🎨</div>
+                    <div>
+                        <h4>Beautiful Output</h4>
+                        <p>Color-coded ANSI terminal output with progress indicators</p>
+                    </div>
+                </div>
+                <div class="feature">
+                    <div class="emoji">📊</div>
+                    <div>
+                        <h4>Cleanup Summary</h4>
+                        <p>See exactly how much disk space was recovered after each run</p>
+                    </div>
+                </div>
+                <div class="feature">
+                    <div class="emoji">🔧</div>
+                    <div>
+                        <h4>Zero Dependencies</h4>
+                        <p>Pure shell scripts — no packages to install, no setup required</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Stats -->
+        <div class="stats">
+            <div class="stat">
+                <div class="number">4</div>
+                <div class="label">Platforms</div>
+            </div>
+            <div class="stat">
+                <div class="number">10+</div>
+                <div class="label">Cleanup Steps</div>
+            </div>
+            <div class="stat">
+                <div class="number">~10GB</div>
+                <div class="label">Max Recovery</div>
+            </div>
+            <div class="stat">
+                <div class="number">MIT</div>
+                <div class="label">Licensed</div>
+            </div>
+        </div>
+
+        <!-- CTA -->
+        <section class="cta">
+            <h2>Ready to clean your system?</h2>
+            <p>Get started in under 30 seconds. Works on any platform.</p>
+            <div class="hero-buttons">
+                <a href="https://github.com/nilesh-gore/system-update-toolkit" class="btn btn-primary" id="cta-github-btn">
+                    🚀 Get Started
+                </a>
+                <a href="https://github.com/nilesh-gore/system-update-toolkit/blob/main/CONTRIBUTING.md" class="btn btn-secondary" id="cta-contribute-btn">
+                    🤝 Contribute
+                </a>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer>
+            <p>Made with ❤️ by <a href="https://github.com/nilesh-gore">Nilesh Gore</a> &middot; <a href="https://github.com/nilesh-gore/system-update-toolkit">GitHub</a> &middot; <a href="https://github.com/nilesh-gore/system-update-toolkit/blob/main/LICENSE">MIT License</a></p>
+        </footer>
+    </div>
+
+    <script>
+        function copyInstall() {
+            const cmd = document.getElementById('install-cmd').textContent;
+            navigator.clipboard.writeText(cmd).then(() => {
+                const btn = document.getElementById('copy-btn');
+                btn.textContent = '✅ Copied!';
+                setTimeout(() => { btn.textContent = '📋 Copy'; }, 2000);
+            });
+        }
+    </script>
+</body>
+</html>

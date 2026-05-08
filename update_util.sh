@@ -31,8 +31,8 @@ ask_user() {
     if [ "$AUTO_YES" = true ]; then
         return 0
     fi
-    echo "\n${YELLOW}$1 (y/n/a - yes to all): ${NC}"
-    read REPLY
+    printf "\n${YELLOW}%s (y/n/a - yes to all): ${NC}" "$1"
+    read -r REPLY
     case "$REPLY" in
         a|A) AUTO_YES=true; return 0 ;;
         y|Y) return 0 ;;
@@ -56,7 +56,7 @@ echo "${BOLD}${CYAN}**************************************************${NC}"
 DEBIAN_FRONTEND=noninteractive
 export DEBIAN_FRONTEND
 
-echo "\n${BLUE}==>${NC} ${BOLD}Collecting disk usage before cleanup...${NC}"
+printf "\n${BLUE}==>${NC} ${BOLD}Collecting disk usage before cleanup...${NC}\n"
 
 APT_CACHE_BEFORE=$(du -sb /var/cache/apt/archives 2>/dev/null | awk '{print $1}')
 [ -z "$APT_CACHE_BEFORE" ] && APT_CACHE_BEFORE=0
@@ -112,20 +112,20 @@ else
 fi
 
 if command -v snap >/dev/null 2>&1; then
-    echo "\n${BLUE}==>${NC} ${BOLD}Updating Snap packages...${NC}"
+    printf "\n${BLUE}==>${NC} ${BOLD}Updating Snap packages...${NC}\n"
     sudo snap refresh
 
     echo "${BLUE}==>${NC} ${BOLD}Removing old Snap revisions...${NC}"
-    snap list --all | awk '/disabled/{print $1, $3}' | while read snapname revision
+    snap list --all | awk '/disabled/{print $1, $3}' | while read -r snapname revision
     do
         echo "Removing old revision: $snapname (rev $revision)"
         sudo snap remove "$snapname" --revision="$revision"
     done
 else
-    echo "\n${YELLOW}Snap is not installed.${NC}"
+    printf "\n${YELLOW}Snap is not installed.${NC}\n"
 fi
 
-echo "\n${BLUE}==>${NC} ${BOLD}Checking for system file inconsistencies...${NC}"
+printf "\n${BLUE}==>${NC} ${BOLD}Checking for system file inconsistencies...${NC}\n"
 sudo apt-get check
 
 APT_CACHE_AFTER=$(du -sb /var/cache/apt/archives 2>/dev/null | awk '{print $1}')
@@ -138,7 +138,7 @@ JOURNAL_AFTER=$(journalctl --disk-usage --no-pager 2>/dev/null | \
     grep "disk space" | awk '{print $6}' | numfmt --from=iec 2>/dev/null)
 [ -z "$JOURNAL_AFTER" ] && JOURNAL_AFTER=0
 
-echo "\n${BOLD}${GREEN}========== CLEANUP SUMMARY ==========${NC}"
+printf "\n${BOLD}${GREEN}========== CLEANUP SUMMARY ==========${NC}\n"
 
 APT_DIFF=$((APT_CACHE_BEFORE - APT_CACHE_AFTER))
 APP_DIFF=$((APP_CACHE_BEFORE - APP_CACHE_AFTER))
@@ -161,7 +161,7 @@ if ask_user "Do you want to clear terminal history?"; then
     # Try to clear common history files
     for f in "$HOME/.bash_history" "$HOME/.zsh_history"; do
         if [ -f "$f" ]; then
-            >"$f"
+            : >"$f"
             echo "Cleared $f"
         fi
     done
@@ -169,4 +169,4 @@ else
     echo "Skipping terminal history clear."
 fi
 
-echo "\n${CYAN}$(date) - System update completed successfully.${NC}" | sudo tee -a /var/log/sysupdate.log
+printf "\n${CYAN}%s - System update completed successfully.${NC}\n" "$(date)" | sudo tee -a /var/log/sysupdate.log

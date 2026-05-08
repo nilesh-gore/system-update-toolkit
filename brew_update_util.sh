@@ -31,8 +31,8 @@ ask_user() {
     if [ "$AUTO_YES" = true ]; then
         return 0
     fi
-    echo "\n${YELLOW}$1 (y/n/a - yes to all): ${NC}"
-    read REPLY
+    printf "\n${YELLOW}%s (y/n/a - yes to all): ${NC}" "$1"
+    read -r REPLY
     case "$REPLY" in
         a|A) AUTO_YES=true; return 0 ;;
         y|Y) return 0 ;;
@@ -64,7 +64,7 @@ BREW_CACHE_BEFORE=$(du -sk "$(brew --cache)" 2>/dev/null | awk '{print $1}')
 BREW_CACHE_BEFORE=${BREW_CACHE_BEFORE:-0}
 
 # 1. Update Homebrew
-echo "\n${BLUE}==>${NC} ${BOLD}Updating Homebrew definitions...${NC}"
+printf "\n${BLUE}==>${NC} ${BOLD}Updating Homebrew definitions...${NC}\n"
 brew update
 
 # 2. Check for outdated packages
@@ -75,15 +75,15 @@ echo "${GREEN}Found $OUTDATED_FORMULAE outdated formulae and $OUTDATED_CASKS out
 
 # 3. Upgrade installed formulae
 if [ "$OUTDATED_FORMULAE" -gt 0 ]; then
-    echo "\n${BLUE}==>${NC} ${BOLD}Upgrading installed formulae...${NC}"
+    printf "\n${BLUE}==>${NC} ${BOLD}Upgrading installed formulae...${NC}\n"
     brew upgrade
 else
-    echo "\n${GREEN}All formulae are already up to date.${NC}"
+    printf "\n${GREEN}All formulae are already up to date.${NC}\n"
 fi
 
 # 4. Upgrade installed casks
 if [ "$OUTDATED_CASKS" -gt 0 ]; then
-    echo "\n${BLUE}==>${NC} ${BOLD}Upgrading installed casks...${NC}"
+    printf "\n${BLUE}==>${NC} ${BOLD}Upgrading installed casks...${NC}\n"
     echo "${YELLOW}Tip: Greedy mode also upgrades casks that auto-update (Chrome, Slack, etc.).${NC}"
     if ask_user "Do you want to use greedy upgrade for casks?"; then
         brew upgrade --cask --greedy
@@ -91,15 +91,15 @@ if [ "$OUTDATED_CASKS" -gt 0 ]; then
         brew upgrade --cask
     fi
 else
-    echo "\n${GREEN}All casks are already up to date.${NC}"
+    printf "\n${GREEN}All casks are already up to date.${NC}\n"
 fi
 
 # 5. Remove unused dependencies
-echo "\n${BLUE}==>${NC} ${BOLD}Removing unused dependencies (autoremove)...${NC}"
+printf "\n${BLUE}==>${NC} ${BOLD}Removing unused dependencies (autoremove)...${NC}\n"
 brew autoremove
 
 # 6. Cleanup old versions and downloads
-echo "\n${BLUE}==>${NC} ${BOLD}Cleaning up Homebrew...${NC}"
+printf "\n${BLUE}==>${NC} ${BOLD}Cleaning up Homebrew...${NC}\n"
 brew cleanup -s
 
 # 7. Optional: Remove old cached downloads
@@ -112,7 +112,7 @@ fi
 
 # 8. Check for any services that might need a restart
 if command -v brew services >/dev/null 2>&1; then
-    echo "\n${BLUE}==>${NC} ${BOLD}Checking Homebrew services...${NC}"
+    printf "\n${BLUE}==>${NC} ${BOLD}Checking Homebrew services...${NC}\n"
     # Check if any services are started
     if brew services list | grep -q "started"; then
         echo "${YELLOW}Note: Some services are running. If they were updated, you might need to restart them.${NC}"
@@ -147,7 +147,7 @@ human_readable() {
 CLEARED=$((BREW_CACHE_BEFORE - BREW_CACHE_AFTER))
 if [ "$CLEARED" -lt 0 ]; then CLEARED=0; fi
 
-echo "\n${BOLD}${GREEN}========== CLEANUP SUMMARY ==========${NC}"
+printf "\n${BOLD}${GREEN}========== CLEANUP SUMMARY ==========${NC}\n"
 echo "Homebrew cache cleared: ${BOLD}$(human_readable "$CLEARED")${NC}"
 echo "${BOLD}${GREEN}=====================================${NC}"
 
@@ -155,15 +155,15 @@ echo "${BOLD}${GREEN}=====================================${NC}"
 if ask_user "Do you want to clear terminal history?"; then
     echo "Clearing terminal history..."
     if [ -n "${HISTFILE:-}" ] && [ -f "$HISTFILE" ]; then
-        >"$HISTFILE"
+        : >"$HISTFILE"
         echo "History file cleared."
     else
         # Try default bash/zsh paths if HISTFILE is not set
         if [ -f "$HOME/.zsh_history" ]; then
-            >"$HOME/.zsh_history"
+            : >"$HOME/.zsh_history"
             echo "Zsh history cleared."
         elif [ -f "$HOME/.bash_history" ]; then
-            >"$HOME/.bash_history"
+            : >"$HOME/.bash_history"
             echo "Bash history cleared."
         else
             echo "No history file found."
@@ -173,4 +173,4 @@ else
     echo "Skipping terminal history clear."
 fi
 
-echo "\n${CYAN}$(date) - Homebrew system update completed successfully.${NC}"
+printf "\n${CYAN}%s - Homebrew system update completed successfully.${NC}\n" "$(date)"

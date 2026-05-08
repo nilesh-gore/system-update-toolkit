@@ -1,0 +1,6 @@
+# Force GitHub to classify the repo as Shell (not Markdown)
+*.sh linguist-detectable=true
+*.ps1 linguist-detectable=true
+*.md linguist-documentation=true
+assets/** linguist-vendored=true
+LICENSE linguist-documentation=true

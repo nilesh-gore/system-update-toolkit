@@ -31,8 +31,8 @@ ask_user() {
     if [ "$AUTO_YES" = true ]; then
         return 0
     fi
-    echo "\n${YELLOW}$1 (y/n/a - yes to all): ${NC}"
-    read REPLY
+    printf "\n${YELLOW}%s (y/n/a - yes to all): ${NC}" "$1"
+    read -r REPLY
     case "$REPLY" in
         a|A) AUTO_YES=true; return 0 ;;
         y|Y) return 0 ;;
@@ -54,12 +54,12 @@ echo "${BOLD}${CYAN}*       ChromeOS Linux Update Utility            *${NC}"
 echo "${BOLD}${CYAN}**************************************************${NC}"
 
 # Capture disk usage before cleanup
-echo "\n${BLUE}==>${NC} ${BOLD}Collecting disk usage before cleanup...${NC}"
+printf "\n${BLUE}==>${NC} ${BOLD}Collecting disk usage before cleanup...${NC}\n"
 APT_CACHE_BEFORE=$(du -sk /var/cache/apt/archives 2>/dev/null | awk '{print $1}')
 APT_CACHE_BEFORE=${APT_CACHE_BEFORE:-0}
 
 # 1. Update Debian System (Crostini base)
-echo "\n${BLUE}==>${NC} ${BOLD}Updating system package definitions...${NC}"
+printf "\n${BLUE}==>${NC} ${BOLD}Updating system package definitions...${NC}\n"
 sudo apt-get update -y
 
 echo "${BLUE}==>${NC} ${BOLD}Upgrading installed packages...${NC}"
@@ -67,16 +67,16 @@ sudo apt-get full-upgrade -y
 
 # 2. Update Flatpaks (Common on ChromeOS for GUI apps)
 if command -v flatpak >/dev/null 2>&1; then
-    echo "\n${BLUE}==>${NC} ${BOLD}Updating Flatpak applications...${NC}"
+    printf "\n${BLUE}==>${NC} ${BOLD}Updating Flatpak applications...${NC}\n"
     flatpak update -y
     echo "${BLUE}==>${NC} ${BOLD}Removing unused Flatpak runtimes...${NC}"
     flatpak uninstall --unused -y
 else
-    echo "\n${YELLOW}Flatpak not installed. Skipping Flatpak updates.${NC}"
+    printf "\n${YELLOW}Flatpak not installed. Skipping Flatpak updates.${NC}\n"
 fi
 
 # 3. Clean up APT
-echo "\n${BLUE}==>${NC} ${BOLD}Cleaning up system package cache...${NC}"
+printf "\n${BLUE}==>${NC} ${BOLD}Cleaning up system package cache...${NC}\n"
 sudo apt-get autoremove -y
 sudo apt-get autoclean -y
 
@@ -100,7 +100,7 @@ if command -v pip3 >/dev/null 2>&1; then
 fi
 
 # 6. System consistency check
-echo "\n${BLUE}==>${NC} ${BOLD}Checking for system file inconsistencies...${NC}"
+printf "\n${BLUE}==>${NC} ${BOLD}Checking for system file inconsistencies...${NC}\n"
 sudo apt-get check
 
 # 7. Disk Space Summary
@@ -110,7 +110,7 @@ APT_CACHE_AFTER=${APT_CACHE_AFTER:-0}
 CLEARED=$((APT_CACHE_BEFORE - APT_CACHE_AFTER))
 if [ "$CLEARED" -lt 0 ]; then CLEARED=0; fi
 
-echo "\n${BOLD}${GREEN}========== CLEANUP SUMMARY ==========${NC}"
+printf "\n${BOLD}${GREEN}========== CLEANUP SUMMARY ==========${NC}\n"
 echo "APT cache cleared : ${BOLD}${CLEARED} KB${NC}"
 echo "System packages   : ${BOLD}Updated & Cleaned${NC}"
 if command -v flatpak >/dev/null 2>&1; then
@@ -121,11 +121,11 @@ echo "${BOLD}${GREEN}=====================================${NC}"
 # 8. Optional terminal history clearing
 if ask_user "Do you want to clear terminal history?"; then
     echo "Clearing terminal history..."
-    [ -f "$HOME/.bash_history" ] && >"$HOME/.bash_history"
-    [ -f "$HOME/.zsh_history" ] && >"$HOME/.zsh_history"
+    [ -f "$HOME/.bash_history" ] && : >"$HOME/.bash_history"
+    [ -f "$HOME/.zsh_history" ] && : >"$HOME/.zsh_history"
     echo "History cleared."
 else
     echo "Skipping history clear."
 fi
 
-echo "\n${CYAN}$(date) - ChromeOS Linux update completed successfully.${NC}"
+printf "\n${CYAN}%s - ChromeOS Linux update completed successfully.${NC}\n" "$(date)"
