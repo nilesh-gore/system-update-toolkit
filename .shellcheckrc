@@ -1,0 +1,3 @@
+# Disable warning about variables in printf format strings (mostly used for color codes)
+# Disable warning about not following sourced files like /etc/os-release
+disable=SC2059,SC1091
