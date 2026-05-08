@@ -3,6 +3,7 @@
 # A premium, robust script to keep your Linux environment in top shape.
 
 SCRIPT_VERSION="2.1"
+AUTO_YES=false
 
 case "${1:-}" in
     -h|--help)
@@ -11,6 +12,7 @@ case "${1:-}" in
         echo "Options:"
         echo "  -h, --help       Show this help message and exit"
         echo "  -v, --version    Show version information"
+        echo "  -y, --yes        Answer yes to all prompts (non-interactive mode)"
         echo ""
         echo "A premium system update utility for Ubuntu/Debian."
         echo "Automates updates, cache cleanup, and disk recovery."
@@ -20,9 +22,27 @@ case "${1:-}" in
         echo "System Update Utility (Linux) v$SCRIPT_VERSION"
         exit 0
         ;;
+    -y|--yes)
+        AUTO_YES=true
+        ;;
 esac
 
 set -eu
+
+# Helper function: prompt user with y/n/a support
+# Usage: ask_user "prompt message" && { do stuff }
+ask_user() {
+    if [ "$AUTO_YES" = true ]; then
+        return 0
+    fi
+    echo "\n${YELLOW}$1 (y/n/a - yes to all): ${NC}"
+    read REPLY
+    case "$REPLY" in
+        a|A) AUTO_YES=true; return 0 ;;
+        y|Y) return 0 ;;
+        *) return 1 ;;
+    esac
+}
 
 # Color definitions for a premium look
 RED='\033[0;31m'
@@ -71,21 +91,16 @@ echo "${BLUE}==>${NC} ${BOLD}Cleaning up retrieved package files...${NC}"
 sudo apt-get autoclean -y
 sudo apt-get clean -y
 
-echo "\n${YELLOW}Do you want to clear user application caches (~/.cache)? (y/n): ${NC}"
-read CLEAR_APP_CACHE
-case "$CLEAR_APP_CACHE" in
-    y|Y)
-        echo "${BLUE}==>${NC} ${BOLD}Clearing user application cache...${NC}"
-        sudo rm -rf /home/*/.cache/* 2>/dev/null
+if ask_user "Do you want to clear user application caches (~/.cache)?"; then
+    echo "${BLUE}==>${NC} ${BOLD}Clearing user application cache...${NC}"
+    sudo rm -rf /home/*/.cache/* 2>/dev/null
 
-        echo "${BLUE}==>${NC} ${BOLD}Clearing thumbnail cache...${NC}"
-        sudo rm -rf /home/*/.cache/thumbnails/* 2>/dev/null
-        sudo rm -rf /home/*/.thumbnails/* 2>/dev/null
-        ;;
-    *)
-        echo "Skipping user cache cleanup."
-        ;;
-esac
+    echo "${BLUE}==>${NC} ${BOLD}Clearing thumbnail cache...${NC}"
+    sudo rm -rf /home/*/.cache/thumbnails/* 2>/dev/null
+    sudo rm -rf /home/*/.thumbnails/* 2>/dev/null
+else
+    echo "Skipping user cache cleanup."
+fi
 
 echo "${BLUE}==>${NC} ${BOLD}Cleaning systemd journal logs (keeping last 7 days)...${NC}"
 sudo journalctl --vacuum-time=7d
@@ -145,22 +160,17 @@ echo "Journal size after    : ${BOLD}$(numfmt --to=iec "$JOURNAL_AFTER" 2>/dev/n
 echo "${BOLD}${GREEN}=====================================${NC}"
 
 # Optional terminal history clearing
-echo "\n${YELLOW}Do you want to clear terminal history? (y/n): ${NC}"
-read CLEAR_HISTORY
-case "$CLEAR_HISTORY" in
-    y|Y)
-        echo "Clearing terminal history..."
-        # Try to clear common history files
-        for f in "$HOME/.bash_history" "$HOME/.zsh_history"; do
-            if [ -f "$f" ]; then
-                > "$f"
-                echo "Cleared $f"
-            fi
-        done
-        ;;
-    *)
-        echo "Skipping terminal history clear."
-        ;;
-esac
+if ask_user "Do you want to clear terminal history?"; then
+    echo "Clearing terminal history..."
+    # Try to clear common history files
+    for f in "$HOME/.bash_history" "$HOME/.zsh_history"; do
+        if [ -f "$f" ]; then
+            >"$f"
+            echo "Cleared $f"
+        fi
+    done
+else
+    echo "Skipping terminal history clear."
+fi
 
 echo "\n${CYAN}$(date) - System update completed successfully.${NC}" | sudo tee -a /var/log/sysupdate.log

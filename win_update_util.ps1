@@ -3,17 +3,21 @@
 
 param(
     [switch]$Help,
-    [switch]$Version
+    [switch]$Version,
+    [Alias("y")]
+    [switch]$Yes
 )
 
 $ScriptVersion = "2.1"
+$script:AutoYes = $Yes.IsPresent
 
 if ($Help) {
-    Write-Host "Usage: .\win_update_util.ps1 [-Help] [-Version]"
+    Write-Host "Usage: .\win_update_util.ps1 [-Help] [-Version] [-Yes]"
     Write-Host ""
     Write-Host "Options:"
     Write-Host "  -Help       Show this help message and exit"
     Write-Host "  -Version    Show version information"
+    Write-Host "  -Yes (-y)   Answer yes to all prompts (non-interactive mode)"
     Write-Host ""
     Write-Host "A premium system update utility for Windows."
     Write-Host "Automates updates, cache cleanup, and disk recovery."
@@ -26,6 +30,19 @@ if ($Version) {
 }
 
 $ErrorActionPreference = "Stop"
+
+# Helper function: prompt user with y/n/a support
+function Ask-User {
+    param([string]$Prompt)
+    if ($script:AutoYes) { return $true }
+    Write-Host "`n${YELLOW}$Prompt (y/n/a - yes to all): ${NC}" -NoNewline
+    $reply = Read-Host
+    switch ($reply) {
+        { $_ -eq 'a' -or $_ -eq 'A' } { $script:AutoYes = $true; return $true }
+        { $_ -eq 'y' -or $_ -eq 'Y' } { return $true }
+        default { return $false }
+    }
+}
 
 # Visual settings
 $Host.UI.RawUI.WindowTitle = "Windows System Update Utility"
@@ -52,9 +69,7 @@ if (Get-Command winget -ErrorAction SilentlyContinue) {
     Write-Host "`n${BLUE}==>${NC} ${BOLD}Checking for Winget package updates...${NC}"
     winget upgrade
     
-    Write-Host "`n${YELLOW}Do you want to upgrade all packages via Winget? (y/n): ${NC}" -NoNewline
-    $choice = Read-Host
-    if ($choice -eq 'y' -or $choice -eq 'Y') {
+    if (Ask-User "Do you want to upgrade all packages via Winget?") {
         winget upgrade --all --include-unknown
     }
 } else {
@@ -77,9 +92,7 @@ Write-Host "${YELLOW}This will launch the Disk Cleanup tool. Please select the i
 Start-Process "cleanmgr.exe" -ArgumentList "/sagerun:1" -Wait
 
 # 6. Optional: Clear Temporary Files
-Write-Host "`n${YELLOW}Do you want to clear system temporary files? (y/n): ${NC}" -NoNewline
-$choiceTemp = Read-Host
-if ($choiceTemp -eq 'y' -or $choiceTemp -eq 'Y') {
+if (Ask-User "Do you want to clear system temporary files?") {
     Write-Host "Clearing Temp folders..."
     $tempFolders = @("$env:TEMP", "$env:SystemRoot\Temp")
     foreach ($folder in $tempFolders) {
@@ -89,9 +102,7 @@ if ($choiceTemp -eq 'y' -or $choiceTemp -eq 'Y') {
 }
 
 # 7. Optional: Clear PowerShell History
-Write-Host "`n${YELLOW}Do you want to clear PowerShell history? (y/n): ${NC}" -NoNewline
-$choiceHist = Read-Host
-if ($choiceHist -eq 'y' -or $choiceHist -eq 'Y') {
+if (Ask-User "Do you want to clear PowerShell history?") {
     Clear-History
     if (Test-Path (Get-PSReadLineOption).HistorySavePath) {
         Remove-Item (Get-PSReadLineOption).HistorySavePath

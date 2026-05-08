@@ -3,6 +3,7 @@
 # A premium script tailored for the ChromeOS Linux environment.
 
 SCRIPT_VERSION="2.1"
+AUTO_YES=false
 
 case "${1:-}" in
     -h|--help)
@@ -11,6 +12,7 @@ case "${1:-}" in
         echo "Options:"
         echo "  -h, --help       Show this help message and exit"
         echo "  -v, --version    Show version information"
+        echo "  -y, --yes        Answer yes to all prompts (non-interactive mode)"
         echo ""
         echo "A premium system update utility for ChromeOS (Crostini)."
         echo "Automates updates, cache cleanup, and disk recovery."
@@ -20,9 +22,27 @@ case "${1:-}" in
         echo "System Update Utility (ChromeOS) v$SCRIPT_VERSION"
         exit 0
         ;;
+    -y|--yes)
+        AUTO_YES=true
+        ;;
 esac
 
 set -eu
+
+# Helper function: prompt user with y/n/a support
+# Usage: ask_user "prompt message" && { do stuff }
+ask_user() {
+    if [ "$AUTO_YES" = true ]; then
+        return 0
+    fi
+    echo "\n${YELLOW}$1 (y/n/a - yes to all): ${NC}"
+    read REPLY
+    case "$REPLY" in
+        a|A) AUTO_YES=true; return 0 ;;
+        y|Y) return 0 ;;
+        *) return 1 ;;
+    esac
+}
 
 # Color definitions for a premium look
 RED='\033[0;31m'
@@ -66,29 +86,21 @@ sudo apt-get autoclean -y
 
 # 4. Optional: Update Global NPM Packages
 if command -v npm >/dev/null 2>&1; then
-    echo "\n${YELLOW}Do you want to check for global NPM package updates? (y/n): ${NC}"
-    read UPDATE_NPM
-    case "$UPDATE_NPM" in
-        y|Y)
-            echo "Checking global NPM packages..."
-            sudo npm update -g || echo "${RED}Some NPM packages failed to update.${NC}"
-            ;;
-    esac
+    if ask_user "Do you want to check for global NPM package updates?"; then
+        echo "Checking global NPM packages..."
+        sudo npm update -g || echo "${RED}Some NPM packages failed to update.${NC}"
+    fi
 fi
 
 # 5. Optional: Update Global Python Packages (Pip)
 if command -v pip3 >/dev/null 2>&1; then
-    echo "\n${YELLOW}Do you want to check for global Python (pip3) package updates? (y/n): ${NC}"
-    read UPDATE_PIP
-    case "$UPDATE_PIP" in
-        y|Y)
-            echo "Updating pip and global packages..."
-            python3 -m pip install --upgrade pip
-            # Note: Upgrading all global pips can be risky, so we just do pip itself by default
-            # but we can list outdated ones
-            pip3 list --outdated
-            ;;
-    esac
+    if ask_user "Do you want to check for global Python (pip3) package updates?"; then
+        echo "Updating pip and global packages..."
+        python3 -m pip install --upgrade pip
+        # Note: Upgrading all global pips can be risky, so we just do pip itself by default
+        # but we can list outdated ones
+        pip3 list --outdated
+    fi
 fi
 
 # 6. System consistency check
@@ -110,19 +122,14 @@ if command -v flatpak >/dev/null 2>&1; then
 fi
 echo "${BOLD}${GREEN}=====================================${NC}"
 
-# 7. Optional terminal history clearing
-echo "\n${YELLOW}Do you want to clear terminal history? (y/n): ${NC}"
-read CLEAR_HISTORY
-case "$CLEAR_HISTORY" in
-    y|Y)
-        echo "Clearing terminal history..."
-        [ -f "$HOME/.bash_history" ] && > "$HOME/.bash_history"
-        [ -f "$HOME/.zsh_history" ] && > "$HOME/.zsh_history"
-        echo "History cleared."
-        ;;
-    *)
-        echo "Skipping history clear."
-        ;;
-esac
+# 8. Optional terminal history clearing
+if ask_user "Do you want to clear terminal history?"; then
+    echo "Clearing terminal history..."
+    [ -f "$HOME/.bash_history" ] && >"$HOME/.bash_history"
+    [ -f "$HOME/.zsh_history" ] && >"$HOME/.zsh_history"
+    echo "History cleared."
+else
+    echo "Skipping history clear."
+fi
 
 echo "\n${CYAN}$(date) - ChromeOS Linux update completed successfully.${NC}"

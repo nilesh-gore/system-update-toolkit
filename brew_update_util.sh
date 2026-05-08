@@ -3,6 +3,7 @@
 # A premium, interactive script to keep your Homebrew environment in top shape.
 
 SCRIPT_VERSION="2.1"
+AUTO_YES=false
 
 case "${1:-}" in
     -h|--help)
@@ -11,6 +12,7 @@ case "${1:-}" in
         echo "Options:"
         echo "  -h, --help       Show this help message and exit"
         echo "  -v, --version    Show version information"
+        echo "  -y, --yes        Answer yes to all prompts (non-interactive mode)"
         echo ""
         echo "A premium system update utility for macOS (Homebrew)."
         echo "Automates updates, cache cleanup, and disk recovery."
@@ -20,9 +22,27 @@ case "${1:-}" in
         echo "System Update Utility (macOS) v$SCRIPT_VERSION"
         exit 0
         ;;
+    -y|--yes)
+        AUTO_YES=true
+        ;;
 esac
 
 set -eu
+
+# Helper function: prompt user with y/n/a support
+# Usage: ask_user "prompt message" && { do stuff }
+ask_user() {
+    if [ "$AUTO_YES" = true ]; then
+        return 0
+    fi
+    echo "\n${YELLOW}$1 (y/n/a - yes to all): ${NC}"
+    read REPLY
+    case "$REPLY" in
+        a|A) AUTO_YES=true; return 0 ;;
+        y|Y) return 0 ;;
+        *) return 1 ;;
+    esac
+}
 
 # Color definitions for a premium look
 RED='\033[0;31m'
@@ -68,17 +88,12 @@ fi
 # 4. Upgrade installed casks
 if [ "$OUTDATED_CASKS" -gt 0 ]; then
     echo "\n${BLUE}==>${NC} ${BOLD}Upgrading installed casks...${NC}"
-    echo "${YELLOW}Tip: Use --greedy for casks that auto-update.${NC}"
-    echo "Do you want to use greedy upgrade for casks? (y/n): "
-    read GREEDY_CHOICE
-    case "$GREEDY_CHOICE" in
-        y|Y)
-            brew upgrade --cask --greedy
-            ;;
-        *)
-            brew upgrade --cask
-            ;;
-    esac
+    echo "${YELLOW}Tip: Greedy mode also upgrades casks that auto-update (Chrome, Slack, etc.).${NC}"
+    if ask_user "Do you want to use greedy upgrade for casks?"; then
+        brew upgrade --cask --greedy
+    else
+        brew upgrade --cask
+    fi
 else
     echo "\n${GREEN}All casks are already up to date.${NC}"
 fi
@@ -92,17 +107,12 @@ echo "\n${BLUE}==>${NC} ${BOLD}Cleaning up Homebrew...${NC}"
 brew cleanup -s
 
 # 7. Optional: Remove old cached downloads
-echo "\n${YELLOW}Do you want to remove old cached downloads from ~/Library/Caches/Homebrew? (y/n): ${NC}"
-read REMOVE_CACHE
-case "$REMOVE_CACHE" in
-    y|Y)
-        echo "Removing old cached downloads..."
-        rm -rf "$HOME/Library/Caches/Homebrew/"* 2>/dev/null
-        ;;
-    *)
-        echo "Skipping removal of Homebrew cache."
-        ;;
-esac
+if ask_user "Do you want to remove old cached downloads from ~/Library/Caches/Homebrew?"; then
+    echo "Removing old cached downloads..."
+    rm -rf "$HOME/Library/Caches/Homebrew/"* 2>/dev/null
+else
+    echo "Skipping removal of Homebrew cache."
+fi
 
 # 8. Check for any services that might need a restart
 if command -v brew services >/dev/null 2>&1; then
@@ -110,23 +120,17 @@ if command -v brew services >/dev/null 2>&1; then
     # Check if any services are started
     if brew services list | grep -q "started"; then
         echo "${YELLOW}Note: Some services are running. If they were updated, you might need to restart them.${NC}"
-        echo "Would you like to see the list of running services? (y/n): "
-        read SHOW_SERVICES
-        if [ "$SHOW_SERVICES" = "y" ] || [ "$SHOW_SERVICES" = "Y" ]; then
+        if ask_user "Would you like to see the list of running services?"; then
             brew services list
         fi
     fi
 fi
 
 # 9. Optional: Run Brew Doctor
-echo "\n${YELLOW}Do you want to run 'brew doctor' to check for potential issues? (y/n): ${NC}"
-read RUN_DOCTOR
-case "$RUN_DOCTOR" in
-    y|Y)
-        echo "Running brew doctor..."
-        brew doctor || echo "${YELLOW}Brew doctor found some issues (see above).${NC}"
-        ;;
-esac
+if ask_user "Do you want to run 'brew doctor' to check for potential issues?"; then
+    echo "Running brew doctor..."
+    brew doctor || echo "${YELLOW}Brew doctor found some issues (see above).${NC}"
+fi
 
 # Capture disk usage after cleanup
 BREW_CACHE_AFTER=$(du -sk "$(brew --cache)" 2>/dev/null | awk '{print $1}')
@@ -152,30 +156,25 @@ echo "Homebrew cache cleared: ${BOLD}$(human_readable "$CLEARED")${NC}"
 echo "${BOLD}${GREEN}=====================================${NC}"
 
 # Optional terminal history clearing
-echo "\n${YELLOW}Do you want to clear terminal history? (y/n): ${NC}"
-read CLEAR_HISTORY
-case "$CLEAR_HISTORY" in
-    y|Y)
-        echo "Clearing terminal history..."
-        if [ -n "${HISTFILE:-}" ] && [ -f "$HISTFILE" ]; then
-            > "$HISTFILE"
-            echo "History file cleared."
+if ask_user "Do you want to clear terminal history?"; then
+    echo "Clearing terminal history..."
+    if [ -n "${HISTFILE:-}" ] && [ -f "$HISTFILE" ]; then
+        >"$HISTFILE"
+        echo "History file cleared."
+    else
+        # Try default bash/zsh paths if HISTFILE is not set
+        if [ -f "$HOME/.zsh_history" ]; then
+            >"$HOME/.zsh_history"
+            echo "Zsh history cleared."
+        elif [ -f "$HOME/.bash_history" ]; then
+            >"$HOME/.bash_history"
+            echo "Bash history cleared."
         else
-            # Try default bash/zsh paths if HISTFILE is not set
-            if [ -f "$HOME/.zsh_history" ]; then
-                > "$HOME/.zsh_history"
-                echo "Zsh history cleared."
-            elif [ -f "$HOME/.bash_history" ]; then
-                > "$HOME/.bash_history"
-                echo "Bash history cleared."
-            else
-                echo "No history file found."
-            fi
+            echo "No history file found."
         fi
-        ;;
-    *)
-        echo "Skipping terminal history clear."
-        ;;
-esac
+    fi
+else
+    echo "Skipping terminal history clear."
+fi
 
 echo "\n${CYAN}$(date) - Homebrew system update completed successfully.${NC}"
