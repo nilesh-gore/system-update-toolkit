@@ -29,7 +29,7 @@ if ($Version) {
 $ErrorActionPreference = "Stop"
 
 # Helper function: prompt user with y/n/a support
-function Ask-User {
+function Confirm-Action {
     param([string]$Prompt)
     if ($script:AutoYes) { return $true }
     Write-Host "`n${YELLOW}$Prompt (y/n/a - yes to all): ${NC}" -NoNewline
@@ -66,7 +66,7 @@ if (Get-Command winget -ErrorAction SilentlyContinue) {
     Write-Host "`n${BLUE}==>${NC} ${BOLD}Checking for Winget package updates...${NC}"
     winget upgrade
     
-    if (Ask-User "Do you want to upgrade all packages via Winget?") {
+    if (Confirm-Action "Do you want to upgrade all packages via Winget?") {
         winget upgrade --all --include-unknown
     }
 } else {
@@ -89,7 +89,7 @@ Write-Host "${YELLOW}This will launch the Disk Cleanup tool. Please select the i
 Start-Process "cleanmgr.exe" -ArgumentList "/sagerun:1" -Wait
 
 # 6. Optional: Clear Temporary Files
-if (Ask-User "Do you want to clear system temporary files?") {
+if (Confirm-Action "Do you want to clear system temporary files?") {
     Write-Host "Clearing Temp folders..."
     $tempFolders = @("$env:TEMP", "$env:SystemRoot\Temp")
     foreach ($folder in $tempFolders) {
@@ -99,7 +99,7 @@ if (Ask-User "Do you want to clear system temporary files?") {
 }
 
 # 7. Optional: Clear PowerShell History
-if (Ask-User "Do you want to clear PowerShell history?") {
+if (Confirm-Action "Do you want to clear PowerShell history?") {
     Clear-History
     if (Test-Path (Get-PSReadLineOption).HistorySavePath) {
         Remove-Item (Get-PSReadLineOption).HistorySavePath
