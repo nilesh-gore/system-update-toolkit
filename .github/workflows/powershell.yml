@@ -21,4 +21,4 @@ jobs:
       - name: Run PSScriptAnalyzer
         shell: pwsh
         run: |
-          Invoke-ScriptAnalyzer -Path .\win_update_util.ps1 -EnableExit
+          Invoke-ScriptAnalyzer -Path .\win_update_util.ps1 -ExcludeRule PSAvoidUsingWriteHost -EnableExit

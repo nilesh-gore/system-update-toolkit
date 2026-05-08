@@ -65,7 +65,7 @@ if (-not $currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Adm
 if (Get-Command winget -ErrorAction SilentlyContinue) {
     Write-Host "`n${BLUE}==>${NC} ${BOLD}Checking for Winget package updates...${NC}"
     winget upgrade
-    
+
     if (Confirm-Action "Do you want to upgrade all packages via Winget?") {
         winget upgrade --all --include-unknown
     }
