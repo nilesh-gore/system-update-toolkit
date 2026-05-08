@@ -5,10 +5,10 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![ShellCheck](https://img.shields.io/badge/ShellCheck-Passed-brightgreen?logo=gnu-bash)](https://www.shellcheck.net/)
 [![Platform](https://img.shields.io/badge/Platform-Linux%20%7C%20macOS%20%7C%20Windows%20%7C%20ChromeOS-blue)](#-supported-platforms)
-[![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://github.com/nilesh-gore/system-update-utility-ubuntu-and-macbook/graphs/commit-activity)
-[![GitHub last commit](https://img.shields.io/github/last-commit/nilesh-gore/system-update-utility-ubuntu-and-macbook)](https://github.com/nilesh-gore/system-update-utility-ubuntu-and-macbook/commits/main)
-[![GitHub stars](https://img.shields.io/github/stars/nilesh-gore/system-update-utility-ubuntu-and-macbook?style=social)](https://github.com/nilesh-gore/system-update-utility-ubuntu-and-macbook/stargazers)
-[![GitHub forks](https://img.shields.io/github/forks/nilesh-gore/system-update-utility-ubuntu-and-macbook?style=social)](https://github.com/nilesh-gore/system-update-utility-ubuntu-and-macbook/network/members)
+[![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://github.com/nilesh-gore/system-update-toolkit/graphs/commit-activity)
+[![GitHub last commit](https://img.shields.io/github/last-commit/nilesh-gore/system-update-toolkit)](https://github.com/nilesh-gore/system-update-toolkit/commits/main)
+[![GitHub stars](https://img.shields.io/github/stars/nilesh-gore/system-update-toolkit?style=social)](https://github.com/nilesh-gore/system-update-toolkit/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/nilesh-gore/system-update-toolkit?style=social)](https://github.com/nilesh-gore/system-update-toolkit/network/members)
 
 **The ultimate open-source system maintenance toolkit.**
 Automate OS updates, purge caches, recover disk space, and keep your dev environment pristine — all from a single terminal command.
@@ -124,8 +124,8 @@ Whether you're a developer maintaining multiple machines, a sysadmin managing se
 
 ### Step 1: Clone the Repository
 ```bash
-git clone https://github.com/nilesh-gore/system-update-utility-ubuntu-and-macbook.git
-cd system-update-utility-ubuntu-and-macbook
+git clone https://github.com/nilesh-gore/system-update-toolkit.git
+cd system-update-toolkit
 ```
 
 ### Step 2: Run the Script for Your OS
