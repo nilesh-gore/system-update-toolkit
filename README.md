@@ -11,7 +11,7 @@
 [![GitHub last commit](https://img.shields.io/github/last-commit/nilesh-gore/system-update-toolkit)](https://github.com/nilesh-gore/system-update-toolkit/commits/main)
 [![GitHub stars](https://img.shields.io/github/stars/nilesh-gore/system-update-toolkit?style=social)](https://github.com/nilesh-gore/system-update-toolkit/stargazers)
 [![GitHub forks](https://img.shields.io/github/forks/nilesh-gore/system-update-toolkit?style=social)](https://github.com/nilesh-gore/system-update-toolkit/network/members)
-[![GitHub repo size](https://img.shields.io/github/repo-size/nilesh-gore/system-update-toolkit)](https://github.com/nilesh-gore/system-update-toolkit)
+[![GitHub code size](https://img.shields.io/github/languages/code-size/nilesh-gore/system-update-toolkit?color=blue)](https://github.com/nilesh-gore/system-update-toolkit)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/nilesh-gore/system-update-toolkit/pulls)
 
 **The ultimate open-source system maintenance toolkit.**
