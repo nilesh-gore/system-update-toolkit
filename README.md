@@ -179,6 +179,17 @@ If you prefer to run a specific script directly:
 
 ## 🔍 Detailed Script Breakdown
 
+### Universal Wrapper: `toolkit.sh`
+The primary entry point for all systems. It automatically detects the host OS and delegates to the correct script.
+```bash
+./toolkit.sh [OPTIONS]
+
+Options:
+  -y, --yes     Automatic yes to all prompts
+  -h, --help    Show help message
+  -v, --version Show version info
+```
+
 ### macOS: `brew_update_util.sh`
 ```
 Step 1  →  Update Homebrew definitions
@@ -266,7 +277,7 @@ Step 8  →  Optional: Clear terminal history
 | **Color-coded Output** | ✅ | ✅ | ✅ | ✅ | ✅ |
 | **Interactive Prompts** | ✅ | ✅ | ✅ | ✅ | ✅ |
 | **POSIX Compatible** | ✅ | ✅ | ✅ | — | ✅ |
-| **Yes to All (`a`)** | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **Yes to All (`-y`)** | ✅ | ✅ | ✅ | ✅ | ✅ |
 
 ---
 
