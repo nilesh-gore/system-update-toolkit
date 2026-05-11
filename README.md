@@ -145,9 +145,9 @@ Whether you're a developer maintaining multiple machines, a sysadmin managing se
 
 ## 🚀 Quick Start
 
-### ⚡ One-Liner (macOS)
+### ⚡ One-Liner (Universal)
 ```bash
-git clone https://github.com/nilesh-gore/system-update-toolkit.git && cd system-update-toolkit && chmod +x brew_update_util.sh && ./brew_update_util.sh
+git clone https://github.com/nilesh-gore/system-update-toolkit.git && cd system-update-toolkit && chmod +x toolkit.sh && ./toolkit.sh
 ```
 
 ### Step 1: Clone the Repository
@@ -156,48 +156,23 @@ git clone https://github.com/nilesh-gore/system-update-toolkit.git
 cd system-update-toolkit
 ```
 
-### Step 2: Run the Script for Your OS
-
-<details>
-<summary><b>🍎 macOS</b></summary>
+### Step 2: Run the Unified Toolkit
+The toolkit will automatically detect your OS and run the correct maintenance script.
 
 ```bash
-chmod +x brew_update_util.sh
-./brew_update_util.sh
-# or
-sh brew_update_util.sh
+chmod +x toolkit.sh
+./toolkit.sh
 ```
-</details>
 
 <details>
-<summary><b>🐧 Linux (Ubuntu/Debian)</b></summary>
+<summary><b>Manual Execution (Per OS)</b></summary>
+If you prefer to run a specific script directly:
 
-```bash
-chmod +x update_util.sh
-sudo ./update_util.sh
-# or
-sudo sh update_util.sh
-```
-</details>
-
-<details>
-<summary><b>🪟 Windows</b></summary>
-
-```powershell
-# Open PowerShell as Administrator (recommended)
-Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
-.\win_update_util.ps1
-```
-</details>
-
-<details>
-<summary><b>💻 ChromeOS</b></summary>
-
-```bash
-# Open the Linux terminal from your ChromeOS app drawer
-chmod +x chromeos_update_util.sh
-./chromeos_update_util.sh
-```
+* **🍎 macOS:** `./brew_update_util.sh`
+* **🐧 Ubuntu/Debian:** `sudo ./update_util.sh`
+* **🎩 Fedora/RHEL:** `sudo ./fedora_update_util.sh`
+* **💻 ChromeOS:** `./chromeos_update_util.sh`
+* **🪟 Windows:** `powershell -File .\win_update_util.ps1`
 </details>
 
 ---

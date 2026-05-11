@@ -97,23 +97,9 @@ chmod +x "$INSTALL_DIR"/*.sh 2>/dev/null || true
 
 # --- Select and run the right script ---
 case "$OS" in
-    macos)
-        SCRIPT="brew_update_util.sh"
-        echo "${GREEN}🍎 macOS detected — ready to run: ${SCRIPT}${NC}"
-        ;;
-    linux)
-        SCRIPT="update_util.sh"
-        echo "${GREEN}🐧 Ubuntu/Debian detected — ready to run: ${SCRIPT}${NC}"
-        echo "${YELLOW}   Note: This script requires sudo${NC}"
-        ;;
-    fedora)
-        SCRIPT="fedora_update_util.sh"
-        echo "${GREEN}🎩 Fedora/RHEL detected — ready to run: ${SCRIPT}${NC}"
-        echo "${YELLOW}   Note: This script requires sudo${NC}"
-        ;;
-    chromeos)
-        SCRIPT="chromeos_update_util.sh"
-        echo "${GREEN}💻 ChromeOS detected — ready to run: ${SCRIPT}${NC}"
+    macos|linux|fedora|chromeos)
+        SCRIPT="toolkit.sh"
+        echo "${GREEN}✅ OS detected — ready to run: ${SCRIPT}${NC}"
         ;;
     windows)
         echo "${GREEN}🪟 Windows detected${NC}"
@@ -142,9 +128,11 @@ read -r answer
 case "$answer" in
     [yY]|[yY][eE][sS])
         echo ""
-        if [ "$OS" = "linux" ] || [ "$OS" = "fedora" ]; then
-            sudo "$INSTALL_DIR/$SCRIPT"
+        if [ "$OS" = "macos" ]; then
+             "$INSTALL_DIR/$SCRIPT"
         else
+            # Linux, Fedora, ChromeOS all likely need sudo for the sub-scripts
+            # toolkit.sh will handle the execution
             "$INSTALL_DIR/$SCRIPT"
         fi
         ;;
