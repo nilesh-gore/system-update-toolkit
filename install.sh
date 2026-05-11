@@ -39,6 +39,8 @@ detect_os() {
                     else
                         echo "linux"
                     fi
+                elif echo "$ID" | grep -qiE "fedora|centos|rhel|almalinux|rocky"; then
+                    echo "fedora"
                 else
                     echo "linux"
                 fi
@@ -101,7 +103,12 @@ case "$OS" in
         ;;
     linux)
         SCRIPT="update_util.sh"
-        echo "${GREEN}🐧 Linux detected — ready to run: ${SCRIPT}${NC}"
+        echo "${GREEN}🐧 Ubuntu/Debian detected — ready to run: ${SCRIPT}${NC}"
+        echo "${YELLOW}   Note: This script requires sudo${NC}"
+        ;;
+    fedora)
+        SCRIPT="fedora_update_util.sh"
+        echo "${GREEN}🎩 Fedora/RHEL detected — ready to run: ${SCRIPT}${NC}"
         echo "${YELLOW}   Note: This script requires sudo${NC}"
         ;;
     chromeos)
@@ -135,7 +142,7 @@ read -r answer
 case "$answer" in
     [yY]|[yY][eE][sS])
         echo ""
-        if [ "$OS" = "linux" ]; then
+        if [ "$OS" = "linux" ] || [ "$OS" = "fedora" ]; then
             sudo "$INSTALL_DIR/$SCRIPT"
         else
             "$INSTALL_DIR/$SCRIPT"

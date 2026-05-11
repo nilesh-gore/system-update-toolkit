@@ -7,7 +7,7 @@
 [![ShellCheck](https://img.shields.io/badge/ShellCheck-Passed-brightgreen?logo=gnu-bash)](https://www.shellcheck.net/)
 [![ShellCheck CI](https://github.com/nilesh-gore/system-update-toolkit/actions/workflows/shellcheck.yml/badge.svg)](https://github.com/nilesh-gore/system-update-toolkit/actions/workflows/shellcheck.yml)
 [![PowerShell CI](https://github.com/nilesh-gore/system-update-toolkit/actions/workflows/powershell.yml/badge.svg)](https://github.com/nilesh-gore/system-update-toolkit/actions/workflows/powershell.yml)
-[![Platform](https://img.shields.io/badge/Platform-Linux%20%7C%20macOS%20%7C%20Windows%20%7C%20ChromeOS-blue)](#-supported-platforms)
+[![Platform](https://img.shields.io/badge/Platform-Ubuntu%20%7C%20Fedora%20%7C%20macOS%20%7C%20Windows%20%7C%20ChromeOS-blue)](#-supported-platforms)
 <br>
 [![GitHub top language](https://img.shields.io/github/languages/top/nilesh-gore/system-update-toolkit)](https://github.com/nilesh-gore/system-update-toolkit)
 [![GitHub code size](https://img.shields.io/github/languages/code-size/nilesh-gore/system-update-toolkit?color=blue)](https://github.com/nilesh-gore/system-update-toolkit)
@@ -74,7 +74,8 @@ Whether you're a developer maintaining multiple machines, a sysadmin managing se
 
 <table>
 <tr>
-<td align="center"><b>🐧 Linux</b><br>Ubuntu / Debian<br><code>update_util.sh</code></td>
+<td align="center"><b>🐧 Ubuntu / Debian</b><br>APT<br><code>update_util.sh</code></td>
+<td align="center"><b>🎩 Fedora / RHEL</b><br>DNF<br><code>fedora_update_util.sh</code></td>
 <td align="center"><b>🍎 macOS</b><br>Homebrew<br><code>brew_update_util.sh</code></td>
 <td align="center"><b>🪟 Windows</b><br>PowerShell + Winget<br><code>win_update_util.ps1</code></td>
 <td align="center"><b>💻 ChromeOS</b><br>Crostini (Linux)<br><code>chromeos_update_util.sh</code></td>
@@ -98,7 +99,7 @@ Whether you're a developer maintaining multiple machines, a sysadmin managing se
 - ✅ Human-readable disk space recovery summary
 - ✅ **Yes to All** mode: type `a` at any prompt to auto-approve all remaining prompts
 
-### 🐧 Linux — `update_util.sh`
+### 🐧 Ubuntu / Debian — `update_util.sh`
 - ✅ Full system update (`apt-get update` + `full-upgrade`)
 - ✅ Fixes broken packages and installs missing dependencies
 - ✅ Deep cleanup: APT cache, app caches (`~/.cache`), and thumbnail directories
@@ -107,6 +108,16 @@ Whether you're a developer maintaining multiple machines, a sysadmin managing se
 - ✅ Package integrity verification via `debsums`
 - ✅ System file consistency check (`apt-get check`)
 - ✅ Logs all operations to `/var/log/sysupdate.log`
+- ✅ Human-readable cleanup summary with before/after comparison
+- ✅ **Yes to All** mode: type `a` at any prompt to auto-approve all remaining prompts
+
+### 🎩 Fedora / RHEL / CentOS — `fedora_update_util.sh`
+- ✅ Full system update (`dnf upgrade --refresh`)
+- ✅ Removes unused dependencies (`dnf autoremove`)
+- ✅ Deep cleanup: DNF cache (`dnf clean all`), app caches (`~/.cache`)
+- ✅ Systemd journal log rotation (keeps only last 7 days)
+- ✅ Flatpak app updates and unused runtime removal
+- ✅ Optional Snap package refresh and old revision removal
 - ✅ Human-readable cleanup summary with before/after comparison
 - ✅ **Yes to All** mode: type `a` at any prompt to auto-approve all remaining prompts
 
@@ -208,7 +219,7 @@ Step 10 →  Display cleanup summary
 Step 11 →  Optional: Clear terminal history
 ```
 
-### Linux: `update_util.sh`
+### Ubuntu / Debian: `update_util.sh`
 ```
 Step 1  →  Capture disk usage (before)
 Step 2  →  Update package lists
@@ -222,6 +233,20 @@ Step 9  →  Verify package integrity (debsums)
 Step 10 →  Capture disk usage (after) & display summary
 Step 11 →  Optional: Clear terminal history
 Step 12 →  Log to /var/log/sysupdate.log
+```
+
+### Fedora / RHEL: `fedora_update_util.sh`
+```
+Step 1  →  Capture disk usage (before)
+Step 2  →  Refresh DNF metadata & upgrade packages
+Step 3  →  Remove unused packages (autoremove)
+Step 4  →  Clean DNF cache (clean all), app caches, thumbnails
+Step 5  →  Vacuum journal logs (7-day retention)
+Step 6  →  Update Flatpak apps & remove unused runtimes
+Step 7  →  Optional: Refresh Snap packages & remove old revisions
+Step 8  →  Capture disk usage (after) & display summary
+Step 9  →  Optional: Clear terminal history
+Step 10 →  Log to /var/log/sysupdate.log
 ```
 
 ### Windows: `win_update_util.ps1`
@@ -251,22 +276,22 @@ Step 8  →  Optional: Clear terminal history
 
 ## 📊 Comparison Matrix
 
-| Feature | 🐧 Linux | 🍎 macOS | 🪟 Windows | 💻 ChromeOS |
-| :--- | :---: | :---: | :---: | :---: |
-| **Package Manager** | `apt` | `brew` | `winget` | `apt` |
-| **GUI App Updates** | `snap` | `cask` | `winget` | `flatpak` |
-| **System Upgrade** | ✅ | ✅ | ✅ | ✅ |
-| **Cache Cleanup** | ✅ | ✅ | ✅ | ✅ |
-| **Disk Space Recovery** | ✅ | ✅ | ✅ | ✅ |
-| **Health Check** | `debsums` | `brew doctor` | — | `apt-get check` |
-| **Log Vacuuming** | ✅ (journald) | — | — | — |
-| **Service Monitor** | — | ✅ | — | — |
-| **Dev Tool Updates** | — | — | — | `npm` / `pip` |
-| **History Clearing** | ✅ | ✅ | ✅ | ✅ |
-| **Color-coded Output** | ✅ | ✅ | ✅ | ✅ |
-| **Interactive Prompts** | ✅ | ✅ | ✅ | ✅ |
-| **POSIX Compatible** | ✅ | ✅ | — | ✅ |
-| **Yes to All (`a`)** | ✅ | ✅ | ✅ | ✅ |
+| Feature | 🐧 Debian/Ubuntu | 🎩 Fedora/RHEL | 🍎 macOS | 🪟 Windows | 💻 ChromeOS |
+| :--- | :---: | :---: | :---: | :---: | :---: |
+| **Package Manager** | `apt` | `dnf` | `brew` | `winget` | `apt` |
+| **GUI App Updates** | `snap` | `flatpak` | `cask` | `winget` | `flatpak` |
+| **System Upgrade** | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **Cache Cleanup** | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **Disk Space Recovery** | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **Health Check** | `debsums` | — | `brew doctor` | — | `apt-get check` |
+| **Log Vacuuming** | ✅ (journald) | ✅ (journald) | — | — | — |
+| **Service Monitor** | — | — | ✅ | — | — |
+| **Dev Tool Updates** | — | — | — | — | `npm` / `pip` |
+| **History Clearing** | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **Color-coded Output** | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **Interactive Prompts** | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **POSIX Compatible** | ✅ | ✅ | ✅ | — | ✅ |
+| **Yes to All (`a`)** | ✅ | ✅ | ✅ | ✅ | ✅ |
 
 ---
 
@@ -274,7 +299,8 @@ Step 8  →  Optional: Clear terminal history
 
 | Platform | Required | Optional |
 | :--- | :--- | :--- |
-| **Linux** | Ubuntu/Debian 18.04+, `sudo`, `apt`, `journalctl` | `snap`, `debsums`, `numfmt` (coreutils) |
+| **Ubuntu/Debian** | Ubuntu/Debian 18.04+, `sudo`, `apt`, `journalctl` | `snap`, `debsums`, `numfmt` (coreutils) |
+| **Fedora/RHEL** | Fedora 30+, `sudo`, `dnf`, `journalctl` | `flatpak`, `snap`, `numfmt` |
 | **macOS** | macOS 12+, [Homebrew](https://brew.sh) | — |
 | **Windows** | Windows 10/11, PowerShell 5.1+, [Winget](https://github.com/microsoft/winget-cli) | Administrator privileges for full cleanup |
 | **ChromeOS** | Linux (Crostini) enabled in Settings | `flatpak`, `npm`, `pip3` |
@@ -434,9 +460,9 @@ It varies by system. Typical results:
 </details>
 
 <details>
-<summary><b>Does it support Arch, Fedora, or other Linux distros?</b></summary>
+<summary><b>Does it support Arch or other Linux distros?</b></summary>
 
-Currently, only **Debian/Ubuntu-based** distros are supported (using `apt`). Support for `dnf` (Fedora) and `pacman` (Arch) is planned for future releases. Contributions welcome!
+Currently, **Debian/Ubuntu** (`apt`) and **Fedora/RHEL** (`dnf`) based distros are officially supported. Support for `pacman` (Arch) is planned for future releases. Contributions welcome!
 </details>
 
 ---
