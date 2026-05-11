@@ -2,7 +2,7 @@
 # System Update Utility - Ubuntu/Debian
 # A premium, robust script to keep your Linux environment in top shape.
 
-SCRIPT_VERSION="2.2"
+SCRIPT_VERSION="2.3"
 AUTO_YES=false
 
 case "${1:-}" in
@@ -12,6 +12,7 @@ case "${1:-}" in
         echo "Options:"
         echo "  -h, --help       Show this help message and exit"
         echo "  -v, --version    Show version information"
+        echo "  -y, --yes        Automatic yes to all prompts"
         echo ""
         echo "A premium system update utility for Ubuntu/Debian."
         echo "Automates updates, cache cleanup, and disk recovery."
@@ -20,6 +21,10 @@ case "${1:-}" in
     -v|--version)
         echo "System Update Utility (Linux) v$SCRIPT_VERSION"
         exit 0
+        ;;
+    -y|--yes)
+        AUTO_YES=true
+        shift
         ;;
 esac
 
@@ -31,11 +36,12 @@ ask_user() {
     if [ "$AUTO_YES" = true ]; then
         return 0
     fi
-    printf "\n${YELLOW}%s (y/n/a - yes to all): ${NC}" "$1"
+    printf "\n${YELLOW}%s${NC}\n" "$1"
+    printf "${BOLD}[y]es / [n]o / [a]ll${NC}: "
     read -r REPLY
     case "$REPLY" in
-        a|A) AUTO_YES=true; return 0 ;;
-        y|Y) return 0 ;;
+        a|A|all|ALL) AUTO_YES=true; return 0 ;;
+        y|Y|yes|YES) return 0 ;;
         *) return 1 ;;
     esac
 }

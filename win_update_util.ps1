@@ -2,17 +2,20 @@
 # A premium PowerShell script to keep your Windows environment in top shape.
 
 param(
+    [Alias("y")]
+    [switch]$Yes,
     [switch]$Help,
     [switch]$Version
 )
 
-$ScriptVersion = "2.2"
-$script:AutoYes = $false
+$ScriptVersion = "2.3"
+$script:AutoYes = $Yes
 
 if ($Help) {
-    Write-Host "Usage: .\win_update_util.ps1 [-Help] [-Version]"
+    Write-Host "Usage: .\win_update_util.ps1 [-Yes] [-Help] [-Version]"
     Write-Host ""
     Write-Host "Options:"
+    Write-Host "  -Yes, -y    Automatic yes to all prompts"
     Write-Host "  -Help       Show this help message and exit"
     Write-Host "  -Version    Show version information"
     Write-Host ""
@@ -32,11 +35,12 @@ $ErrorActionPreference = "Stop"
 function Confirm-Action {
     param([string]$Prompt)
     if ($script:AutoYes) { return $true }
-    Write-Host "`n${YELLOW}$Prompt (y/n/a - yes to all): ${NC}" -NoNewline
+    Write-Host "`n${YELLOW}$Prompt${NC}"
+    Write-Host "${BOLD}[y]es / [n]o / [a]ll${NC}: " -NoNewline
     $reply = Read-Host
     switch ($reply) {
-        { $_ -eq 'a' -or $_ -eq 'A' } { $script:AutoYes = $true; return $true }
-        { $_ -eq 'y' -or $_ -eq 'Y' } { return $true }
+        { $_ -match '^a(ll)?$' } { $script:AutoYes = $true; return $true }
+        { $_ -match '^y(es)?$' } { return $true }
         default { return $false }
     }
 }

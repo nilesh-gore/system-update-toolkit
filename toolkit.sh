@@ -9,7 +9,7 @@
 # License: MIT
 # ==============================================================================
 
-SCRIPT_VERSION="2.2"
+SCRIPT_VERSION="2.3"
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 # Color definitions
