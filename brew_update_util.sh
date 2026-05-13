@@ -4,29 +4,45 @@
 
 SCRIPT_VERSION="2.3"
 AUTO_YES=false
+DRY_RUN=false
+NOTIFY=false
 
-case "${1:-}" in
-    -h|--help)
-        echo "Usage: ./brew_update_util.sh [OPTIONS]"
-        echo ""
-        echo "Options:"
-        echo "  -h, --help       Show this help message and exit"
-        echo "  -v, --version    Show version information"
-        echo "  -y, --yes        Automatic yes to all prompts"
-        echo ""
-        echo "A premium system update utility for macOS (Homebrew)."
-        echo "Automates updates, cache cleanup, and disk recovery."
-        exit 0
-        ;;
-    -v|--version)
-        echo "System Update Utility (macOS) v$SCRIPT_VERSION"
-        exit 0
-        ;;
-    -y|--yes)
-        AUTO_YES=true
-        shift
-        ;;
-esac
+while [ "$#" -gt 0 ]; do
+    case "$1" in
+        -h|--help)
+            echo "Usage: ./brew_update_util.sh [OPTIONS]"
+            echo ""
+            echo "Options:"
+            echo "  -h, --help       Show this help message and exit"
+            echo "  -v, --version    Show version information"
+            echo "  -y, --yes        Automatic yes to all prompts"
+            echo "  -d, --dry-run    Show what would be done without making changes"
+            echo "  --notify         Send desktop notification on completion"
+            echo ""
+            echo "A premium system update utility for macOS (Homebrew)."
+            echo "Automates updates, cache cleanup, and disk recovery."
+            exit 0
+            ;;
+        -v|--version)
+            echo "System Update Utility (macOS) v$SCRIPT_VERSION"
+            exit 0
+            ;;
+        -y|--yes)
+            AUTO_YES=true
+            ;;
+        -d|--dry-run)
+            DRY_RUN=true
+            ;;
+        --notify)
+            NOTIFY=true
+            ;;
+        *)
+            echo "Unknown option: $1"
+            exit 1
+            ;;
+    esac
+    shift
+done
 
 set -eu
 
@@ -55,6 +71,12 @@ YELLOW='\033[1;33m'
 BOLD='\033[1m'
 NC='\033[0m' # No Color
 
+send_notification() {
+    if [ "$NOTIFY" = true ]; then
+        osascript -e "display notification \"$1\" with title \"📦 System Update Toolkit\"" >/dev/null 2>&1 || true
+    fi
+}
+
 echo "${BOLD}${CYAN}**************************************************${NC}"
 echo "${BOLD}${CYAN}*        Homebrew System Update Utility          *${NC}"
 echo "${BOLD}${CYAN}**************************************************${NC}"
@@ -71,7 +93,11 @@ BREW_CACHE_BEFORE=${BREW_CACHE_BEFORE:-0}
 
 # 1. Update Homebrew
 printf "\n${BLUE}==>${NC} ${BOLD}Updating Homebrew definitions...${NC}\n"
-brew update
+if [ "$DRY_RUN" = true ]; then
+    echo "${CYAN}[DRY RUN] Would run: brew update${NC}"
+else
+    brew update
+fi
 
 # 2. Check for outdated packages
 OUTDATED_FORMULAE=$(brew outdated --formula | wc -l | xargs)
@@ -82,7 +108,11 @@ echo "${GREEN}Found $OUTDATED_FORMULAE outdated formulae and $OUTDATED_CASKS out
 # 3. Upgrade installed formulae
 if [ "$OUTDATED_FORMULAE" -gt 0 ]; then
     printf "\n${BLUE}==>${NC} ${BOLD}Upgrading installed formulae...${NC}\n"
-    brew upgrade
+    if [ "$DRY_RUN" = true ]; then
+        echo "${CYAN}[DRY RUN] Would run: brew upgrade${NC}"
+    else
+        brew upgrade
+    fi
 else
     printf "\n${GREEN}All formulae are already up to date.${NC}\n"
 fi
@@ -92,9 +122,17 @@ if [ "$OUTDATED_CASKS" -gt 0 ]; then
     printf "\n${BLUE}==>${NC} ${BOLD}Upgrading installed casks...${NC}\n"
     echo "${YELLOW}Tip: Greedy mode also upgrades casks that auto-update (Chrome, Slack, etc.).${NC}"
     if ask_user "Do you want to use greedy upgrade for casks?"; then
-        brew upgrade --cask --greedy
+        if [ "$DRY_RUN" = true ]; then
+            echo "${CYAN}[DRY RUN] Would run: brew upgrade --cask --greedy${NC}"
+        else
+            brew upgrade --cask --greedy
+        fi
     else
-        brew upgrade --cask
+        if [ "$DRY_RUN" = true ]; then
+            echo "${CYAN}[DRY RUN] Would run: brew upgrade --cask${NC}"
+        else
+            brew upgrade --cask
+        fi
     fi
 else
     printf "\n${GREEN}All casks are already up to date.${NC}\n"
@@ -102,16 +140,28 @@ fi
 
 # 5. Remove unused dependencies
 printf "\n${BLUE}==>${NC} ${BOLD}Removing unused dependencies (autoremove)...${NC}\n"
-brew autoremove
+if [ "$DRY_RUN" = true ]; then
+    echo "${CYAN}[DRY RUN] Would run: brew autoremove${NC}"
+else
+    brew autoremove
+fi
 
 # 6. Cleanup old versions and downloads
 printf "\n${BLUE}==>${NC} ${BOLD}Cleaning up Homebrew...${NC}\n"
-brew cleanup -s
+if [ "$DRY_RUN" = true ]; then
+    echo "${CYAN}[DRY RUN] Would run: brew cleanup -s${NC}"
+else
+    brew cleanup -s
+fi
 
 # 7. Optional: Remove old cached downloads
 if ask_user "Do you want to remove old cached downloads from ~/Library/Caches/Homebrew?"; then
     echo "Removing old cached downloads..."
-    rm -rf "$HOME/Library/Caches/Homebrew/"* 2>/dev/null
+    if [ "$DRY_RUN" = true ]; then
+        echo "${CYAN}[DRY RUN] Would run: rm -rf \"$HOME/Library/Caches/Homebrew/\"*${NC}"
+    else
+        rm -rf "$HOME/Library/Caches/Homebrew/"* 2>/dev/null
+    fi
 else
     echo "Skipping removal of Homebrew cache."
 fi
@@ -152,31 +202,39 @@ human_readable() {
 # Display summary
 CLEARED=$((BREW_CACHE_BEFORE - BREW_CACHE_AFTER))
 if [ "$CLEARED" -lt 0 ]; then CLEARED=0; fi
+HUMAN_SAVED=$(human_readable "$CLEARED")
 
-printf "\n${BOLD}${GREEN}========== CLEANUP SUMMARY ==========${NC}\n"
-echo "Homebrew cache cleared: ${BOLD}$(human_readable "$CLEARED")${NC}"
-echo "${BOLD}${GREEN}=====================================${NC}"
+printf "\n${BOLD}${CYAN}========== CLEANUP SUMMARY ==========${NC}\n"
+echo "${CYAN}Homebrew cache cleared: ${BOLD}$HUMAN_SAVED${NC}"
+echo "${BOLD}${CYAN}=====================================${NC}"
 
 # Optional terminal history clearing
 if ask_user "Do you want to clear terminal history?"; then
     echo "Clearing terminal history..."
-    if [ -n "${HISTFILE:-}" ] && [ -f "$HISTFILE" ]; then
-        : >"$HISTFILE"
-        echo "History file cleared."
+    if [ "$DRY_RUN" = true ]; then
+        echo "${CYAN}[DRY RUN] Would clear terminal history files${NC}"
     else
-        # Try default bash/zsh paths if HISTFILE is not set
-        if [ -f "$HOME/.zsh_history" ]; then
-            : >"$HOME/.zsh_history"
-            echo "Zsh history cleared."
-        elif [ -f "$HOME/.bash_history" ]; then
-            : >"$HOME/.bash_history"
-            echo "Bash history cleared."
+        if [ -n "${HISTFILE:-}" ] && [ -f "$HISTFILE" ]; then
+            : >"$HISTFILE"
+            echo "History file cleared."
         else
-            echo "No history file found."
+            # Try default bash/zsh paths if HISTFILE is not set
+            if [ -f "$HOME/.zsh_history" ]; then
+                : >"$HOME/.zsh_history"
+                echo "Zsh history cleared."
+            elif [ -f "$HOME/.bash_history" ]; then
+                : >"$HOME/.bash_history"
+                echo "Bash history cleared."
+            else
+                echo "No history file found."
+            fi
         fi
     fi
 else
     echo "Skipping terminal history clear."
 fi
 
-printf "\n${CYAN}%s - Homebrew system update completed successfully.${NC}\n" "$(date)"
+printf "\n${GREEN}%s - Homebrew system update completed successfully.${NC}\n" "$(date)"
+
+# Send desktop notification
+send_notification "Maintenance Complete! $HUMAN_SAVED recovered."

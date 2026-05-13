@@ -2,31 +2,47 @@
 # System Update Utility - Fedora/RHEL/CentOS
 # A premium, robust script to keep your RPM-based Linux environment in top shape.
 
-SCRIPT_VERSION="2.3"
+SCRIPT_VERSION="2.4"
 AUTO_YES=false
+DRY_RUN=false
+NOTIFY=false
 
-case "${1:-}" in
-    -h|--help)
-        echo "Usage: sudo ./fedora_update_util.sh [OPTIONS]"
-        echo ""
-        echo "Options:"
-        echo "  -h, --help       Show this help message and exit"
-        echo "  -v, --version    Show version information"
-        echo "  -y, --yes        Automatic yes to all prompts"
-        echo ""
-        echo "A premium system update utility for Fedora/RHEL/CentOS."
-        echo "Automates updates, cache cleanup, and disk recovery."
-        exit 0
-        ;;
-    -v|--version)
-        echo "System Update Utility (Fedora) v$SCRIPT_VERSION"
-        exit 0
-        ;;
-    -y|--yes)
-        AUTO_YES=true
-        shift
-        ;;
-esac
+while [ "$#" -gt 0 ]; do
+    case "$1" in
+        -h|--help)
+            echo "Usage: sudo ./fedora_update_util.sh [OPTIONS]"
+            echo ""
+            echo "Options:"
+            echo "  -h, --help       Show this help message and exit"
+            echo "  -v, --version    Show version information"
+            echo "  -y, --yes        Automatic yes to all prompts"
+            echo "  -d, --dry-run    Show what would be done without making changes"
+            echo "  --notify         Send desktop notification on completion"
+            echo ""
+            echo "A premium system update utility for Fedora/RHEL/CentOS."
+            echo "Automates updates, cache cleanup, and disk recovery."
+            exit 0
+            ;;
+        -v|--version)
+            echo "System Update Utility (Fedora) v$SCRIPT_VERSION"
+            exit 0
+            ;;
+        -y|--yes)
+            AUTO_YES=true
+            ;;
+        -d|--dry-run)
+            DRY_RUN=true
+            ;;
+        --notify)
+            NOTIFY=true
+            ;;
+        *)
+            echo "Unknown option: $1"
+            exit 1
+            ;;
+    esac
+    shift
+done
 
 set -eu
 
@@ -54,6 +70,12 @@ YELLOW='\033[1;33m'
 BOLD='\033[1m'
 NC='\033[0m' # No Color
 
+send_notification() {
+    if [ "$NOTIFY" = true ]; then
+        notify-send "📦 System Update Toolkit" "$1" >/dev/null 2>&1 || true
+    fi
+}
+
 echo "${BOLD}${CYAN}**************************************************${NC}"
 echo "${BOLD}${CYAN}*        Fedora System Update Utility            *${NC}"
 echo "${BOLD}${CYAN}**************************************************${NC}"
@@ -76,47 +98,87 @@ JOURNAL_BEFORE=$(journalctl --disk-usage --no-pager 2>/dev/null | grep "disk spa
 [ -z "$JOURNAL_BEFORE" ] && JOURNAL_BEFORE=0
 
 echo "${BLUE}==>${NC} ${BOLD}Refreshing package metadata and upgrading system...${NC}"
-sudo dnf upgrade --refresh -y
+if [ "$DRY_RUN" = true ]; then
+    echo "${CYAN}[DRY RUN] Would run: sudo dnf upgrade --refresh -y${NC}"
+else
+    sudo dnf upgrade --refresh -y
+fi
 
 echo "${BLUE}==>${NC} ${BOLD}Removing unnecessary packages...${NC}"
-sudo dnf autoremove -y
+if [ "$DRY_RUN" = true ]; then
+    echo "${CYAN}[DRY RUN] Would run: sudo dnf autoremove -y${NC}"
+else
+    sudo dnf autoremove -y
+fi
 
 echo "${BLUE}==>${NC} ${BOLD}Cleaning up DNF cache...${NC}"
-sudo dnf clean all
+if [ "$DRY_RUN" = true ]; then
+    echo "${CYAN}[DRY RUN] Would run: sudo dnf clean all${NC}"
+else
+    sudo dnf clean all
+fi
 
 if ask_user "Do you want to clear user application caches (~/.cache)?"; then
     echo "${BLUE}==>${NC} ${BOLD}Clearing user application cache...${NC}"
-    sudo rm -rf /home/*/.cache/* 2>/dev/null || true
+    if [ "$DRY_RUN" = true ]; then
+        echo "${CYAN}[DRY RUN] Would run: sudo rm -rf /home/*/.cache/*${NC}"
+    else
+        sudo rm -rf /home/*/.cache/* 2>/dev/null || true
+    fi
 
     echo "${BLUE}==>${NC} ${BOLD}Clearing thumbnail cache...${NC}"
-    sudo rm -rf /home/*/.cache/thumbnails/* 2>/dev/null || true
-    sudo rm -rf /home/*/.thumbnails/* 2>/dev/null || true
+    if [ "$DRY_RUN" = true ]; then
+        echo "${CYAN}[DRY RUN] Would run: sudo rm -rf /home/*/.cache/thumbnails/* && sudo rm -rf /home/*/.thumbnails/*${NC}"
+    else
+        sudo rm -rf /home/*/.cache/thumbnails/* 2>/dev/null || true
+        sudo rm -rf /home/*/.thumbnails/* 2>/dev/null || true
+    fi
 else
     echo "Skipping user cache cleanup."
 fi
 
 echo "${BLUE}==>${NC} ${BOLD}Cleaning systemd journal logs (keeping last 7 days)...${NC}"
-sudo journalctl --vacuum-time=7d
+if [ "$DRY_RUN" = true ]; then
+    echo "${CYAN}[DRY RUN] Would run: sudo journalctl --vacuum-time=7d${NC}"
+else
+    sudo journalctl --vacuum-time=7d
+fi
 
 if command -v flatpak >/dev/null 2>&1; then
     printf "\n${BLUE}==>${NC} ${BOLD}Updating Flatpak packages...${NC}\n"
-    sudo flatpak update -y
+    if [ "$DRY_RUN" = true ]; then
+        echo "${CYAN}[DRY RUN] Would run: sudo flatpak update -y${NC}"
+    else
+        sudo flatpak update -y
+    fi
     
     echo "${BLUE}==>${NC} ${BOLD}Removing unused Flatpak runtimes...${NC}"
-    sudo flatpak uninstall --unused -y
+    if [ "$DRY_RUN" = true ]; then
+        echo "${CYAN}[DRY RUN] Would run: sudo flatpak uninstall --unused -y${NC}"
+    else
+        sudo flatpak uninstall --unused -y
+    fi
 else
     printf "\n${YELLOW}Flatpak is not installed. Skipping.${NC}\n"
 fi
 
 if command -v snap >/dev/null 2>&1; then
     printf "\n${BLUE}==>${NC} ${BOLD}Updating Snap packages...${NC}\n"
-    sudo snap refresh
+    if [ "$DRY_RUN" = true ]; then
+        echo "${CYAN}[DRY RUN] Would run: sudo snap refresh${NC}"
+    else
+        sudo snap refresh
+    fi
 
     echo "${BLUE}==>${NC} ${BOLD}Removing old Snap revisions...${NC}"
     snap list --all | awk '/disabled/{print $1, $3}' | while read -r snapname revision
     do
         echo "Removing old revision: $snapname (rev $revision)"
-        sudo snap remove "$snapname" --revision="$revision" || true
+        if [ "$DRY_RUN" = true ]; then
+            echo "${CYAN}[DRY RUN] Would run: sudo snap remove \"$snapname\" --revision=\"$revision\"${NC}"
+        else
+            sudo snap remove "$snapname" --revision="$revision" || true
+        fi
     done
 fi
 
@@ -129,7 +191,7 @@ APP_CACHE_AFTER=$(du -sb /home/*/.cache 2>/dev/null | awk '{sum+=$1} END {print 
 JOURNAL_AFTER=$(journalctl --disk-usage --no-pager 2>/dev/null | grep "disk space" | awk '{print $6}' | numfmt --from=iec 2>/dev/null || echo 0)
 [ -z "$JOURNAL_AFTER" ] && JOURNAL_AFTER=0
 
-printf "\n${BOLD}${GREEN}========== CLEANUP SUMMARY ==========${NC}\n"
+printf "\n${BOLD}${CYAN}========== CLEANUP SUMMARY ==========${NC}\n"
 
 DNF_DIFF=$((DNF_CACHE_BEFORE - DNF_CACHE_AFTER))
 APP_DIFF=$((APP_CACHE_BEFORE - APP_CACHE_AFTER))
@@ -139,31 +201,34 @@ JOURNAL_DIFF=$((JOURNAL_BEFORE - JOURNAL_AFTER))
 [ "$APP_DIFF" -lt 0 ] && APP_DIFF=0
 [ "$JOURNAL_DIFF" -lt 0 ] && JOURNAL_DIFF=0
 
-if command -v numfmt >/dev/null 2>&1; then
-    echo "DNF cache cleared     : ${BOLD}$(numfmt --to=iec "$DNF_DIFF" 2>/dev/null)${NC}"
-    echo "App cache cleared     : ${BOLD}$(numfmt --to=iec "$APP_DIFF" 2>/dev/null)${NC}"
-    echo "Journal cleared       : ${BOLD}$(numfmt --to=iec "$JOURNAL_DIFF" 2>/dev/null)${NC}"
-    echo "Journal size after    : ${BOLD}$(numfmt --to=iec "$JOURNAL_AFTER" 2>/dev/null)${NC}"
-else
-    echo "DNF cache cleared     : ${BOLD}$((DNF_DIFF / 1024 / 1024)) MB${NC}"
-    echo "App cache cleared     : ${BOLD}$((APP_DIFF / 1024 / 1024)) MB${NC}"
-    echo "Journal cleared       : ${BOLD}$((JOURNAL_DIFF / 1024 / 1024)) MB${NC}"
-    echo "Journal size after    : ${BOLD}$((JOURNAL_AFTER / 1024 / 1024)) MB${NC}"
-fi
+TOTAL_SAVED=$((DNF_DIFF + APP_DIFF + JOURNAL_DIFF))
+HUMAN_TOTAL=$(numfmt --to=iec "$TOTAL_SAVED" 2>/dev/null || echo "$TOTAL_SAVED bytes")
 
-echo "${BOLD}${GREEN}=====================================${NC}"
+echo "DNF cache cleared     : ${BOLD}$(numfmt --to=iec "$DNF_DIFF" 2>/dev/null || echo "$DNF_DIFF bytes")${NC}"
+echo "App cache cleared     : ${BOLD}$(numfmt --to=iec "$APP_DIFF" 2>/dev/null || echo "$APP_DIFF bytes")${NC}"
+echo "Journal cleared       : ${BOLD}$(numfmt --to=iec "$JOURNAL_DIFF" 2>/dev/null || echo "$JOURNAL_DIFF bytes")${NC}"
+echo "-------------------------------------"
+echo "Total Recovered       : ${BOLD}${GREEN}$HUMAN_TOTAL${NC}"
+echo "${BOLD}${CYAN}=====================================${NC}"
 
 # Optional terminal history clearing
 if ask_user "Do you want to clear terminal history?"; then
     echo "Clearing terminal history..."
-    for f in "$HOME/.bash_history" "$HOME/.zsh_history"; do
-        if [ -f "$f" ]; then
-            : >"$f"
-            echo "Cleared $f"
-        fi
-    done
+    if [ "$DRY_RUN" = true ]; then
+        echo "${CYAN}[DRY RUN] Would clear terminal history files${NC}"
+    else
+        for f in "$HOME/.bash_history" "$HOME/.zsh_history"; do
+            if [ -f "$f" ]; then
+                : >"$f"
+                echo "Cleared $f"
+            fi
+        done
+    fi
 else
     echo "Skipping terminal history clear."
 fi
 
-printf "\n${CYAN}%s - System update completed successfully.${NC}\n" "$(date)" | sudo tee -a /var/log/sysupdate.log
+printf "\n${GREEN}%s - Fedora system update completed successfully.${NC}\n" "$(date)" | sudo tee -a /var/log/sysupdate.log
+
+# Send desktop notification
+send_notification "Maintenance Complete! $HUMAN_TOTAL recovered."

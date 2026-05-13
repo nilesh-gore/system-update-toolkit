@@ -4,18 +4,24 @@
 param(
     [Alias("y")]
     [switch]$Yes,
+    [Alias("d")]
+    [switch]$DryRun,
+    [switch]$Notify,
     [switch]$Help,
     [switch]$Version
 )
 
-$ScriptVersion = "2.3"
+$ScriptVersion = "2.4"
 $script:AutoYes = $Yes
+$script:IsDryRun = $DryRun
 
 if ($Help) {
-    Write-Host "Usage: .\win_update_util.ps1 [-Yes] [-Help] [-Version]"
+    Write-Host "Usage: .\win_update_util.ps1 [-Yes] [-DryRun] [-Notify] [-Help] [-Version]"
     Write-Host ""
     Write-Host "Options:"
     Write-Host "  -Yes, -y    Automatic yes to all prompts"
+    Write-Host "  -DryRun, -d Show what would be done without making changes"
+    Write-Host "  -Notify     Send desktop notification on completion"
     Write-Host "  -Help       Show this help message and exit"
     Write-Host "  -Version    Show version information"
     Write-Host ""
@@ -55,6 +61,14 @@ $RED = "`e[1;31m"
 $BOLD = "`e[1m"
 $NC = "`e[0m"
 
+function Send-Notification {
+    param([string]$Message)
+    if ($Notify) {
+        # msg is available on Pro/Enterprise. Silent fail on Home.
+        msg * /TIME:10 "📦 System Update Toolkit: $Message" 2>$null
+    }
+}
+
 Write-Host "${BOLD}${CYAN}**************************************************${NC}"
 Write-Host "${BOLD}${CYAN}*        Windows System Update Utility           *${NC}"
 Write-Host "${BOLD}${CYAN}**************************************************${NC}"
@@ -71,7 +85,11 @@ if (Get-Command winget -ErrorAction SilentlyContinue) {
     winget upgrade
 
     if (Confirm-Action "Do you want to upgrade all packages via Winget?") {
-        winget upgrade --all --include-unknown
+        if ($script:IsDryRun) {
+            Write-Host "${CYAN}[DRY RUN] Would run: winget upgrade --all --include-unknown${NC}"
+        } else {
+            winget upgrade --all --include-unknown
+        }
     }
 } else {
     Write-Host "`n${YELLOW}Winget not found. Skipping package updates.${NC}"
@@ -84,36 +102,56 @@ Write-Host "You can manually check in Microsoft Store -> Library -> Get updates.
 # 4. WSL Update (if applicable)
 if (Get-Command wsl -ErrorAction SilentlyContinue) {
     Write-Host "`n${BLUE}==>${NC} ${BOLD}Updating WSL kernel...${NC}"
-    wsl --update
+    if ($script:IsDryRun) {
+        Write-Host "${CYAN}[DRY RUN] Would run: wsl --update${NC}"
+    } else {
+        wsl --update
+    }
 }
 
 # 5. Disk Cleanup
 Write-Host "`n${BLUE}==>${NC} ${BOLD}Running System Cleanup...${NC}"
-Write-Host "${YELLOW}This will launch the Disk Cleanup tool. Please select the items you wish to clean.${NC}"
-Start-Process "cleanmgr.exe" -ArgumentList "/sagerun:1" -Wait
+if ($script:IsDryRun) {
+    Write-Host "${CYAN}[DRY RUN] Would launch: cleanmgr.exe /sagerun:1${NC}"
+} else {
+    Write-Host "${YELLOW}This will launch the Disk Cleanup tool. Please select the items you wish to clean.${NC}"
+    Start-Process "cleanmgr.exe" -ArgumentList "/sagerun:1" -Wait
+}
 
 # 6. Optional: Clear Temporary Files
 if (Confirm-Action "Do you want to clear system temporary files?") {
     Write-Host "Clearing Temp folders..."
     $tempFolders = @("$env:TEMP", "$env:SystemRoot\Temp")
     foreach ($folder in $tempFolders) {
-        Get-ChildItem $folder -Recurse | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
+        if ($script:IsDryRun) {
+            Write-Host "${CYAN}[DRY RUN] Would clear folder: $folder${NC}"
+        } else {
+            Get-ChildItem $folder -Recurse | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
+        }
     }
-    Write-Host "${GREEN}Temporary files cleared.${NC}"
+    Write-Host "${GREEN}Temporary files check complete.${NC}"
 }
 
 # 7. Optional: Clear PowerShell History
 if (Confirm-Action "Do you want to clear PowerShell history?") {
-    Clear-History
-    if (Test-Path (Get-PSReadLineOption).HistorySavePath) {
-        Remove-Item (Get-PSReadLineOption).HistorySavePath
+    Write-Host "Clearing PowerShell history..."
+    if ($script:IsDryRun) {
+        Write-Host "${CYAN}[DRY RUN] Would clear PSReadline history and session history${NC}"
+    } else {
+        Clear-History
+        if (Test-Path (Get-PSReadLineOption).HistorySavePath) {
+            Remove-Item (Get-PSReadLineOption).HistorySavePath
+        }
     }
-    Write-Host "${GREEN}PowerShell history cleared.${NC}"
+    Write-Host "${GREEN}PowerShell history check complete.${NC}"
 }
 
-Write-Host "`n${BOLD}${GREEN}========== CLEANUP SUMMARY ==========${NC}"
+Write-Host "`n${BOLD}${CYAN}========== CLEANUP SUMMARY ==========${NC}"
 Write-Host "Winget packages : ${BOLD}Checked & Updated${NC}"
-Write-Host "Temp files      : ${BOLD}Cleaned${NC}"
-Write-Host "${BOLD}${GREEN}=====================================${NC}"
+Write-Host "System Cleanup  : ${BOLD}Run${NC}"
+Write-Host "${BOLD}${CYAN}=====================================${NC}"
 
-Write-Host "`n${CYAN}$(Get-Date) - Windows system update completed successfully.${NC}"
+Write-Host "`n${GREEN}$(Get-Date) - Windows system update completed successfully.${NC}"
+
+# Send desktop notification
+Send-Notification "Maintenance Complete!"

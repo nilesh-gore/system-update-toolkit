@@ -25,9 +25,9 @@ Automate OS updates, purge caches, recover disk space, and keep your dev environ
 
 > *One script. All platforms. Gigabytes recovered.* 💾
 
-<img src="assets/terminal_preview.png" alt="System Update Toolkit - Automated system updates, cache cleanup, and disk space recovery for Linux macOS Windows ChromeOS" width="700">
+<img src="assets/social_card.png" alt="System Update Toolkit - Automated system updates, cache cleanup, and disk space recovery for Linux macOS Windows ChromeOS" width="800">
 
-*Premium color-coded terminal output with interactive cleanup summary*
+*The ultimate premium maintenance suite for developers*
 
 </div>
 
@@ -63,10 +63,12 @@ Whether you're a developer maintaining multiple machines, a sysadmin managing se
 | :--- | :--- |
 | ⏱️ **Time Saver** | One command replaces 10+ manual steps |
 | 🧹 **Disk Recovery** | Automatically cleans caches, old versions, and temp files |
-| 🛡️ **Safe & Non-destructive** | Only removes system caches and temporary data — your files are never touched |
-| 🎨 **Premium Terminal UI** | Beautiful ANSI color-coded output with progress indicators |
-| 🔄 **Interactive Prompts** | Choose what to clean — nothing runs without your confirmation |
-| 📊 **Cleanup Summary** | See exactly how much disk space was recovered |
+| 🛡️ **Safe Dry Run** | Use `-d` to see what will happen before touching any data |
+| 🔔 **Desktop Alerts** | Native OS notifications when maintenance is complete |
+| 🗓️ **Auto-Schedule** | Use `--schedule` to set up weekly automated maintenance |
+| 🎨 **Premium UI** | Beautiful ANSI color-coded output with progress indicators |
+| 🔄 **Interactive** | Choose exactly what to clean — nothing runs without your consent |
+| 📊 **Recovery Summary**| See exactly how much disk space was recovered |
 
 ---
 
@@ -97,7 +99,9 @@ Whether you're a developer maintaining multiple machines, a sysadmin managing se
 - ✅ Detects and displays running Homebrew background services
 - ✅ Interactive terminal history clearing (supports both Zsh and Bash)
 - ✅ Human-readable disk space recovery summary
-- ✅ **Yes to All** mode: type `a` at any prompt to auto-approve all remaining prompts
+- ✅ **Dry Run Support** (`-d`): Preview cleanup actions safely
+- ✅ **Desktop Notifications**: Pings you when updates are done
+- ✅ **Yes to All** mode: type `a` at any prompt, or use `-y` flag to auto-approve everything
 
 ### 🐧 Ubuntu / Debian — `update_util.sh`
 - ✅ Full system update (`apt-get update` + `full-upgrade`)
@@ -186,6 +190,9 @@ The primary entry point for all systems. It automatically detects the host OS an
 
 Options:
   -y, --yes     Automatic yes to all prompts
+  -d, --dry-run Preview what will happen without changes
+  --notify      Send desktop notification on completion
+  --schedule    Setup weekly automated maintenance (Unix)
   -h, --help    Show help message
   -v, --version Show version info
 ```
@@ -464,10 +471,10 @@ Contributions are what make the open-source community such an amazing place to l
 5. **Open** a Pull Request
 
 ### 💡 Ideas for Contributions
-- Add support for Fedora (`dnf`) and Arch Linux (`pacman`)
-- Create a unified wrapper script that auto-detects the OS
+- Add support for Arch Linux (`pacman`) and OpenSUSE (`zypper`)
 - Add Chocolatey support for Windows alongside Winget
-- Add notification support (desktop notifications on completion)
+- Add Docker cleanup logic (dangling images/volumes)
+- Implement a "Doctor" health check for Windows/Linux/Fedora
 
 ---
 
@@ -475,6 +482,7 @@ Contributions are what make the open-source community such an amazing place to l
 
 | Version | Date | Changes |
 | :--- | :--- | :--- |
+| **v2.4** | 2026-05-13 | **Trust & Automation Update**: Added `-d`/`--dry-run` mode, native desktop notifications, and `--schedule` for automated weekly maintenance |
 | **v2.3** | 2026-05-11 | **Major UX Overhaul**: Added `-y`/`--yes` CLI flags, modernized interactive prompts with `[y/n/a]` options, and added `toolkit.sh` unified wrapper |
 | **v2.2** | 2026-05-08 | Added GitHub Actions CI (ShellCheck & PSScriptAnalyzer), concurrency rules, universal curl installer, docs website, and fixed all linting warnings |
 | **v2.1** | 2026-05-08 | Added `a` (yes to all) interactive option across all prompts, `--help`/`--version` flags, made Linux cache wipes interactive, added disk stats & `apt-get check` to ChromeOS, added cleanup summary to Windows, fixed README inaccuracies, added LICENSE file |

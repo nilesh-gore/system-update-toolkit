@@ -2,31 +2,47 @@
 # System Update Utility - ChromeOS (Linux/Crostini)
 # A premium script tailored for the ChromeOS Linux environment.
 
-SCRIPT_VERSION="2.3"
+SCRIPT_VERSION="2.4"
 AUTO_YES=false
+DRY_RUN=false
+NOTIFY=false
 
-case "${1:-}" in
-    -h|--help)
-        echo "Usage: ./chromeos_update_util.sh [OPTIONS]"
-        echo ""
-        echo "Options:"
-        echo "  -h, --help       Show this help message and exit"
-        echo "  -v, --version    Show version information"
-        echo "  -y, --yes        Automatic yes to all prompts"
-        echo ""
-        echo "A premium system update utility for ChromeOS (Crostini)."
-        echo "Automates updates, cache cleanup, and disk recovery."
-        exit 0
-        ;;
-    -v|--version)
-        echo "System Update Utility (ChromeOS) v$SCRIPT_VERSION"
-        exit 0
-        ;;
-    -y|--yes)
-        AUTO_YES=true
-        shift
-        ;;
-esac
+while [ "$#" -gt 0 ]; do
+    case "$1" in
+        -h|--help)
+            echo "Usage: ./chromeos_update_util.sh [OPTIONS]"
+            echo ""
+            echo "Options:"
+            echo "  -h, --help       Show this help message and exit"
+            echo "  -v, --version    Show version information"
+            echo "  -y, --yes        Automatic yes to all prompts"
+            echo "  -d, --dry-run    Show what would be done without making changes"
+            echo "  --notify         Send desktop notification on completion"
+            echo ""
+            echo "A premium system update utility for ChromeOS (Crostini)."
+            echo "Automates updates, cache cleanup, and disk recovery."
+            exit 0
+            ;;
+        -v|--version)
+            echo "System Update Utility (ChromeOS) v$SCRIPT_VERSION"
+            exit 0
+            ;;
+        -y|--yes)
+            AUTO_YES=true
+            ;;
+        -d|--dry-run)
+            DRY_RUN=true
+            ;;
+        --notify)
+            NOTIFY=true
+            ;;
+        *)
+            echo "Unknown option: $1"
+            exit 1
+            ;;
+    esac
+    shift
+done
 
 set -eu
 
@@ -55,6 +71,12 @@ YELLOW='\033[1;33m'
 BOLD='\033[1m'
 NC='\033[0m' # No Color
 
+send_notification() {
+    if [ "$NOTIFY" = true ]; then
+        notify-send "📦 System Update Toolkit" "$1" >/dev/null 2>&1 || true
+    fi
+}
+
 echo "${BOLD}${CYAN}**************************************************${NC}"
 echo "${BOLD}${CYAN}*       ChromeOS Linux Update Utility            *${NC}"
 echo "${BOLD}${CYAN}**************************************************${NC}"
@@ -66,31 +88,49 @@ APT_CACHE_BEFORE=${APT_CACHE_BEFORE:-0}
 
 # 1. Update Debian System (Crostini base)
 printf "\n${BLUE}==>${NC} ${BOLD}Updating system package definitions...${NC}\n"
-sudo apt-get update -y
+if [ "$DRY_RUN" = true ]; then
+    echo "${CYAN}[DRY RUN] Would run: sudo apt-get update -y${NC}"
+else
+    sudo apt-get update -y
+fi
 
 echo "${BLUE}==>${NC} ${BOLD}Upgrading installed packages...${NC}"
-sudo apt-get full-upgrade -y
+if [ "$DRY_RUN" = true ]; then
+    echo "${CYAN}[DRY RUN] Would run: sudo apt-get full-upgrade -y${NC}"
+else
+    sudo apt-get full-upgrade -y
+fi
 
 # 2. Update Flatpaks (Common on ChromeOS for GUI apps)
 if command -v flatpak >/dev/null 2>&1; then
     printf "\n${BLUE}==>${NC} ${BOLD}Updating Flatpak applications...${NC}\n"
-    flatpak update -y
-    echo "${BLUE}==>${NC} ${BOLD}Removing unused Flatpak runtimes...${NC}"
-    flatpak uninstall --unused -y
-else
-    printf "\n${YELLOW}Flatpak not installed. Skipping Flatpak updates.${NC}\n"
+    if [ "$DRY_RUN" = true ]; then
+        echo "${CYAN}[DRY RUN] Would run: flatpak update -y && flatpak uninstall --unused -y${NC}"
+    else
+        flatpak update -y
+        echo "${BLUE}==>${NC} ${BOLD}Removing unused Flatpak runtimes...${NC}"
+        flatpak uninstall --unused -y
+    fi
 fi
 
 # 3. Clean up APT
 printf "\n${BLUE}==>${NC} ${BOLD}Cleaning up system package cache...${NC}\n"
-sudo apt-get autoremove -y
-sudo apt-get autoclean -y
+if [ "$DRY_RUN" = true ]; then
+    echo "${CYAN}[DRY RUN] Would run: sudo apt-get autoremove -y && sudo apt-get autoclean -y${NC}"
+else
+    sudo apt-get autoremove -y
+    sudo apt-get autoclean -y
+fi
 
 # 4. Optional: Update Global NPM Packages
 if command -v npm >/dev/null 2>&1; then
     if ask_user "Do you want to check for global NPM package updates?"; then
         echo "Checking global NPM packages..."
-        sudo npm update -g || echo "${RED}Some NPM packages failed to update.${NC}"
+        if [ "$DRY_RUN" = true ]; then
+            echo "${CYAN}[DRY RUN] Would run: sudo npm update -g${NC}"
+        else
+            sudo npm update -g || echo "${RED}Some NPM packages failed to update.${NC}"
+        fi
     fi
 fi
 
@@ -98,10 +138,12 @@ fi
 if command -v pip3 >/dev/null 2>&1; then
     if ask_user "Do you want to check for global Python (pip3) package updates?"; then
         echo "Updating pip and global packages..."
-        python3 -m pip install --upgrade pip
-        # Note: Upgrading all global pips can be risky, so we just do pip itself by default
-        # but we can list outdated ones
-        pip3 list --outdated
+        if [ "$DRY_RUN" = true ]; then
+            echo "${CYAN}[DRY RUN] Would run: python3 -m pip install --upgrade pip && pip3 list --outdated${NC}"
+        else
+            python3 -m pip install --upgrade pip
+            pip3 list --outdated
+        fi
     fi
 fi
 
@@ -116,22 +158,29 @@ APT_CACHE_AFTER=${APT_CACHE_AFTER:-0}
 CLEARED=$((APT_CACHE_BEFORE - APT_CACHE_AFTER))
 if [ "$CLEARED" -lt 0 ]; then CLEARED=0; fi
 
-printf "\n${BOLD}${GREEN}========== CLEANUP SUMMARY ==========${NC}\n"
+printf "\n${BOLD}${CYAN}========== CLEANUP SUMMARY ==========${NC}\n"
 echo "APT cache cleared : ${BOLD}${CLEARED} KB${NC}"
 echo "System packages   : ${BOLD}Updated & Cleaned${NC}"
 if command -v flatpak >/dev/null 2>&1; then
     echo "Flatpak apps      : ${BOLD}Updated${NC}"
 fi
-echo "${BOLD}${GREEN}=====================================${NC}"
+echo "${BOLD}${CYAN}=====================================${NC}"
 
 # 8. Optional terminal history clearing
 if ask_user "Do you want to clear terminal history?"; then
     echo "Clearing terminal history..."
-    [ -f "$HOME/.bash_history" ] && : >"$HOME/.bash_history"
-    [ -f "$HOME/.zsh_history" ] && : >"$HOME/.zsh_history"
-    echo "History cleared."
+    if [ "$DRY_RUN" = true ]; then
+        echo "${CYAN}[DRY RUN] Would clear terminal history files${NC}"
+    else
+        [ -f "$HOME/.bash_history" ] && : >"$HOME/.bash_history"
+        [ -f "$HOME/.zsh_history" ] && : >"$HOME/.zsh_history"
+        echo "History cleared."
+    fi
 else
     echo "Skipping history clear."
 fi
 
-printf "\n${CYAN}%s - ChromeOS Linux update completed successfully.${NC}\n" "$(date)"
+printf "\n${GREEN}%s - ChromeOS maintenance completed successfully.${NC}\n" "$(date)"
+
+# Send desktop notification
+send_notification "ChromeOS Maintenance Complete!"

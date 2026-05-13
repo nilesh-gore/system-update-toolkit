@@ -9,7 +9,7 @@
 # License: MIT
 # ==============================================================================
 
-SCRIPT_VERSION="2.3"
+SCRIPT_VERSION="2.4"
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 # Color definitions
@@ -84,16 +84,38 @@ case "${1:-}" in
         echo "Usage: ./toolkit.sh [OPTIONS]"
         echo ""
         echo "The unified entry point for the System Update Toolkit."
-        echo "It automatically detects your OS and runs the correct script."
+        echo "It automatically detects your OS and runs the correct maintenance script."
         echo ""
-        echo "Common Options (passed to sub-scripts):"
-        echo "  -h, --help       Show this help"
-        echo "  -v, --version    Show version"
-        echo "  -a               Yes to all prompts (interactive)"
+        echo "Options:"
+        echo "  -h, --help       Show this help and exit"
+        echo "  -v, --version    Show version information"
+        echo "  -y, --yes        Automatic yes to all prompts (non-interactive)"
+        echo "  -d, --dry-run    Show what would be done without making changes"
+        echo "  --notify         Send desktop notification on completion"
+        echo "  --schedule       Setup weekly automated maintenance (Unix only)"
         exit 0
         ;;
     -v|--version)
         echo "System Update Toolkit v$SCRIPT_VERSION (Unified Wrapper)"
+        exit 0
+        ;;
+    --schedule)
+        OS=$(detect_os)
+        if [ "$OS" = "windows" ] || [ "$OS" = "unknown" ]; then
+            echo "${RED}❌ Error: Automated scheduling is currently only supported on Unix-based systems (Linux/macOS).${NC}"
+            echo "For Windows, please use 'Task Scheduler' to run toolkit.ps1 weekly."
+            exit 1
+        fi
+        printf "${YELLOW}Setting up weekly maintenance (Mondays at Midnight)...${NC}\n"
+        # Check if crontab exists, if not create empty one
+        crontab -l > /tmp/cron_bkp 2>/dev/null || touch /tmp/cron_bkp
+        # Remove existing toolkit entries to avoid duplicates
+        grep -v "toolkit.sh" /tmp/cron_bkp > /tmp/cron_new
+        # Add new entry
+        echo "0 0 * * 1 \"$SCRIPT_DIR/toolkit.sh\" -y --notify > /dev/null 2>&1" >> /tmp/cron_new
+        crontab /tmp/cron_new
+        rm /tmp/cron_bkp /tmp/cron_new
+        echo "${GREEN}✅ Successfully scheduled weekly maintenance!${NC}"
         exit 0
         ;;
 esac

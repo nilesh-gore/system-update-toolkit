@@ -2,31 +2,47 @@
 # System Update Utility - Ubuntu/Debian
 # A premium, robust script to keep your Linux environment in top shape.
 
-SCRIPT_VERSION="2.3"
+SCRIPT_VERSION="2.4"
 AUTO_YES=false
+DRY_RUN=false
+NOTIFY=false
 
-case "${1:-}" in
-    -h|--help)
-        echo "Usage: sudo ./update_util.sh [OPTIONS]"
-        echo ""
-        echo "Options:"
-        echo "  -h, --help       Show this help message and exit"
-        echo "  -v, --version    Show version information"
-        echo "  -y, --yes        Automatic yes to all prompts"
-        echo ""
-        echo "A premium system update utility for Ubuntu/Debian."
-        echo "Automates updates, cache cleanup, and disk recovery."
-        exit 0
-        ;;
-    -v|--version)
-        echo "System Update Utility (Linux) v$SCRIPT_VERSION"
-        exit 0
-        ;;
-    -y|--yes)
-        AUTO_YES=true
-        shift
-        ;;
-esac
+while [ "$#" -gt 0 ]; do
+    case "$1" in
+        -h|--help)
+            echo "Usage: sudo ./update_util.sh [OPTIONS]"
+            echo ""
+            echo "Options:"
+            echo "  -h, --help       Show this help message and exit"
+            echo "  -v, --version    Show version information"
+            echo "  -y, --yes        Automatic yes to all prompts"
+            echo "  -d, --dry-run    Show what would be done without making changes"
+            echo "  --notify         Send desktop notification on completion"
+            echo ""
+            echo "A premium system update utility for Ubuntu/Debian."
+            echo "Automates updates, cache cleanup, and disk recovery."
+            exit 0
+            ;;
+        -v|--version)
+            echo "System Update Utility (Linux) v$SCRIPT_VERSION"
+            exit 0
+            ;;
+        -y|--yes)
+            AUTO_YES=true
+            ;;
+        -d|--dry-run)
+            DRY_RUN=true
+            ;;
+        --notify)
+            NOTIFY=true
+            ;;
+        *)
+            echo "Unknown option: $1"
+            exit 1
+            ;;
+    esac
+    shift
+done
 
 set -eu
 
@@ -55,6 +71,12 @@ YELLOW='\033[1;33m'
 BOLD='\033[1m'
 NC='\033[0m' # No Color
 
+send_notification() {
+    if [ "$NOTIFY" = true ]; then
+        notify-send "📦 System Update Toolkit" "$1" >/dev/null 2>&1 || true
+    fi
+}
+
 echo "${BOLD}${CYAN}**************************************************${NC}"
 echo "${BOLD}${CYAN}*        Linux System Update Utility             *${NC}"
 echo "${BOLD}${CYAN}**************************************************${NC}"
@@ -75,37 +97,73 @@ JOURNAL_BEFORE=$(journalctl --disk-usage --no-pager 2>/dev/null | \
 [ -z "$JOURNAL_BEFORE" ] && JOURNAL_BEFORE=0
 
 echo "${BLUE}==>${NC} ${BOLD}Updating package list...${NC}"
-sudo apt-get update -y
+if [ "$DRY_RUN" = true ]; then
+    echo "${CYAN}[DRY RUN] Would run: sudo apt-get update -y${NC}"
+else
+    sudo apt-get update -y
+fi
 
 echo "${BLUE}==>${NC} ${BOLD}Upgrading installed packages...${NC}"
-sudo apt-get full-upgrade -y
+if [ "$DRY_RUN" = true ]; then
+    echo "${CYAN}[DRY RUN] Would run: sudo apt-get full-upgrade -y${NC}"
+else
+    sudo apt-get full-upgrade -y
+fi
 
 echo "${BLUE}==>${NC} ${BOLD}Installing missing dependencies (if any)...${NC}"
-sudo apt-get install -f -y
+if [ "$DRY_RUN" = true ]; then
+    echo "${CYAN}[DRY RUN] Would run: sudo apt-get install -f -y${NC}"
+else
+    sudo apt-get install -f -y
+fi
 
 echo "${BLUE}==>${NC} ${BOLD}Reconfiguring any broken packages...${NC}"
-sudo dpkg --configure -a
+if [ "$DRY_RUN" = true ]; then
+    echo "${CYAN}[DRY RUN] Would run: sudo dpkg --configure -a${NC}"
+else
+    sudo dpkg --configure -a
+fi
 
 echo "${BLUE}==>${NC} ${BOLD}Removing unnecessary packages...${NC}"
-sudo apt-get autoremove --purge -y
+if [ "$DRY_RUN" = true ]; then
+    echo "${CYAN}[DRY RUN] Would run: sudo apt-get autoremove --purge -y${NC}"
+else
+    sudo apt-get autoremove --purge -y
+fi
 
 echo "${BLUE}==>${NC} ${BOLD}Cleaning up retrieved package files...${NC}"
-sudo apt-get autoclean -y
-sudo apt-get clean -y
+if [ "$DRY_RUN" = true ]; then
+    echo "${CYAN}[DRY RUN] Would run: sudo apt-get autoclean -y && sudo apt-get clean -y${NC}"
+else
+    sudo apt-get autoclean -y
+    sudo apt-get clean -y
+fi
 
 if ask_user "Do you want to clear user application caches (~/.cache)?"; then
     echo "${BLUE}==>${NC} ${BOLD}Clearing user application cache...${NC}"
-    sudo rm -rf /home/*/.cache/* 2>/dev/null
+    if [ "$DRY_RUN" = true ]; then
+        echo "${CYAN}[DRY RUN] Would run: sudo rm -rf /home/*/.cache/*${NC}"
+    else
+        sudo rm -rf /home/*/.cache/* 2>/dev/null
+    fi
 
     echo "${BLUE}==>${NC} ${BOLD}Clearing thumbnail cache...${NC}"
-    sudo rm -rf /home/*/.cache/thumbnails/* 2>/dev/null
-    sudo rm -rf /home/*/.thumbnails/* 2>/dev/null
+    if [ "$DRY_RUN" = true ]; then
+        echo "${CYAN}[DRY RUN] Would run: sudo rm -rf /home/*/.cache/thumbnails/* && sudo rm -rf /home/*/.thumbnails/*${NC}"
+    else
+        sudo rm -rf /home/*/.cache/thumbnails/* 2>/dev/null
+        sudo rm -rf /home/*/.thumbnails/* 2>/dev/null
+    fi
 else
     echo "Skipping user cache cleanup."
 fi
 
 echo "${BLUE}==>${NC} ${BOLD}Cleaning systemd journal logs (keeping last 7 days)...${NC}"
-sudo journalctl --vacuum-time=7d
+if [ "$DRY_RUN" = true ]; then
+    echo "${CYAN}[DRY RUN] Would run: sudo journalctl --vacuum-time=7d${NC}"
+else
+    sudo journalctl --vacuum-time=7d
+fi
 
 echo "${BLUE}==>${NC} ${BOLD}Listing held packages...${NC}"
 sudo apt-mark showhold
@@ -119,13 +177,21 @@ fi
 
 if command -v snap >/dev/null 2>&1; then
     printf "\n${BLUE}==>${NC} ${BOLD}Updating Snap packages...${NC}\n"
-    sudo snap refresh
+    if [ "$DRY_RUN" = true ]; then
+        echo "${CYAN}[DRY RUN] Would run: sudo snap refresh${NC}"
+    else
+        sudo snap refresh
+    fi
 
     echo "${BLUE}==>${NC} ${BOLD}Removing old Snap revisions...${NC}"
     snap list --all | awk '/disabled/{print $1, $3}' | while read -r snapname revision
     do
         echo "Removing old revision: $snapname (rev $revision)"
-        sudo snap remove "$snapname" --revision="$revision"
+        if [ "$DRY_RUN" = true ]; then
+            echo "${CYAN}[DRY RUN] Would run: sudo snap remove \"$snapname\" --revision=\"$revision\"${NC}"
+        else
+            sudo snap remove "$snapname" --revision="$revision"
+        fi
     done
 else
     printf "\n${YELLOW}Snap is not installed.${NC}\n"
@@ -144,7 +210,7 @@ JOURNAL_AFTER=$(journalctl --disk-usage --no-pager 2>/dev/null | \
     grep "disk space" | awk '{print $6}' | numfmt --from=iec 2>/dev/null)
 [ -z "$JOURNAL_AFTER" ] && JOURNAL_AFTER=0
 
-printf "\n${BOLD}${GREEN}========== CLEANUP SUMMARY ==========${NC}\n"
+printf "\n${BOLD}${CYAN}========== CLEANUP SUMMARY ==========${NC}\n"
 
 APT_DIFF=$((APT_CACHE_BEFORE - APT_CACHE_AFTER))
 APP_DIFF=$((APP_CACHE_BEFORE - APP_CACHE_AFTER))
@@ -154,25 +220,35 @@ JOURNAL_DIFF=$((JOURNAL_BEFORE - JOURNAL_AFTER))
 [ "$APP_DIFF" -lt 0 ] && APP_DIFF=0
 [ "$JOURNAL_DIFF" -lt 0 ] && JOURNAL_DIFF=0
 
-echo "APT cache cleared     : ${BOLD}$(numfmt --to=iec "$APT_DIFF" 2>/dev/null)${NC}"
-echo "App cache cleared     : ${BOLD}$(numfmt --to=iec "$APP_DIFF" 2>/dev/null)${NC}"
-echo "Journal cleared       : ${BOLD}$(numfmt --to=iec "$JOURNAL_DIFF" 2>/dev/null)${NC}"
-echo "Journal size after    : ${BOLD}$(numfmt --to=iec "$JOURNAL_AFTER" 2>/dev/null)${NC}"
+TOTAL_SAVED=$((APT_DIFF + APP_DIFF + JOURNAL_DIFF))
+HUMAN_TOTAL=$(numfmt --to=iec "$TOTAL_SAVED" 2>/dev/null || echo "$TOTAL_SAVED bytes")
 
-echo "${BOLD}${GREEN}=====================================${NC}"
+echo "APT cache cleared     : ${BOLD}$(numfmt --to=iec "$APT_DIFF" 2>/dev/null || echo "$APT_DIFF bytes")${NC}"
+echo "App cache cleared     : ${BOLD}$(numfmt --to=iec "$APP_DIFF" 2>/dev/null || echo "$APP_DIFF bytes")${NC}"
+echo "Journal cleared       : ${BOLD}$(numfmt --to=iec "$JOURNAL_DIFF" 2>/dev/null || echo "$JOURNAL_DIFF bytes")${NC}"
+echo "-------------------------------------"
+echo "Total Recovered       : ${BOLD}${GREEN}$HUMAN_TOTAL${NC}"
+echo "${BOLD}${CYAN}=====================================${NC}"
 
 # Optional terminal history clearing
 if ask_user "Do you want to clear terminal history?"; then
     echo "Clearing terminal history..."
-    # Try to clear common history files
-    for f in "$HOME/.bash_history" "$HOME/.zsh_history"; do
-        if [ -f "$f" ]; then
-            : >"$f"
-            echo "Cleared $f"
-        fi
-    done
+    if [ "$DRY_RUN" = true ]; then
+        echo "${CYAN}[DRY RUN] Would clear terminal history files${NC}"
+    else
+        # Try to clear common history files
+        for f in "$HOME/.bash_history" "$HOME/.zsh_history"; do
+            if [ -f "$f" ]; then
+                : >"$f"
+                echo "Cleared $f"
+            fi
+        done
+    fi
 else
     echo "Skipping terminal history clear."
 fi
 
-printf "\n${CYAN}%s - System update completed successfully.${NC}\n" "$(date)" | sudo tee -a /var/log/sysupdate.log
+printf "\n${GREEN}%s - Linux system update completed successfully.${NC}\n" "$(date)" | sudo tee -a /var/log/sysupdate.log
+
+# Send desktop notification
+send_notification "Maintenance Complete! $HUMAN_TOTAL recovered."
