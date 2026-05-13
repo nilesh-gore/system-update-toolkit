@@ -1,4 +1,4 @@
-# Windows System Update Utility
+﻿# Windows System Update Utility
 # A premium PowerShell script to keep your Windows environment in top shape.
 
 param(
@@ -14,6 +14,7 @@ param(
 $ScriptVersion = "2.4"
 $script:AutoYes = $Yes
 $script:IsDryRun = $DryRun
+$script:NotifyUser = $Notify
 
 if ($Help) {
     Write-Host "Usage: .\win_update_util.ps1 [-Yes] [-DryRun] [-Notify] [-Help] [-Version]"
@@ -63,7 +64,7 @@ $NC = "`e[0m"
 
 function Send-Notification {
     param([string]$Message)
-    if ($Notify) {
+    if ($script:NotifyUser) {
         # msg is available on Pro/Enterprise. Silent fail on Home.
         msg * /TIME:10 "📦 System Update Toolkit: $Message" 2>$null
     }
