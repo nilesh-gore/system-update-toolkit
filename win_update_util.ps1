@@ -1,4 +1,4 @@
-# Windows System Update Utility
+﻿# Windows System Update Utility
 # A premium PowerShell script to keep your Windows environment in top shape.
 
 param(
