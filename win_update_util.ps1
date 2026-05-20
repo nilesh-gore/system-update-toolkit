@@ -38,6 +38,16 @@ if ($Version) {
 
 $ErrorActionPreference = "Stop"
 
+# Visual settings
+$Host.UI.RawUI.WindowTitle = "Windows System Update Utility"
+$CYAN = "`e[1;36m"
+$GREEN = "`e[1;32m"
+$YELLOW = "`e[1;33m"
+$BLUE = "`e[1;34m"
+$RED = "`e[1;31m"
+$BOLD = "`e[1m"
+$NC = "`e[0m"
+
 # Helper function: prompt user with y/n/a support
 function Confirm-Action {
     param([string]$Prompt)
@@ -52,21 +62,11 @@ function Confirm-Action {
     }
 }
 
-# Visual settings
-$Host.UI.RawUI.WindowTitle = "Windows System Update Utility"
-$CYAN = "`e[1;36m"
-$GREEN = "`e[1;32m"
-$YELLOW = "`e[1;33m"
-$BLUE = "`e[1;34m"
-$RED = "`e[1;31m"
-$BOLD = "`e[1m"
-$NC = "`e[0m"
-
 function Send-Notification {
     param([string]$Message)
     if ($script:NotifyUser) {
         try {
-            [void] [System.Reflection.Assembly]::LoadWithPartialName("System.Windows.Forms")
+            Add-Type -AssemblyName System.Windows.Forms, System.Drawing
             $objNotifyIcon = New-Object System.Windows.Forms.NotifyIcon
             $objNotifyIcon.Icon = [System.Drawing.SystemIcons]::Information
             $objNotifyIcon.BalloonTipIcon = "Info"
