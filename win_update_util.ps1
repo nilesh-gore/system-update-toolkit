@@ -1,4 +1,4 @@
-﻿# Windows System Update Utility
+# Windows System Update Utility
 # A premium PowerShell script to keep your Windows environment in top shape.
 
 param(
@@ -11,7 +11,7 @@ param(
     [switch]$Version
 )
 
-$ScriptVersion = "2.4"
+$ScriptVersion = "2.5"
 $script:AutoYes = $Yes
 $script:IsDryRun = $DryRun
 $script:NotifyUser = $Notify
@@ -65,8 +65,19 @@ $NC = "`e[0m"
 function Send-Notification {
     param([string]$Message)
     if ($script:NotifyUser) {
-        # msg is available on Pro/Enterprise. Silent fail on Home.
-        msg * /TIME:10 "📦 System Update Toolkit: $Message" 2>$null
+        try {
+            [void] [System.Reflection.Assembly]::LoadWithPartialName("System.Windows.Forms")
+            $objNotifyIcon = New-Object System.Windows.Forms.NotifyIcon
+            $objNotifyIcon.Icon = [System.Drawing.SystemIcons]::Information
+            $objNotifyIcon.BalloonTipIcon = "Info"
+            $objNotifyIcon.BalloonTipText = "Maintenance Complete! $Message"
+            $objNotifyIcon.BalloonTipTitle = "System Update Toolkit"
+            $objNotifyIcon.Visible = $true
+            $objNotifyIcon.ShowBalloonTip(10000)
+        } catch {
+            # Fallback to msg command if UI assemblies fail (e.g. headless/Server)
+            msg * /TIME:10 "📦 System Update Toolkit: $Message" 2>$null
+        }
     }
 }
 
@@ -140,8 +151,9 @@ if (Confirm-Action "Do you want to clear PowerShell history?") {
         Write-Host "${CYAN}[DRY RUN] Would clear PSReadline history and session history${NC}"
     } else {
         Clear-History
-        if (Test-Path (Get-PSReadLineOption).HistorySavePath) {
-            Remove-Item (Get-PSReadLineOption).HistorySavePath
+        $histPath = (Get-PSReadLineOption).HistorySavePath
+        if ($histPath -and (Test-Path $histPath)) {
+            Clear-Content $histPath -ErrorAction SilentlyContinue
         }
     }
     Write-Host "${GREEN}PowerShell history check complete.${NC}"

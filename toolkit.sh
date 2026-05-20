@@ -9,8 +9,10 @@
 # License: MIT
 # ==============================================================================
 
-SCRIPT_VERSION="2.4"
+SCRIPT_VERSION="2.5"
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+
+set -eu
 
 # Color definitions
 CYAN='\033[0;36m'
@@ -107,14 +109,17 @@ case "${1:-}" in
             exit 1
         fi
         printf "${YELLOW}Setting up weekly maintenance (Mondays at Midnight)...${NC}\n"
+        # Create secure temporary files
+        cron_bkp=$(mktemp)
+        cron_new=$(mktemp)
         # Check if crontab exists, if not create empty one
-        crontab -l > /tmp/cron_bkp 2>/dev/null || touch /tmp/cron_bkp
+        crontab -l > "$cron_bkp" 2>/dev/null || touch "$cron_bkp"
         # Remove existing toolkit entries to avoid duplicates
-        grep -v "toolkit.sh" /tmp/cron_bkp > /tmp/cron_new
+        grep -v "toolkit.sh" "$cron_bkp" > "$cron_new"
         # Add new entry
-        echo "0 0 * * 1 \"$SCRIPT_DIR/toolkit.sh\" -y --notify > /dev/null 2>&1" >> /tmp/cron_new
-        crontab /tmp/cron_new
-        rm /tmp/cron_bkp /tmp/cron_new
+        echo "0 0 * * 1 \"$SCRIPT_DIR/toolkit.sh\" -y --notify > /dev/null 2>&1" >> "$cron_new"
+        crontab "$cron_new"
+        rm -f "$cron_bkp" "$cron_new"
         echo "${GREEN}✅ Successfully scheduled weekly maintenance!${NC}"
         exit 0
         ;;
@@ -136,9 +141,18 @@ case "$OS" in
         run_script "chromeos_update_util.sh" "ChromeOS (Linux)" "$@"
         ;;
     windows)
-        echo "${GREEN}✅ Detected OS: ${BOLD}Windows${NC}"
-        echo "${YELLOW}⚠️  Note: On Windows, please run the PowerShell script directly:${NC}"
-        echo "   ${BOLD}powershell -File \".\win_update_util.ps1\"${NC}"
+        printf "${GREEN}✅ Detected OS: ${BOLD}Windows${NC}\n"
+        if command -v powershell.exe >/dev/null 2>&1 || command -v powershell >/dev/null 2>&1; then
+            printf "${CYAN}🚀 Launching PowerShell utility...${NC}\n\n"
+            if command -v powershell.exe >/dev/null 2>&1; then
+                powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$SCRIPT_DIR/win_update_util.ps1" "$@"
+            else
+                powershell -NoProfile -ExecutionPolicy Bypass -File "$SCRIPT_DIR/win_update_util.ps1" "$@"
+            fi
+        else
+            echo "${YELLOW}⚠️  PowerShell not found. Please run the PowerShell script manually:${NC}"
+            echo "   powershell -File \".\win_update_util.ps1\""
+        fi
         exit 0
         ;;
     linux_generic)

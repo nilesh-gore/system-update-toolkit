@@ -2,7 +2,7 @@
 # System Update Utility - Ubuntu/Debian
 # A premium, robust script to keep your Linux environment in top shape.
 
-SCRIPT_VERSION="2.4"
+SCRIPT_VERSION="2.5"
 AUTO_YES=false
 DRY_RUN=false
 NOTIFY=false
@@ -95,6 +95,9 @@ APP_CACHE_BEFORE=$(du -sb /home/*/.cache 2>/dev/null | awk '{sum+=$1} END {print
 JOURNAL_BEFORE=$(journalctl --disk-usage --no-pager 2>/dev/null | \
     grep "disk space" | awk '{print $6}' | numfmt --from=iec 2>/dev/null)
 [ -z "$JOURNAL_BEFORE" ] && JOURNAL_BEFORE=0
+
+DISK_BEFORE=$(df -B1 "${HOME:-/}" 2>/dev/null | tail -1 | awk '{print $4}')
+[ -z "$DISK_BEFORE" ] && DISK_BEFORE=0
 
 echo "${BLUE}==>${NC} ${BOLD}Updating package list...${NC}"
 if [ "$DRY_RUN" = true ]; then
@@ -210,6 +213,9 @@ JOURNAL_AFTER=$(journalctl --disk-usage --no-pager 2>/dev/null | \
     grep "disk space" | awk '{print $6}' | numfmt --from=iec 2>/dev/null)
 [ -z "$JOURNAL_AFTER" ] && JOURNAL_AFTER=0
 
+DISK_AFTER=$(df -B1 "${HOME:-/}" 2>/dev/null | tail -1 | awk '{print $4}')
+[ -z "$DISK_AFTER" ] && DISK_AFTER=0
+
 printf "\n${BOLD}${CYAN}========== CLEANUP SUMMARY ==========${NC}\n"
 
 APT_DIFF=$((APT_CACHE_BEFORE - APT_CACHE_AFTER))
@@ -223,11 +229,16 @@ JOURNAL_DIFF=$((JOURNAL_BEFORE - JOURNAL_AFTER))
 TOTAL_SAVED=$((APT_DIFF + APP_DIFF + JOURNAL_DIFF))
 HUMAN_TOTAL=$(numfmt --to=iec "$TOTAL_SAVED" 2>/dev/null || echo "$TOTAL_SAVED bytes")
 
+PART_CLEARED=$((DISK_AFTER - DISK_BEFORE))
+[ "$PART_CLEARED" -lt 0 ] && PART_CLEARED=0
+HUMAN_PART_SAVED=$(numfmt --to=iec "$PART_CLEARED" 2>/dev/null || echo "$PART_CLEARED bytes")
+
 echo "APT cache cleared     : ${BOLD}$(numfmt --to=iec "$APT_DIFF" 2>/dev/null || echo "$APT_DIFF bytes")${NC}"
 echo "App cache cleared     : ${BOLD}$(numfmt --to=iec "$APP_DIFF" 2>/dev/null || echo "$APP_DIFF bytes")${NC}"
 echo "Journal cleared       : ${BOLD}$(numfmt --to=iec "$JOURNAL_DIFF" 2>/dev/null || echo "$JOURNAL_DIFF bytes")${NC}"
 echo "-------------------------------------"
-echo "Total Recovered       : ${BOLD}${GREEN}$HUMAN_TOTAL${NC}"
+echo "Specific Caches Saved : ${BOLD}${GREEN}$HUMAN_TOTAL${NC}"
+echo "Total Partition Saved : ${BOLD}${GREEN}$HUMAN_PART_SAVED${NC}"
 echo "${BOLD}${CYAN}=====================================${NC}"
 
 # Optional terminal history clearing
@@ -251,4 +262,8 @@ fi
 printf "\n${GREEN}%s - Linux system update completed successfully.${NC}\n" "$(date)" | sudo tee -a /var/log/sysupdate.log
 
 # Send desktop notification
-send_notification "Maintenance Complete! $HUMAN_TOTAL recovered."
+if [ "$PART_CLEARED" -gt "$TOTAL_SAVED" ]; then
+    send_notification "Maintenance Complete! $HUMAN_PART_SAVED recovered."
+else
+    send_notification "Maintenance Complete! $HUMAN_TOTAL recovered."
+fi

@@ -2,7 +2,7 @@
 # System Update Utility - ChromeOS (Linux/Crostini)
 # A premium script tailored for the ChromeOS Linux environment.
 
-SCRIPT_VERSION="2.4"
+SCRIPT_VERSION="2.5"
 AUTO_YES=false
 DRY_RUN=false
 NOTIFY=false
@@ -83,8 +83,11 @@ echo "${BOLD}${CYAN}**************************************************${NC}"
 
 # Capture disk usage before cleanup
 printf "\n${BLUE}==>${NC} ${BOLD}Collecting disk usage before cleanup...${NC}\n"
-APT_CACHE_BEFORE=$(du -sk /var/cache/apt/archives 2>/dev/null | awk '{print $1}')
-APT_CACHE_BEFORE=${APT_CACHE_BEFORE:-0}
+APT_CACHE_BEFORE=$(du -sb /var/cache/apt/archives 2>/dev/null | awk '{print $1}')
+[ -z "$APT_CACHE_BEFORE" ] && APT_CACHE_BEFORE=0
+
+DISK_BEFORE=$(df -B1 "${HOME:-/}" 2>/dev/null | tail -1 | awk '{print $4}')
+[ -z "$DISK_BEFORE" ] && DISK_BEFORE=0
 
 # 1. Update Debian System (Crostini base)
 printf "\n${BLUE}==>${NC} ${BOLD}Updating system package definitions...${NC}\n"
@@ -152,17 +155,26 @@ printf "\n${BLUE}==>${NC} ${BOLD}Checking for system file inconsistencies...${NC
 sudo apt-get check
 
 # 7. Disk Space Summary
-APT_CACHE_AFTER=$(du -sk /var/cache/apt/archives 2>/dev/null | awk '{print $1}')
-APT_CACHE_AFTER=${APT_CACHE_AFTER:-0}
+APT_CACHE_AFTER=$(du -sb /var/cache/apt/archives 2>/dev/null | awk '{print $1}')
+[ -z "$APT_CACHE_AFTER" ] && APT_CACHE_AFTER=0
+
+DISK_AFTER=$(df -B1 "${HOME:-/}" 2>/dev/null | tail -1 | awk '{print $4}')
+[ -z "$DISK_AFTER" ] && DISK_AFTER=0
 
 CLEARED=$((APT_CACHE_BEFORE - APT_CACHE_AFTER))
-if [ "$CLEARED" -lt 0 ]; then CLEARED=0; fi
+[ "$CLEARED" -lt 0 ] && CLEARED=0
+HUMAN_CLEARED=$(numfmt --to=iec "$CLEARED" 2>/dev/null || echo "$CLEARED bytes")
+
+PART_CLEARED=$((DISK_AFTER - DISK_BEFORE))
+[ "$PART_CLEARED" -lt 0 ] && PART_CLEARED=0
+HUMAN_PART_SAVED=$(numfmt --to=iec "$PART_CLEARED" 2>/dev/null || echo "$PART_CLEARED bytes")
 
 printf "\n${BOLD}${CYAN}========== CLEANUP SUMMARY ==========${NC}\n"
-echo "APT cache cleared : ${BOLD}${CLEARED} KB${NC}"
-echo "System packages   : ${BOLD}Updated & Cleaned${NC}"
+echo "APT cache cleared     : ${BOLD}$HUMAN_CLEARED${NC}"
+echo "Total Partition Saved : ${BOLD}${GREEN}$HUMAN_PART_SAVED${NC}"
+echo "System packages       : ${BOLD}Updated & Cleaned${NC}"
 if command -v flatpak >/dev/null 2>&1; then
-    echo "Flatpak apps      : ${BOLD}Updated${NC}"
+    echo "Flatpak apps          : ${BOLD}Updated & Unused Removed${NC}"
 fi
 echo "${BOLD}${CYAN}=====================================${NC}"
 
@@ -172,8 +184,13 @@ if ask_user "Do you want to clear terminal history?"; then
     if [ "$DRY_RUN" = true ]; then
         echo "${CYAN}[DRY RUN] Would clear terminal history files${NC}"
     else
-        [ -f "$HOME/.bash_history" ] && : >"$HOME/.bash_history"
-        [ -f "$HOME/.zsh_history" ] && : >"$HOME/.zsh_history"
+        # Try to clear common history files
+        for f in "$HOME/.bash_history" "$HOME/.zsh_history"; do
+            if [ -f "$f" ]; then
+                : >"$f"
+                echo "Cleared $f"
+            fi
+        done
         echo "History cleared."
     fi
 else
@@ -183,4 +200,8 @@ fi
 printf "\n${GREEN}%s - ChromeOS maintenance completed successfully.${NC}\n" "$(date)"
 
 # Send desktop notification
-send_notification "ChromeOS Maintenance Complete!"
+if [ "$PART_CLEARED" -gt "$CLEARED" ]; then
+    send_notification "ChromeOS Maintenance Complete! $HUMAN_PART_SAVED recovered."
+else
+    send_notification "ChromeOS Maintenance Complete! $HUMAN_CLEARED recovered."
+fi

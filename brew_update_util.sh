@@ -2,7 +2,7 @@
 # Brew System Update Utility - macOS
 # A premium, interactive script to keep your Homebrew environment in top shape.
 
-SCRIPT_VERSION="2.3"
+SCRIPT_VERSION="2.5"
 AUTO_YES=false
 DRY_RUN=false
 NOTIFY=false
@@ -91,6 +91,10 @@ fi
 BREW_CACHE_BEFORE=$(du -sk "$(brew --cache)" 2>/dev/null | awk '{print $1}')
 BREW_CACHE_BEFORE=${BREW_CACHE_BEFORE:-0}
 
+# Capture partition available space before cleanup (in KB)
+DISK_BEFORE=$(df -k "${HOME:-/}" 2>/dev/null | tail -1 | awk '{print $4}')
+DISK_BEFORE=${DISK_BEFORE:-0}
+
 # 1. Update Homebrew
 printf "\n${BLUE}==>${NC} ${BOLD}Updating Homebrew definitions...${NC}\n"
 if [ "$DRY_RUN" = true ]; then
@@ -157,10 +161,15 @@ fi
 # 7. Optional: Remove old cached downloads
 if ask_user "Do you want to remove old cached downloads from ~/Library/Caches/Homebrew?"; then
     echo "Removing old cached downloads..."
-    if [ "$DRY_RUN" = true ]; then
-        echo "${CYAN}[DRY RUN] Would run: rm -rf \"$HOME/Library/Caches/Homebrew/\"*${NC}"
+    _cache_dir="${HOME:-}/Library/Caches/Homebrew"
+    if [ -n "${HOME:-}" ] && [ -d "$_cache_dir" ]; then
+        if [ "$DRY_RUN" = true ]; then
+            echo "${CYAN}[DRY RUN] Would run: rm -rf \"$_cache_dir/\"*${NC}"
+        else
+            rm -rf "${_cache_dir:?}"/* 2>/dev/null || true
+        fi
     else
-        rm -rf "$HOME/Library/Caches/Homebrew/"* 2>/dev/null
+        echo "Home directory or cache directory not found. Skipping."
     fi
 else
     echo "Skipping removal of Homebrew cache."
@@ -171,9 +180,19 @@ if command -v brew services >/dev/null 2>&1; then
     printf "\n${BLUE}==>${NC} ${BOLD}Checking Homebrew services...${NC}\n"
     # Check if any services are started
     if brew services list | grep -q "started"; then
-        echo "${YELLOW}Note: Some services are running. If they were updated, you might need to restart them.${NC}"
+        echo "${YELLOW}Note: Some services are running. If they were updated, they may need a restart.${NC}"
         if ask_user "Would you like to see the list of running services?"; then
             brew services list
+        fi
+        if ask_user "Would you like to restart all started Homebrew services to apply any updates?"; then
+            if [ "$DRY_RUN" = true ]; then
+                echo "${CYAN}[DRY RUN] Would restart all started services${NC}"
+            else
+                brew services list | grep "started" | awk '{print $1}' | while read -r svc; do
+                    echo "Restarting service: $svc..."
+                    brew services restart "$svc"
+                done
+            fi
         fi
     fi
 fi
@@ -187,6 +206,10 @@ fi
 # Capture disk usage after cleanup
 BREW_CACHE_AFTER=$(du -sk "$(brew --cache)" 2>/dev/null | awk '{print $1}')
 BREW_CACHE_AFTER=${BREW_CACHE_AFTER:-0}
+
+# Capture partition available space after cleanup (in KB)
+DISK_AFTER=$(df -k "${HOME:-/}" 2>/dev/null | tail -1 | awk '{print $4}')
+DISK_AFTER=${DISK_AFTER:-0}
 
 # Human readable function (macOS compatible)
 human_readable() {
@@ -204,8 +227,13 @@ CLEARED=$((BREW_CACHE_BEFORE - BREW_CACHE_AFTER))
 if [ "$CLEARED" -lt 0 ]; then CLEARED=0; fi
 HUMAN_SAVED=$(human_readable "$CLEARED")
 
+PART_CLEARED=$((DISK_AFTER - DISK_BEFORE))
+if [ "$PART_CLEARED" -lt 0 ]; then PART_CLEARED=0; fi
+HUMAN_PART_SAVED=$(human_readable "$PART_CLEARED")
+
 printf "\n${BOLD}${CYAN}========== CLEANUP SUMMARY ==========${NC}\n"
-echo "${CYAN}Homebrew cache cleared: ${BOLD}$HUMAN_SAVED${NC}"
+echo "${CYAN}Homebrew cache cleared  : ${BOLD}$HUMAN_SAVED${NC}"
+echo "${CYAN}Total partition cleared : ${BOLD}$HUMAN_PART_SAVED${NC}"
 echo "${BOLD}${CYAN}=====================================${NC}"
 
 # Optional terminal history clearing
@@ -237,4 +265,8 @@ fi
 printf "\n${GREEN}%s - Homebrew system update completed successfully.${NC}\n" "$(date)"
 
 # Send desktop notification
-send_notification "Maintenance Complete! $HUMAN_SAVED recovered."
+if [ "$PART_CLEARED" -gt "$CLEARED" ]; then
+    send_notification "Maintenance Complete! $HUMAN_PART_SAVED recovered."
+else
+    send_notification "Maintenance Complete! $HUMAN_SAVED recovered."
+fi

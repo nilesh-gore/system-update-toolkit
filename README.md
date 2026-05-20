@@ -96,9 +96,9 @@ Whether you're a developer maintaining multiple machines, a sysadmin managing se
 - ✅ Runs `brew cleanup` to purge old versions
 - ✅ Optional cache purge (`~/Library/Caches/Homebrew`)
 - ✅ Integrated `brew doctor` health check
-- ✅ Detects and displays running Homebrew background services
+- ✅ Detects running Homebrew background services and **autorestarts** updated ones
 - ✅ Interactive terminal history clearing (supports both Zsh and Bash)
-- ✅ Human-readable disk space recovery summary
+- ✅ Real-time disk partition space tracking via `df` (total physical storage reclaimed)
 - ✅ **Dry Run Support** (`-d`): Preview cleanup actions safely
 - ✅ **Desktop Notifications**: Pings you when updates are done
 - ✅ **Yes to All** mode: type `a` at any prompt, or use `-y` flag to auto-approve everything
@@ -112,28 +112,31 @@ Whether you're a developer maintaining multiple machines, a sysadmin managing se
 - ✅ Package integrity verification via `debsums`
 - ✅ System file consistency check (`apt-get check`)
 - ✅ Logs all operations to `/var/log/sysupdate.log`
-- ✅ Human-readable cleanup summary with before/after comparison
+- ✅ Real-time disk partition space tracking via `df` (total physical storage reclaimed)
 - ✅ **Yes to All** mode: type `a` at any prompt to auto-approve all remaining prompts
 
 ### 🎩 Fedora / RHEL / CentOS — `fedora_update_util.sh`
-- ✅ Full system update (`dnf upgrade --refresh`)
+- ✅ Next-gen **DNF5** package manager support with seamless `dnf` fallback
+- ✅ Full system update (`dnf upgrade --refresh` / `dnf5 upgrade --refresh`)
 - ✅ Removes unused dependencies (`dnf autoremove`)
 - ✅ Deep cleanup: DNF cache (`dnf clean all`), app caches (`~/.cache`)
 - ✅ Systemd journal log rotation (keeps only last 7 days)
 - ✅ Flatpak app updates and unused runtime removal
 - ✅ Optional Snap package refresh and old revision removal
-- ✅ Human-readable cleanup summary with before/after comparison
+- ✅ Real-time disk partition space tracking via `df` (total physical storage reclaimed)
 - ✅ **Yes to All** mode: type `a` at any prompt to auto-approve all remaining prompts
 
 ### 🪟 Windows — `win_update_util.ps1`
+- ✅ Integrated execution from the **Shell wrapper** (`toolkit.sh`) in MSYS/Git Bash
 - ✅ Lists and upgrades all apps via **Winget** (Windows Package Manager)
 - ✅ Optional `--include-unknown` flag for comprehensive upgrades
 - ✅ WSL kernel update (`wsl --update`)
 - ✅ Native Disk Cleanup tool integration (`cleanmgr`)
 - ✅ Purges system and user `%TEMP%` directories
-- ✅ Clears PowerShell command history and PSReadLine history
+- ✅ Clears PowerShell history and PSReadLine history securely with **robust locking protection**
+- ✅ Native **.NET Toast Notifications** (`System.Windows.Forms.NotifyIcon`) on all Windows editions
 - ✅ Admin privilege detection with warnings
-- ✅ Windows Store app update reminder
+- ✅ Windows Store app reminder
 - ✅ **Yes to All** mode: type `a` at any prompt to auto-approve all remaining prompts
 
 ### 💻 ChromeOS — `chromeos_update_util.sh`
@@ -143,6 +146,7 @@ Whether you're a developer maintaining multiple machines, a sysadmin managing se
 - ✅ Optional global NPM package updates
 - ✅ Optional Python pip upgrade and outdated package listing
 - ✅ Interactive terminal history clearing
+- ✅ Real-time disk partition space tracking via `df`
 - ✅ **Yes to All** mode: type `a` at any prompt to auto-approve all remaining prompts
 
 ---
@@ -482,6 +486,7 @@ Contributions are what make the open-source community such an amazing place to l
 
 | Version | Date | Changes |
 | :--- | :--- | :--- |
+| **v2.5** | 2026-05-20 | **Premium & Robustness Update**: Dynamic DNF5 support for Fedora 41+, premium Windows native .NET toast notifications, active Windows execution in standard wrapper `toolkit.sh` via Git Bash, secure scheduling using POSIX-compliant `mktemp`, robust PowerShell history wiping (`Clear-Content`), and real-time physical partition space tracking via `df` |
 | **v2.4** | 2026-05-13 | **Trust & Automation Update**: Added `-d`/`--dry-run` mode, native desktop notifications, and `--schedule` for automated weekly maintenance |
 | **v2.3** | 2026-05-11 | **Major UX Overhaul**: Added `-y`/`--yes` CLI flags, modernized interactive prompts with `[y/n/a]` options, and added `toolkit.sh` unified wrapper |
 | **v2.2** | 2026-05-08 | Added GitHub Actions CI (ShellCheck & PSScriptAnalyzer), concurrency rules, universal curl installer, docs website, and fixed all linting warnings |

@@ -2,7 +2,7 @@
 # System Update Utility - Fedora/RHEL/CentOS
 # A premium, robust script to keep your RPM-based Linux environment in top shape.
 
-SCRIPT_VERSION="2.4"
+SCRIPT_VERSION="2.5"
 AUTO_YES=false
 DRY_RUN=false
 NOTIFY=false
@@ -80,15 +80,20 @@ echo "${BOLD}${CYAN}**************************************************${NC}"
 echo "${BOLD}${CYAN}*        Fedora System Update Utility            *${NC}"
 echo "${BOLD}${CYAN}**************************************************${NC}"
 
-# Check for dnf
-if ! command -v dnf >/dev/null 2>&1; then
-    echo "${RED}Error: dnf package manager not found. This script requires a Fedora/RHEL-based system.${NC}"
+# Check for dnf or dnf5
+if command -v dnf5 >/dev/null 2>&1; then
+    DNF_CMD="dnf5"
+elif command -v dnf >/dev/null 2>&1; then
+    DNF_CMD="dnf"
+else
+    echo "${RED}Error: dnf/dnf5 package manager not found. This script requires a Fedora/RHEL-based system.${NC}"
     exit 1
 fi
 
 printf "\n${BLUE}==>${NC} ${BOLD}Collecting disk usage before cleanup...${NC}\n"
 
-DNF_CACHE_BEFORE=$(du -sb /var/cache/dnf 2>/dev/null | awk '{print $1}')
+# Capture DNF cache size (handles both dnf and dnf5)
+DNF_CACHE_BEFORE=$(du -sb /var/cache/dnf /var/cache/dnf5 2>/dev/null | awk '{sum+=$1} END {print sum}')
 [ -z "$DNF_CACHE_BEFORE" ] && DNF_CACHE_BEFORE=0
 
 APP_CACHE_BEFORE=$(du -sb /home/*/.cache 2>/dev/null | awk '{sum+=$1} END {print sum}')
@@ -97,25 +102,28 @@ APP_CACHE_BEFORE=$(du -sb /home/*/.cache 2>/dev/null | awk '{sum+=$1} END {print
 JOURNAL_BEFORE=$(journalctl --disk-usage --no-pager 2>/dev/null | grep "disk space" | awk '{print $6}' | numfmt --from=iec 2>/dev/null || echo 0)
 [ -z "$JOURNAL_BEFORE" ] && JOURNAL_BEFORE=0
 
-echo "${BLUE}==>${NC} ${BOLD}Refreshing package metadata and upgrading system...${NC}"
+DISK_BEFORE=$(df -B1 "${HOME:-/}" 2>/dev/null | tail -1 | awk '{print $4}')
+[ -z "$DISK_BEFORE" ] && DISK_BEFORE=0
+
+echo "${BLUE}==>${NC} ${BOLD}Refreshing package metadata and upgrading system via $DNF_CMD...${NC}"
 if [ "$DRY_RUN" = true ]; then
-    echo "${CYAN}[DRY RUN] Would run: sudo dnf upgrade --refresh -y${NC}"
+    echo "${CYAN}[DRY RUN] Would run: sudo $DNF_CMD upgrade --refresh -y${NC}"
 else
-    sudo dnf upgrade --refresh -y
+    sudo $DNF_CMD upgrade --refresh -y
 fi
 
 echo "${BLUE}==>${NC} ${BOLD}Removing unnecessary packages...${NC}"
 if [ "$DRY_RUN" = true ]; then
-    echo "${CYAN}[DRY RUN] Would run: sudo dnf autoremove -y${NC}"
+    echo "${CYAN}[DRY RUN] Would run: sudo $DNF_CMD autoremove -y${NC}"
 else
-    sudo dnf autoremove -y
+    sudo $DNF_CMD autoremove -y
 fi
 
-echo "${BLUE}==>${NC} ${BOLD}Cleaning up DNF cache...${NC}"
+echo "${BLUE}==>${NC} ${BOLD}Cleaning up $DNF_CMD cache...${NC}"
 if [ "$DRY_RUN" = true ]; then
-    echo "${CYAN}[DRY RUN] Would run: sudo dnf clean all${NC}"
+    echo "${CYAN}[DRY RUN] Would run: sudo $DNF_CMD clean all${NC}"
 else
-    sudo dnf clean all
+    sudo $DNF_CMD clean all
 fi
 
 if ask_user "Do you want to clear user application caches (~/.cache)?"; then
@@ -182,7 +190,7 @@ if command -v snap >/dev/null 2>&1; then
     done
 fi
 
-DNF_CACHE_AFTER=$(du -sb /var/cache/dnf 2>/dev/null | awk '{print $1}')
+DNF_CACHE_AFTER=$(du -sb /var/cache/dnf /var/cache/dnf5 2>/dev/null | awk '{sum+=$1} END {print sum}')
 [ -z "$DNF_CACHE_AFTER" ] && DNF_CACHE_AFTER=0
 
 APP_CACHE_AFTER=$(du -sb /home/*/.cache 2>/dev/null | awk '{sum+=$1} END {print sum}')
@@ -190,6 +198,9 @@ APP_CACHE_AFTER=$(du -sb /home/*/.cache 2>/dev/null | awk '{sum+=$1} END {print 
 
 JOURNAL_AFTER=$(journalctl --disk-usage --no-pager 2>/dev/null | grep "disk space" | awk '{print $6}' | numfmt --from=iec 2>/dev/null || echo 0)
 [ -z "$JOURNAL_AFTER" ] && JOURNAL_AFTER=0
+
+DISK_AFTER=$(df -B1 "${HOME:-/}" 2>/dev/null | tail -1 | awk '{print $4}')
+[ -z "$DISK_AFTER" ] && DISK_AFTER=0
 
 printf "\n${BOLD}${CYAN}========== CLEANUP SUMMARY ==========${NC}\n"
 
@@ -204,11 +215,16 @@ JOURNAL_DIFF=$((JOURNAL_BEFORE - JOURNAL_AFTER))
 TOTAL_SAVED=$((DNF_DIFF + APP_DIFF + JOURNAL_DIFF))
 HUMAN_TOTAL=$(numfmt --to=iec "$TOTAL_SAVED" 2>/dev/null || echo "$TOTAL_SAVED bytes")
 
+PART_CLEARED=$((DISK_AFTER - DISK_BEFORE))
+[ "$PART_CLEARED" -lt 0 ] && PART_CLEARED=0
+HUMAN_PART_SAVED=$(numfmt --to=iec "$PART_CLEARED" 2>/dev/null || echo "$PART_CLEARED bytes")
+
 echo "DNF cache cleared     : ${BOLD}$(numfmt --to=iec "$DNF_DIFF" 2>/dev/null || echo "$DNF_DIFF bytes")${NC}"
 echo "App cache cleared     : ${BOLD}$(numfmt --to=iec "$APP_DIFF" 2>/dev/null || echo "$APP_DIFF bytes")${NC}"
 echo "Journal cleared       : ${BOLD}$(numfmt --to=iec "$JOURNAL_DIFF" 2>/dev/null || echo "$JOURNAL_DIFF bytes")${NC}"
 echo "-------------------------------------"
-echo "Total Recovered       : ${BOLD}${GREEN}$HUMAN_TOTAL${NC}"
+echo "Specific Caches Saved : ${BOLD}${GREEN}$HUMAN_TOTAL${NC}"
+echo "Total Partition Saved : ${BOLD}${GREEN}$HUMAN_PART_SAVED${NC}"
 echo "${BOLD}${CYAN}=====================================${NC}"
 
 # Optional terminal history clearing
@@ -231,4 +247,8 @@ fi
 printf "\n${GREEN}%s - Fedora system update completed successfully.${NC}\n" "$(date)" | sudo tee -a /var/log/sysupdate.log
 
 # Send desktop notification
-send_notification "Maintenance Complete! $HUMAN_TOTAL recovered."
+if [ "$PART_CLEARED" -gt "$TOTAL_SAVED" ]; then
+    send_notification "Maintenance Complete! $HUMAN_PART_SAVED recovered."
+else
+    send_notification "Maintenance Complete! $HUMAN_TOTAL recovered."
+fi
