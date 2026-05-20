@@ -306,47 +306,10 @@ Step 8  →  Optional: Clear terminal history
 
 ## 📸 Screenshots & Terminal Output
 
-### macOS — Homebrew Update
-```
-**************************************************
-*        Homebrew System Update Utility          *
-**************************************************
+<div align="center">
+  <img src="assets/terminal_preview.png" alt="System Update Toolkit Terminal Output" width="600">
+</div>
 
-==> Updating Homebrew definitions...
-==> Updating Homebrew...
-Already up-to-date.
-Found 3 outdated formulae and 1 outdated casks.
-
-==> Upgrading installed formulae...
-🍺  python@3.12/3.12.13_2: 3,606 files, 70.2MB
-🍺  gradle/9.5.0: 11,459 files, 193.6MB
-
-==> Removing unused dependencies (autoremove)...
-
-========== CLEANUP SUMMARY ==========
-Homebrew cache cleared: 245.30 MB
-=====================================
-
-Thu May  7 18:05:11 IST 2026 - Homebrew system update completed successfully.
-```
-
-### Linux — APT Update
-```
-**************************************************
-*        Linux System Update Utility             *
-**************************************************
-
-==> Updating system package definitions...
-==> Upgrading installed packages...
-==> Removing unnecessary packages...
-==> Cleaning systemd journal logs (keeping last 7 days)...
-
-========== CLEANUP SUMMARY ==========
-APT cache cleared     : 1.2G
-App cache cleared     : 450M
-Journal cleared       : 120M
-=====================================
-```
 
 ---
 
