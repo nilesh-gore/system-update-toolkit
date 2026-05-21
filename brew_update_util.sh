@@ -2,7 +2,7 @@
 # Brew System Update Utility - macOS
 # A premium, interactive script to keep your Homebrew environment in top shape.
 
-SCRIPT_VERSION="2.5"
+SCRIPT_VERSION="2.6"
 AUTO_YES=false
 DRY_RUN=false
 NOTIFY=false
@@ -94,6 +94,14 @@ BREW_CACHE_BEFORE=${BREW_CACHE_BEFORE:-0}
 # Capture partition available space before cleanup (in KB)
 DISK_BEFORE=$(df -k "${HOME:-/}" 2>/dev/null | tail -1 | awk '{print $4}')
 DISK_BEFORE=${DISK_BEFORE:-0}
+
+# Check for Low Storage Alert (10 GB threshold = 10485760 KB)
+if [ "$DISK_BEFORE" -gt 0 ] && [ "$DISK_BEFORE" -lt 10485760 ]; then
+    DISK_GB=$(awk -v k="$DISK_BEFORE" 'BEGIN {printf "%.2f", k/1024/1024}')
+    printf "${RED}⚠️  WARNING: Low Disk Space! Only ${DISK_GB} GB available on system partition.${NC}\n"
+    printf "${YELLOW}Your system may experience severe slowdowns. Running toolkit to recover space is highly recommended!${NC}\n\n"
+    send_notification "⚠️ Low Disk Space! Only ${DISK_GB} GB remaining."
+fi
 
 # 1. Update Homebrew
 printf "\n${BLUE}==>${NC} ${BOLD}Updating Homebrew definitions...${NC}\n"

@@ -1,4 +1,4 @@
-﻿# Windows System Update Utility
+# Windows System Update Utility
 # A premium PowerShell script to keep your Windows environment in top shape.
 
 param(
@@ -11,7 +11,7 @@ param(
     [switch]$Version
 )
 
-$ScriptVersion = "2.5"
+$ScriptVersion = "2.6"
 $script:AutoYes = $Yes
 $script:IsDryRun = $DryRun
 $script:NotifyUser = $Notify
@@ -85,10 +85,23 @@ Write-Host "${BOLD}${CYAN}**************************************************${NC
 Write-Host "${BOLD}${CYAN}*        Windows System Update Utility           *${NC}"
 Write-Host "${BOLD}${CYAN}**************************************************${NC}"
 
-# 1. Check for Admin Privileges
-$currentPrincipal = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())
-if (-not $currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
-    Write-Host "${RED}Warning: Not running as Administrator. Some tasks may fail.${NC}"
+# 1. Check for Admin Privileges (Windows only)
+if ($IsWindows -ne $false) {
+    $currentPrincipal = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())
+    if (-not $currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
+        Write-Host "${RED}Warning: Not running as Administrator. Some tasks may fail.${NC}"
+    }
+}
+
+
+# 1.5 Check for Low Storage Alert (10 GB threshold = 10737418240 bytes)
+$systemDrive = $env:SystemDrive
+$driveInfo = Get-PSDrive -Name $systemDrive[0] -ErrorAction SilentlyContinue
+if ($driveInfo -and $driveInfo.Free -lt 10737418240) {
+    $freeGB = [Math]::Round($driveInfo.Free / 1GB, 2)
+    Write-Host "${RED}⚠️  WARNING: Low Disk Space! Only ${freeGB} GB available on drive ${systemDrive}.${NC}"
+    Write-Host "${YELLOW}Your system may experience severe slowdowns. Running toolkit to recover space is highly recommended!${NC}"
+    Send-Notification "⚠️ Low Disk Space! Only ${freeGB} GB remaining."
 }
 
 # 2. Update Winget Packages

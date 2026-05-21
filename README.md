@@ -69,6 +69,7 @@ Whether you're a developer maintaining multiple machines, a sysadmin managing se
 | 🎨 **Premium UI** | Beautiful ANSI color-coded output with progress indicators |
 | 🔄 **Interactive** | Choose exactly what to clean — nothing runs without your consent |
 | 📊 **Recovery Summary**| See exactly how much disk space was recovered |
+| ⚠️ **Storage Warning**| Instant alert when free space drops below 10 GB to prevent system lag |
 
 ---
 
@@ -102,6 +103,7 @@ Whether you're a developer maintaining multiple machines, a sysadmin managing se
 - ✅ **Dry Run Support** (`-d`): Preview cleanup actions safely
 - ✅ **Desktop Notifications**: Pings you when updates are done
 - ✅ **Yes to All** mode: type `a` at any prompt, or use `-y` flag to auto-approve everything
+- ✅ **Low Storage Alert**: Native terminal and desktop notification warnings if system free space drops below 10 GB
 
 ### 🐧 Ubuntu / Debian — `update_util.sh`
 - ✅ Full system update (`apt-get update` + `full-upgrade`)
@@ -114,6 +116,7 @@ Whether you're a developer maintaining multiple machines, a sysadmin managing se
 - ✅ Logs all operations to `/var/log/sysupdate.log`
 - ✅ Real-time disk partition space tracking via `df` (total physical storage reclaimed)
 - ✅ **Yes to All** mode: type `a` at any prompt to auto-approve all remaining prompts
+- ✅ **Low Storage Alert**: Native warning and desktop notifications if system free space drops below 10 GB
 
 ### 🎩 Fedora / RHEL / CentOS — `fedora_update_util.sh`
 - ✅ Next-gen **DNF5** package manager support with seamless `dnf` fallback
@@ -125,6 +128,7 @@ Whether you're a developer maintaining multiple machines, a sysadmin managing se
 - ✅ Optional Snap package refresh and old revision removal
 - ✅ Real-time disk partition space tracking via `df` (total physical storage reclaimed)
 - ✅ **Yes to All** mode: type `a` at any prompt to auto-approve all remaining prompts
+- ✅ **Low Storage Alert**: Native warning and desktop notifications if system free space drops below 10 GB
 
 ### 🪟 Windows — `win_update_util.ps1`
 - ✅ Integrated execution from the **Shell wrapper** (`toolkit.sh`) in MSYS/Git Bash
@@ -138,6 +142,7 @@ Whether you're a developer maintaining multiple machines, a sysadmin managing se
 - ✅ Admin privilege detection with warnings
 - ✅ Windows Store app reminder
 - ✅ **Yes to All** mode: type `a` at any prompt to auto-approve all remaining prompts
+- ✅ **Low Storage Alert**: Native alert banner and toast notification warnings if system partition free space drops below 10 GB
 
 ### 💻 ChromeOS — `chromeos_update_util.sh`
 - ✅ Full Debian container update (`apt-get update` + `full-upgrade`)
@@ -148,6 +153,7 @@ Whether you're a developer maintaining multiple machines, a sysadmin managing se
 - ✅ Interactive terminal history clearing
 - ✅ Real-time disk partition space tracking via `df`
 - ✅ **Yes to All** mode: type `a` at any prompt to auto-approve all remaining prompts
+- ✅ **Low Storage Alert**: Native warnings and desktop notifications if system container free space drops below 10 GB
 
 ---
 
@@ -289,6 +295,7 @@ Step 8  →  Optional: Clear terminal history
 | **Interactive Prompts** | ✅ | ✅ | ✅ | ✅ | ✅ |
 | **POSIX Compatible** | ✅ | ✅ | ✅ | — | ✅ |
 | **Yes to All (`-y`)** | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **Low Storage Alerts**| ✅ (10 GB) | ✅ (10 GB) | ✅ (10 GB) | ✅ (10 GB) | ✅ (10 GB) |
 
 ---
 
@@ -427,6 +434,28 @@ Currently, **Debian/Ubuntu** (`apt`) and **Fedora/RHEL** (`dnf`) based distros a
 
 ---
 
+## 🧪 Testing & Verification
+
+We use automated unit tests and static code analysis to guarantee script quality and reliability.
+
+### Unix Shell Scripts
+Unix-based shell scripts (`toolkit.sh`, `brew_update_util.sh`, `update_util.sh`, `fedora_update_util.sh`, `chromeos_update_util.sh`) are linted and verified using `shellcheck`:
+```bash
+shellcheck toolkit.sh brew_update_util.sh update_util.sh fedora_update_util.sh chromeos_update_util.sh
+```
+
+### Windows PowerShell Script
+The Windows-specific script (`win_update_util.ps1`) is unit tested using **Pester** (the official testing framework for PowerShell).
+
+Pester mock objects are used so that the tests can run **safely on any platform (including macOS/Linux)** inside GitHub Actions CI, without actually making changes, deleting files, or launching Windows apps.
+
+To run the unit tests locally on Windows or macOS/Linux (with PowerShell Core installed):
+```powershell
+Invoke-Pester -Path .\tests\win_update_util.Tests.ps1 -Output Detailed
+```
+
+---
+
 ## 🤝 Contributing
 
 Contributions are what make the open-source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
@@ -449,6 +478,7 @@ Contributions are what make the open-source community such an amazing place to l
 
 | Version | Date | Changes |
 | :--- | :--- | :--- |
+| **v2.6** | 2026-05-21 | **Proactive Storage Warning & Testing Release**: Added proactive low disk space checks (10 GB threshold) with native terminal alerts and desktop notifications across all five supported operating systems (macOS, Ubuntu, Fedora, ChromeOS, Windows) to prevent system slowdowns. Relocated and engineered a fully mocked, platform-agnostic Pester test suite in a dedicated `tests/` folder for seamless local testing on macOS/Linux and standard GitHub Actions CI integration. |
 | **v2.5** | 2026-05-20 | **Premium & Robustness Update**: Dynamic DNF5 support for Fedora 41+, premium Windows native .NET toast notifications, active Windows execution in standard wrapper `toolkit.sh` via Git Bash, secure scheduling using POSIX-compliant `mktemp`, robust PowerShell history wiping (`Clear-Content`), and real-time physical partition space tracking via `df` |
 | **v2.4** | 2026-05-13 | **Trust & Automation Update**: Added `-d`/`--dry-run` mode, native desktop notifications, and `--schedule` for automated weekly maintenance |
 | **v2.3** | 2026-05-11 | **Major UX Overhaul**: Added `-y`/`--yes` CLI flags, modernized interactive prompts with `[y/n/a]` options, and added `toolkit.sh` unified wrapper |

@@ -31,11 +31,10 @@ This project follows a simple rule: **be kind and respectful**. We're all here t
 
 ### 🔧 Submit Code
 Here are some ideas:
-- **Add support for Fedora** (`dnf` package manager)
-- **Add support for Arch Linux** (`pacman` package manager)
+- **Add support for Arch Linux** (`pacman` package manager) and **OpenSUSE** (`zypper` package manager)
 - **Add Chocolatey support** for Windows alongside Winget
-- **Create a unified wrapper script** that auto-detects the OS
-- **Add desktop notifications** on completion
+- **Add Docker cleanup logic** (dangling images/volumes)
+- **Implement a "Doctor" health check** for Windows/Linux/Fedora
 - **Improve error handling** and edge cases
 - **Add unit tests** for script functions
 
@@ -75,7 +74,7 @@ Here are some ideas:
 ### PowerShell Scripts (`.ps1`)
 
 - Follow existing patterns in `win_update_util.ps1`
-- Use `Write-Host` with `-ForegroundColor` for colored output
+- Use ANSI escape codes for colored output (matching the patterns in `win_update_util.ps1`)
 - Check for admin privileges where needed
 
 ### General

@@ -2,7 +2,7 @@
 # System Update Utility - ChromeOS (Linux/Crostini)
 # A premium script tailored for the ChromeOS Linux environment.
 
-SCRIPT_VERSION="2.5"
+SCRIPT_VERSION="2.6"
 AUTO_YES=false
 DRY_RUN=false
 NOTIFY=false
@@ -88,6 +88,14 @@ APT_CACHE_BEFORE=$(du -sb /var/cache/apt/archives 2>/dev/null | awk '{print $1}'
 
 DISK_BEFORE=$(df -B1 "${HOME:-/}" 2>/dev/null | tail -1 | awk '{print $4}')
 [ -z "$DISK_BEFORE" ] && DISK_BEFORE=0
+
+# Check for Low Storage Alert (10 GB threshold in bytes)
+if [ "$DISK_BEFORE" -gt 0 ] && [ "$DISK_BEFORE" -lt 10737418240 ]; then
+    DISK_GB=$(numfmt --to=iec "$DISK_BEFORE" 2>/dev/null || echo "$DISK_BEFORE bytes")
+    printf "${RED}⚠️  WARNING: Low Disk Space! Only ${DISK_GB} available on system partition.${NC}\n"
+    printf "${YELLOW}Your system may experience severe slowdowns. Running toolkit to recover space is highly recommended!${NC}\n\n"
+    send_notification "⚠️ Low Disk Space! Only ${DISK_GB} remaining."
+fi
 
 # 1. Update Debian System (Crostini base)
 printf "\n${BLUE}==>${NC} ${BOLD}Updating system package definitions...${NC}\n"

@@ -4,11 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>System Update Toolkit — Cross-Platform System Maintenance & Cleanup Automation</title>
-    <meta name="description" content="Automate OS updates, clean caches, and recover disk space on Linux, macOS, Windows & ChromeOS with one command. Open-source shell scripts with interactive prompts and cleanup summaries.">
-    <meta name="keywords" content="system update, system maintenance, cleanup script, disk cleanup, cache cleaner, homebrew update, apt update, winget, shell script, automation, devops, sysadmin, linux, macos, windows, chromeos">
+    <meta name="description" content="Automate OS updates, clean caches, and recover disk space on Ubuntu, Fedora, macOS, Windows & ChromeOS with one command. Open-source shell scripts with interactive prompts and cleanup summaries.">
+    <meta name="keywords" content="system update, system maintenance, cleanup script, disk cleanup, cache cleaner, homebrew update, apt update, dnf5 update, winget, shell script, automation, devops, sysadmin, linux, fedora, macos, windows, chromeos">
     <meta name="author" content="Nilesh Gore">
     <meta property="og:title" content="System Update Toolkit — Cross-Platform System Maintenance">
-    <meta property="og:description" content="One command to update, clean, and optimize your entire system. Supports Linux, macOS, Windows & ChromeOS.">
+    <meta property="og:description" content="One command to update, clean, and optimize your entire system. Supports Ubuntu, Fedora, macOS, Windows & ChromeOS.">
     <meta property="og:image" content="https://raw.githubusercontent.com/nilesh-gore/system-update-toolkit/main/assets/social_card.png">
     <meta property="og:url" content="https://nilesh-gore.github.io/system-update-toolkit">
     <meta property="og:type" content="website">
@@ -334,7 +334,7 @@
     <div class="container">
         <!-- Hero -->
         <section class="hero">
-            <div class="hero-badge">🚀 Open Source &middot; MIT License &middot; v2.1</div>
+            <div class="hero-badge">🚀 Open Source &middot; MIT License &middot; v2.6</div>
             <h1>
                 <span class="gradient-text">System Update</span><br>Toolkit
             </h1>
@@ -365,9 +365,15 @@
             </div>
             <div class="platform-card">
                 <div class="icon">🐧</div>
-                <h3>Linux</h3>
+                <h3>Linux (Ubuntu/Debian)</h3>
                 <p>APT upgrade, Snap refresh, journal vacuum, debsums</p>
                 <code>update_util.sh</code>
+            </div>
+            <div class="platform-card">
+                <div class="icon">🎩</div>
+                <h3>Fedora / RHEL</h3>
+                <p>DNF5 upgrade, Flatpak &amp; Snap updates, journal vacuum, cache purge</p>
+                <code>fedora_update_util.sh</code>
             </div>
             <div class="platform-card">
                 <div class="icon">🪟</div>
@@ -433,13 +439,20 @@
                         <p>Pure shell scripts — no packages to install, no setup required</p>
                     </div>
                 </div>
+                <div class="feature">
+                    <div class="emoji">⚠️</div>
+                    <div>
+                        <h4>Low Storage Alert</h4>
+                        <p>Instant warnings if free space drops below 10 GB to prevent lags</p>
+                    </div>
+                </div>
             </div>
         </section>
 
         <!-- Stats -->
         <div class="stats">
             <div class="stat">
-                <div class="number">4</div>
+                <div class="number">5</div>
                 <div class="label">Platforms</div>
             </div>
             <div class="stat">
