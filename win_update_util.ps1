@@ -1,4 +1,4 @@
-# Windows System Update Utility
+﻿# Windows System Update Utility
 # A premium PowerShell script to keep your Windows environment in top shape.
 
 param(
@@ -181,3 +181,4 @@ Write-Host "`n${GREEN}$(Get-Date) - Windows system update completed successfully
 
 # Send desktop notification
 Send-Notification "Maintenance Complete!"
+
