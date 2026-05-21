@@ -62,13 +62,13 @@ detect_os() {
 run_script() {
     _script_name="$1"
     _os_display="$2"
+    shift 2
     
     if [ -f "$SCRIPT_DIR/$_script_name" ]; then
         printf "${GREEN}✅ Detected OS: ${BOLD}%s${NC}\n" "$_os_display"
         printf "${CYAN}🚀 Launching specialized utility: %s...${NC}\n\n" "$_script_name"
         chmod +x "$SCRIPT_DIR/$_script_name"
         # Execute with all passed arguments
-        # shellcheck disable=SC2086
         sh "$SCRIPT_DIR/$_script_name" "$@"
     else
         printf "${RED}❌ Error: Sub-script '%s' not found in %s${NC}\n" "$_script_name" "$SCRIPT_DIR"
