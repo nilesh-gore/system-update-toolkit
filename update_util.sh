@@ -2,7 +2,7 @@
 # System Update Utility - Ubuntu/Debian
 # A premium, robust script to keep your Linux environment in top shape.
 
-SCRIPT_VERSION="2.6"
+SCRIPT_VERSION="2.6.1"
 AUTO_YES=false
 DRY_RUN=false
 NOTIFY=false
@@ -155,15 +155,15 @@ if ask_user "Do you want to clear user application caches (~/.cache)?"; then
     if [ "$DRY_RUN" = true ]; then
         echo "${CYAN}[DRY RUN] Would run: sudo rm -rf /home/*/.cache/*${NC}"
     else
-        sudo rm -rf /home/*/.cache/* 2>/dev/null
+        sudo rm -rf /home/*/.cache/* 2>/dev/null || true
     fi
 
     echo "${BLUE}==>${NC} ${BOLD}Clearing thumbnail cache...${NC}"
     if [ "$DRY_RUN" = true ]; then
         echo "${CYAN}[DRY RUN] Would run: sudo rm -rf /home/*/.cache/thumbnails/* && sudo rm -rf /home/*/.thumbnails/*${NC}"
     else
-        sudo rm -rf /home/*/.cache/thumbnails/* 2>/dev/null
-        sudo rm -rf /home/*/.thumbnails/* 2>/dev/null
+        sudo rm -rf /home/*/.cache/thumbnails/* 2>/dev/null || true
+        sudo rm -rf /home/*/.thumbnails/* 2>/dev/null || true
     fi
 else
     echo "Skipping user cache cleanup."
@@ -173,11 +173,11 @@ echo "${BLUE}==>${NC} ${BOLD}Cleaning systemd journal logs (keeping last 7 days)
 if [ "$DRY_RUN" = true ]; then
     echo "${CYAN}[DRY RUN] Would run: sudo journalctl --vacuum-time=7d${NC}"
 else
-    sudo journalctl --vacuum-time=7d
+    sudo journalctl --vacuum-time=7d || true
 fi
 
 echo "${BLUE}==>${NC} ${BOLD}Listing held packages...${NC}"
-sudo apt-mark showhold
+sudo apt-mark showhold || true
 
 echo "${BLUE}==>${NC} ${BOLD}Verifying package installation integrity...${NC}"
 if command -v debsums >/dev/null 2>&1; then
@@ -201,7 +201,7 @@ if command -v snap >/dev/null 2>&1; then
         if [ "$DRY_RUN" = true ]; then
             echo "${CYAN}[DRY RUN] Would run: sudo snap remove \"$snapname\" --revision=\"$revision\"${NC}"
         else
-            sudo snap remove "$snapname" --revision="$revision"
+            sudo snap remove "$snapname" --revision="$revision" || true
         fi
     done
 else
@@ -209,7 +209,7 @@ else
 fi
 
 printf "\n${BLUE}==>${NC} ${BOLD}Checking for system file inconsistencies...${NC}\n"
-sudo apt-get check
+sudo apt-get check || echo "${YELLOW}Warning: system file inconsistencies detected!${NC}"
 
 APT_CACHE_AFTER=$(du -sb /var/cache/apt/archives 2>/dev/null | awk '{print $1}')
 [ -z "$APT_CACHE_AFTER" ] && APT_CACHE_AFTER=0

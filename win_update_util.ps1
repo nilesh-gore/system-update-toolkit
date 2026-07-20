@@ -11,7 +11,7 @@ param(
     [switch]$Version
 )
 
-$ScriptVersion = "2.6"
+$ScriptVersion = "2.6.1"
 $script:AutoYes = $Yes
 $script:IsDryRun = $DryRun
 $script:NotifyUser = $Notify
@@ -39,14 +39,18 @@ if ($Version) {
 $ErrorActionPreference = "Stop"
 
 # Visual settings
+# Built from [char]27 rather than the `e escape token, which Windows
+# PowerShell 5.1 (the documented minimum supported version) does not
+# recognize and would print literally instead of rendering as color.
 $Host.UI.RawUI.WindowTitle = "Windows System Update Utility"
-$CYAN = "`e[1;36m"
-$GREEN = "`e[1;32m"
-$YELLOW = "`e[1;33m"
-$BLUE = "`e[1;34m"
-$RED = "`e[1;31m"
-$BOLD = "`e[1m"
-$NC = "`e[0m"
+$Esc = [char]27
+$CYAN = "$Esc[1;36m"
+$GREEN = "$Esc[1;32m"
+$YELLOW = "$Esc[1;33m"
+$BLUE = "$Esc[1;34m"
+$RED = "$Esc[1;31m"
+$BOLD = "$Esc[1m"
+$NC = "$Esc[0m"
 
 # Helper function: prompt user with y/n/a support
 function Confirm-Action {

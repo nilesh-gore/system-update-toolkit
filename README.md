@@ -20,10 +20,18 @@
 [![GitHub stars](https://img.shields.io/github/stars/nilesh-gore/system-update-toolkit?style=social)](https://github.com/nilesh-gore/system-update-toolkit/stargazers)
 [![GitHub forks](https://img.shields.io/github/forks/nilesh-gore/system-update-toolkit?style=social)](https://github.com/nilesh-gore/system-update-toolkit/network/members)
 
-**The ultimate open-source system maintenance toolkit.**
-Automate OS updates, purge caches, recover disk space, and keep your dev environment pristine — all from a single terminal command.
+**Stop typing the same 10 update-and-cleanup commands by hand, on every machine, every week.**
+One script detects your OS and runs the right maintenance routine — updates, cache purges, disk recovery, and a before/after summary — safely and interactively. Nothing destructive runs without your say-so.
 
-> *One script. All platforms. Gigabytes recovered.* 💾
+> *One script. Five platforms. Gigabytes recovered.* 💾
+
+**⚡ Try it in 10 seconds:**
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/nilesh-gore/system-update-toolkit/main/install.sh | sh
+```
+
+*macOS · Ubuntu/Debian · Fedora/RHEL · ChromeOS — see [Quick Start](#-quick-start) for Windows and the git-clone route.*
 
 <img src="assets/social_card.png" alt="System Update Toolkit - Automated system updates, cache cleanup, and disk space recovery for Linux macOS Windows ChromeOS" width="800">
 
@@ -159,24 +167,30 @@ Whether you're a developer maintaining multiple machines, a sysadmin managing se
 
 ## 🚀 Quick Start
 
-### ⚡ One-Liner (Universal)
+### Option A: Installer Script (fastest)
+
+Downloads the toolkit to `~/.system-update-toolkit` and offers to run it immediately — nothing else to set up.
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/nilesh-gore/system-update-toolkit/main/install.sh | sh
+```
+
+### Option B: Clone the Repository (if you'd rather inspect the code first)
+
 ```bash
 git clone https://github.com/nilesh-gore/system-update-toolkit.git && cd system-update-toolkit && chmod +x toolkit.sh && ./toolkit.sh
 ```
 
-### Step 1: Clone the Repository
+Or step by step:
+
 ```bash
 git clone https://github.com/nilesh-gore/system-update-toolkit.git
 cd system-update-toolkit
-```
-
-### Step 2: Run the Unified Toolkit
-The toolkit will automatically detect your OS and run the correct maintenance script.
-
-```bash
 chmod +x toolkit.sh
 ./toolkit.sh
 ```
+
+Either way, `toolkit.sh` automatically detects your OS and runs the correct maintenance script.
 
 <details>
 <summary><b>Manual Execution (Per OS)</b></summary>
@@ -478,6 +492,7 @@ Contributions are what make the open-source community such an amazing place to l
 
 | Version | Date | Changes |
 | :--- | :--- | :--- |
+| **v2.6.1** | 2026-07-20 | **Reliability & Compatibility Patch**: Fixed the `curl \| sh` installer's confirmation prompt, which could silently consume the script's own remaining lines instead of reading user input in piped/non-interactive contexts. Fixed Windows color output, which previously only rendered correctly on PowerShell 6+ despite PowerShell 5.1 being the documented minimum. Hardened the Debian and ChromeOS cleanup scripts so a single failed cache clear, snap removal, or `apt-get check` no longer aborts the run before the summary is shown. |
 | **v2.6** | 2026-05-21 | **Proactive Storage Warning & Testing Release**: Added proactive low disk space checks (10 GB threshold) with native terminal alerts and desktop notifications across all five supported operating systems (macOS, Ubuntu, Fedora, ChromeOS, Windows) to prevent system slowdowns. Relocated and engineered a fully mocked, platform-agnostic Pester test suite in a dedicated `tests/` folder for seamless local testing on macOS/Linux and standard GitHub Actions CI integration. |
 | **v2.5** | 2026-05-20 | **Premium & Robustness Update**: Dynamic DNF5 support for Fedora 41+, premium Windows native .NET toast notifications, active Windows execution in standard wrapper `toolkit.sh` via Git Bash, secure scheduling using POSIX-compliant `mktemp`, robust PowerShell history wiping (`Clear-Content`), and real-time physical partition space tracking via `df` |
 | **v2.4** | 2026-05-13 | **Trust & Automation Update**: Added `-d`/`--dry-run` mode, native desktop notifications, and `--schedule` for automated weekly maintenance |

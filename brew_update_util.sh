@@ -2,7 +2,7 @@
 # Brew System Update Utility - macOS
 # A premium, interactive script to keep your Homebrew environment in top shape.
 
-SCRIPT_VERSION="2.6"
+SCRIPT_VERSION="2.6.1"
 AUTO_YES=false
 DRY_RUN=false
 NOTIFY=false

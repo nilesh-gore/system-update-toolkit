@@ -9,7 +9,7 @@
 # License: MIT
 # ==============================================================================
 
-SCRIPT_VERSION="2.6"
+SCRIPT_VERSION="2.6.1"
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 set -eu

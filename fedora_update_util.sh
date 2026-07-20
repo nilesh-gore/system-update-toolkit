@@ -2,7 +2,7 @@
 # System Update Utility - Fedora/RHEL/CentOS
 # A premium, robust script to keep your RPM-based Linux environment in top shape.
 
-SCRIPT_VERSION="2.6"
+SCRIPT_VERSION="2.6.1"
 AUTO_YES=false
 DRY_RUN=false
 NOTIFY=false

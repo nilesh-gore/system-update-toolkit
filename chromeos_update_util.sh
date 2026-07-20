@@ -2,7 +2,7 @@
 # System Update Utility - ChromeOS (Linux/Crostini)
 # A premium script tailored for the ChromeOS Linux environment.
 
-SCRIPT_VERSION="2.6"
+SCRIPT_VERSION="2.6.1"
 AUTO_YES=false
 DRY_RUN=false
 NOTIFY=false
@@ -160,7 +160,7 @@ fi
 
 # 6. System consistency check
 printf "\n${BLUE}==>${NC} ${BOLD}Checking for system file inconsistencies...${NC}\n"
-sudo apt-get check
+sudo apt-get check || echo "${YELLOW}Warning: system file inconsistencies detected!${NC}"
 
 # 7. Disk Space Summary
 APT_CACHE_AFTER=$(du -sb /var/cache/apt/archives 2>/dev/null | awk '{print $1}')

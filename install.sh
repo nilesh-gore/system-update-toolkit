@@ -123,8 +123,18 @@ echo "${CYAN}──────────────────────�
 echo ""
 
 # --- Ask to run now ---
+# When installed via `curl | sh`, stdin is the script itself, not the
+# keyboard — reading from it here would consume the script's own remaining
+# lines instead of user input. Read from the controlling terminal instead,
+# and default to "no" if there isn't one (e.g. non-interactive/CI runs).
+# The read (not just a file test) is the condition itself, so a failed
+# open of /dev/tty (no controlling terminal) falls through safely instead
+# of aborting the script under `set -e`.
 printf "${YELLOW}Would you like to run the update now? [y/N]: ${NC}"
-read -r answer
+if ! read -r answer < /dev/tty 2>/dev/null; then
+    answer="n"
+    echo "(no terminal detected, skipping)"
+fi
 case "$answer" in
     [yY]|[yY][eE][sS])
         echo ""
