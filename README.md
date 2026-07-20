@@ -456,7 +456,7 @@ We use automated unit tests and static code analysis to guarantee script quality
 ### Unix Shell Scripts
 Unix-based shell scripts (`toolkit.sh`, `brew_update_util.sh`, `update_util.sh`, `fedora_update_util.sh`, `chromeos_update_util.sh`) are linted and verified using `shellcheck`:
 ```bash
-shellcheck toolkit.sh brew_update_util.sh update_util.sh fedora_update_util.sh chromeos_update_util.sh
+shellcheck toolkit.sh brew_update_util.sh update_util.sh fedora_update_util.sh chromeos_update_util.sh install.sh
 ```
 
 ### Windows PowerShell Script

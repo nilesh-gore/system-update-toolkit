@@ -4,9 +4,9 @@
 
 | Version | Supported          |
 | ------- | ------------------ |
-| v2.6    | ✅ Yes             |
-| v2.5    | ⚠️ Security fixes only |
-| < v2.5  | ❌ No              |
+| v2.6.1  | ✅ Yes             |
+| v2.6    | ⚠️ Security fixes only |
+| < v2.6  | ❌ No              |
 
 ## Reporting a Vulnerability
 

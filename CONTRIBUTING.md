@@ -116,7 +116,7 @@ Here are some ideas:
 
 ### Script Structure
 ```bash
-#!/bin/bash
+#!/bin/sh
 # ============================================
 # Script Name: your_script.sh
 # Description: Brief description
