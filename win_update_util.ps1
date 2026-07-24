@@ -1,4 +1,4 @@
-# Windows System Update Utility
+﻿# Windows System Update Utility
 # A premium PowerShell script to keep your Windows environment in top shape.
 
 param(
@@ -148,7 +148,7 @@ $HasSageSet = $false
 if (Test-Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches") {
     $keys = Get-ChildItem "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches" -ErrorAction SilentlyContinue
     foreach ($k in $keys) {
-        if ($k.GetValue("StateFlags0001") -ne $null) {
+        if ($null -ne $k.GetValue("StateFlags0001")) {
             $HasSageSet = $true
             break
         }
