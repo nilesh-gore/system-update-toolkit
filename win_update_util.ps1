@@ -101,7 +101,7 @@ if ($IsWindows -ne $false) {
 }
 
 # 1.5 Check for Low Storage Alert (10 GB threshold = 10737418240 bytes)
-$systemDrive = $env:SystemDrive
+$systemDrive = if ($env:SystemDrive) { $env:SystemDrive } else { "C:" }
 $driveInfo = Get-PSDrive -Name $systemDrive[0] -ErrorAction SilentlyContinue
 $script:FreeBytesBefore = if ($driveInfo) { $driveInfo.Free } else { 0 }
 

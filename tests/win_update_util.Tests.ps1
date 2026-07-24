@@ -102,6 +102,7 @@ Describe "win_update_util.ps1 - Script CLI & Utility Tests" {
                 [PSCustomObject]@{ Name = 'C'; Free = 50 * 1GB }
             }
             Mock Send-Notification {}
+            $env:SystemDrive = "C:"
 
             $outputs = [System.Collections.Generic.List[string]]::new()
             Mock Write-Host {
@@ -123,6 +124,7 @@ Describe "win_update_util.ps1 - Script CLI & Utility Tests" {
             Mock Confirm-Action { return $true } # Force yes to temporary folder prompts
             Mock Send-Notification {}
 
+            $env:SystemDrive = "C:"
             # Keep env variables safe
             $env:TEMP = "C:\MockTemp"
             $env:SystemRoot = "C:\Windows"
