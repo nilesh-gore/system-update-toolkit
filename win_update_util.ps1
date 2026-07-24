@@ -79,8 +79,10 @@ function Send-Notification {
             $objNotifyIcon.Visible = $true
             $objNotifyIcon.ShowBalloonTip(10000)
         } catch {
-            # Fallback to msg command if UI assemblies fail (e.g. headless/Server)
-            msg * /TIME:10 "📦 System Update Toolkit: $Message" 2>$null
+            # Fallback to msg command if on Windows and UI assemblies fail
+            if ($IsWindows -ne $false -and (Get-Command msg -ErrorAction SilentlyContinue)) {
+                msg * /TIME:10 "📦 System Update Toolkit: $Message" 2>$null
+            }
         }
     }
 }
@@ -145,12 +147,14 @@ if (Get-Command wsl -ErrorAction SilentlyContinue) {
 # 5. Disk Cleanup
 Write-Host "`n${BLUE}==>${NC} ${BOLD}Running System Cleanup...${NC}"
 $HasSageSet = $false
-if (Test-Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches") {
-    $keys = Get-ChildItem "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches" -ErrorAction SilentlyContinue
-    foreach ($k in $keys) {
-        if ($null -ne $k.GetValue("StateFlags0001")) {
-            $HasSageSet = $true
-            break
+if ($IsWindows -ne $false -and (Get-PSDrive -Name HKLM -ErrorAction SilentlyContinue)) {
+    if (Test-Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches" -ErrorAction SilentlyContinue) {
+        $keys = Get-ChildItem "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches" -ErrorAction SilentlyContinue
+        foreach ($k in $keys) {
+            if ($null -ne $k.GetValue("StateFlags0001")) {
+                $HasSageSet = $true
+                break
+            }
         }
     }
 }
