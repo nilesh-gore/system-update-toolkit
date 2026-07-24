@@ -4,9 +4,36 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>System Update Toolkit — Cross-Platform System Maintenance & Cleanup Automation</title>
-    <meta name="description" content="Automate OS updates, clean caches, and recover disk space on Ubuntu, Fedora, macOS, Windows & ChromeOS with one command. Open-source shell scripts with interactive prompts and cleanup summaries.">
+    <meta name="description" content="Automate system updates, clean package caches, and recover gigabytes of disk space on macOS, Ubuntu, Fedora, Windows, and ChromeOS. Safe, interactive cross-platform maintenance scripts.">
     <meta name="keywords" content="system update, system maintenance, cleanup script, disk cleanup, cache cleaner, homebrew update, apt update, dnf5 update, winget, shell script, automation, devops, sysadmin, linux, fedora, macos, windows, chromeos">
     <meta name="author" content="Nilesh Gore">
+    <link rel="canonical" href="https://nilesh-gore.github.io/system-update-toolkit/">
+    
+    <!-- Schema.org JSON-LD Structured Data for Search Engine Optimization (SEO) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "System Update Toolkit",
+      "operatingSystem": "Windows, macOS, Linux, ChromeOS",
+      "applicationCategory": "SystemApplication",
+      "offers": {
+        "@type": "Offer",
+        "price": "0.00",
+        "priceCurrency": "USD"
+      },
+      "description": "Cross-platform system maintenance & cleanup automation tool. Automate package updates, clean caches, and recover disk space on Ubuntu, Fedora, macOS, Windows, and ChromeOS with one command.",
+      "downloadUrl": "https://github.com/nilesh-gore/system-update-toolkit",
+      "releaseNotes": "https://github.com/nilesh-gore/system-update-toolkit/releases",
+      "softwareVersion": "2.6.1",
+      "license": "https://opensource.org/licenses/MIT",
+      "author": {
+        "@type": "Person",
+        "name": "Nilesh Gore"
+      }
+    }
+    </script>
+
     <meta property="og:title" content="System Update Toolkit — Cross-Platform System Maintenance">
     <meta property="og:description" content="One command to update, clean, and optimize your entire system. Supports Ubuntu, Fedora, macOS, Windows & ChromeOS.">
     <meta property="og:image" content="https://raw.githubusercontent.com/nilesh-gore/system-update-toolkit/main/assets/social_card.png">
@@ -17,9 +44,17 @@
     <meta name="twitter:description" content="One command to update, clean, and optimize your entire system.">
     <meta name="twitter:image" content="https://raw.githubusercontent.com/nilesh-gore/system-update-toolkit/main/assets/social_card.png">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚀</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <style>
         *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        *:focus-visible {
+            outline: 3px solid var(--accent);
+            outline-offset: 4px;
+            border-radius: 4px;
+        }
 
         :root {
             --bg-primary: #0a0e1a;
@@ -145,33 +180,76 @@
             transform: translateY(-2px);
         }
 
-        /* Install box */
-        .install-box {
-            background: var(--bg-secondary);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 20px 28px;
+        /* Terminal Window styling */
+        .terminal-window {
+            background: rgba(17, 24, 30, 0.75);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), 0 0 50px rgba(99, 102, 241, 0.1);
+            overflow: hidden;
             margin: 48px auto 0;
             max-width: 720px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
             animation: fadeInUp 0.6s ease 0.4s both;
         }
 
-        .install-box code {
+        .terminal-header {
+            background: rgba(31, 41, 55, 0.4);
+            padding: 12px 18px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .terminal-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+        .dot-red { background: #ef4444; }
+        .dot-yellow { background: #f59e0b; }
+        .dot-green { background: #10b981; }
+
+        .terminal-title {
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+            font-family: 'JetBrains Mono', monospace;
+            margin-left: auto;
+            margin-right: auto;
+            transform: translateX(-15px);
+        }
+
+        .terminal-body {
+            padding: 18px 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .terminal-prompt {
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--pink);
+            font-weight: 600;
+            font-size: 0.9rem;
+            user-select: none;
+        }
+
+        .terminal-body code {
             font-family: 'JetBrains Mono', monospace;
             font-size: 0.9rem;
             color: var(--green);
             flex: 1;
             overflow-x: auto;
             white-space: nowrap;
+            text-align: left;
         }
 
-        .install-box .copy-btn {
-            background: rgba(99, 102, 241, 0.2);
-            border: 1px solid rgba(99, 102, 241, 0.3);
-            color: var(--accent);
+        .terminal-body .copy-btn {
+            background: rgba(99, 102, 241, 0.15);
+            border: 1px solid rgba(99, 102, 241, 0.25);
+            color: var(--text-primary);
             padding: 8px 16px;
             border-radius: 8px;
             cursor: pointer;
@@ -181,7 +259,11 @@
             white-space: nowrap;
         }
 
-        .install-box .copy-btn:hover { background: rgba(99, 102, 241, 0.3); }
+        .terminal-body .copy-btn:hover {
+            background: rgba(99, 102, 241, 0.3);
+            border-color: var(--accent);
+            transform: translateY(-1px);
+        }
 
         /* Platforms */
         .platforms {
@@ -323,7 +405,8 @@
 
         @media (max-width: 600px) {
             .hero { padding: 60px 0 40px; }
-            .install-box { flex-direction: column; text-align: center; }
+            .terminal-body { flex-direction: column; align-items: stretch; text-align: left; }
+            .terminal-prompt { display: none; }
             .stats { gap: 24px; }
         }
     </style>
@@ -349,9 +432,18 @@
                 </a>
             </div>
 
-            <div class="install-box">
-                <code id="install-cmd">curl -fsSL https://raw.githubusercontent.com/nilesh-gore/system-update-toolkit/main/install.sh | sh</code>
-                <button class="copy-btn" onclick="copyInstall()" id="copy-btn">📋 Copy</button>
+            <div class="terminal-window">
+                <div class="terminal-header">
+                    <div class="terminal-dot dot-red"></div>
+                    <div class="terminal-dot dot-yellow"></div>
+                    <div class="terminal-dot dot-green"></div>
+                    <div class="terminal-title">bash</div>
+                </div>
+                <div class="terminal-body">
+                    <span class="terminal-prompt">~ $</span>
+                    <code id="install-cmd">curl -fsSL https://raw.githubusercontent.com/nilesh-gore/system-update-toolkit/main/install.sh | sh</code>
+                    <button class="copy-btn" onclick="copyInstall()" id="copy-btn">📋 Copy</button>
+                </div>
             </div>
         </section>
 
@@ -452,15 +544,15 @@
         <!-- Stats -->
         <div class="stats">
             <div class="stat">
-                <div class="number">5</div>
+                <div class="number" data-target="5">0</div>
                 <div class="label">Platforms</div>
             </div>
             <div class="stat">
-                <div class="number">10+</div>
+                <div class="number" data-target="10">0+</div>
                 <div class="label">Cleanup Steps</div>
             </div>
             <div class="stat">
-                <div class="number">~10GB</div>
+                <div class="number" data-target="10">~0GB</div>
                 <div class="label">Max Recovery</div>
             </div>
             <div class="stat">
@@ -474,10 +566,10 @@
             <h2>Ready to clean your system?</h2>
             <p>Get started in under 30 seconds. Works on any platform.</p>
             <div class="hero-buttons">
-                <a href="https://github.com/nilesh-gore/system-update-toolkit" class="btn btn-primary" id="cta-github-btn">
+                <a href="https://github.com/nilesh-gore/system-update-toolkit" class="btn btn-primary" id="cta-github-btn" aria-label="Get started with System Update Toolkit on GitHub">
                     🚀 Get Started
                 </a>
-                <a href="https://github.com/nilesh-gore/system-update-toolkit/blob/main/CONTRIBUTING.md" class="btn btn-secondary" id="cta-contribute-btn">
+                <a href="https://github.com/nilesh-gore/system-update-toolkit/blob/main/CONTRIBUTING.md" class="btn btn-secondary" id="cta-contribute-btn" aria-label="Contribute to the project on GitHub">
                     🤝 Contribute
                 </a>
             </div>
@@ -497,6 +589,59 @@
                 btn.textContent = '✅ Copied!';
                 setTimeout(() => { btn.textContent = '📋 Copy'; }, 2000);
             });
+        }
+
+        // Animate stats numbers when scrolled into view
+        function animateCounters() {
+            const stats = document.querySelectorAll('.stat .number[data-target]');
+            stats.forEach(stat => {
+                const target = parseFloat(stat.getAttribute('data-target'));
+                const hasPlus = stat.textContent.includes('+');
+                const hasTilde = stat.textContent.includes('~');
+                const hasGb = stat.textContent.includes('GB');
+                
+                let current = 0;
+                const duration = 1200; // milliseconds count-up duration
+                const steps = 40;
+                const increment = target / steps;
+                const stepTime = duration / steps;
+                
+                let step = 0;
+                const interval = setInterval(() => {
+                    current += increment;
+                    step++;
+                    
+                    let displayVal = Math.floor(current);
+                    if (hasTilde) displayVal = '~' + displayVal;
+                    if (hasPlus) displayVal = displayVal + '+';
+                    if (hasGb) displayVal = displayVal + 'GB';
+                    
+                    stat.textContent = displayVal;
+                    
+                    if (step >= steps) {
+                        clearInterval(interval);
+                        let finalVal = target;
+                        if (hasTilde) finalVal = '~' + finalVal;
+                        if (hasPlus) finalVal = finalVal + '+';
+                        if (hasGb) finalVal = finalVal + 'GB';
+                        stat.textContent = finalVal;
+                    }
+                }, stepTime);
+            });
+        }
+
+        // Setup scroll observer for stats
+        const statsSection = document.querySelector('.stats');
+        if (statsSection) {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        animateCounters();
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.15 });
+            observer.observe(statsSection);
         }
     </script>
 </body>

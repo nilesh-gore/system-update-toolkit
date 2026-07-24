@@ -30,3 +30,16 @@ jobs:
           echo "🔍 Running ShellCheck..."
           shellcheck -x *.sh
           echo "✅ All scripts passed ShellCheck!"
+
+  dry-run:
+    name: Shell Script Dry Run Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Make scripts executable
+        run: chmod +x toolkit.sh update_util.sh fedora_update_util.sh chromeos_update_util.sh brew_update_util.sh
+
+      - name: Run toolkit in dry-run mode
+        run: ./toolkit.sh --dry-run --yes --notify

@@ -81,6 +81,17 @@ echo "${BOLD}${CYAN}**************************************************${NC}"
 echo "${BOLD}${CYAN}*       ChromeOS Linux Update Utility            *${NC}"
 echo "${BOLD}${CYAN}**************************************************${NC}"
 
+# Determine actual non-root user and home directory portably
+if [ -n "${SUDO_USER:-}" ]; then
+    REAL_USER="$SUDO_USER"
+    REAL_HOME=$(getent passwd "$REAL_USER" 2>/dev/null | cut -d: -f6 || eval echo "~$REAL_USER")
+else
+    REAL_USER="${USER:-}"
+    REAL_HOME="${HOME:-}"
+fi
+[ -z "$REAL_USER" ] && REAL_USER=$(whoami)
+[ -z "$REAL_HOME" ] && REAL_HOME="$HOME"
+
 # Capture disk usage before cleanup
 printf "\n${BLUE}==>${NC} ${BOLD}Collecting disk usage before cleanup...${NC}\n"
 APT_CACHE_BEFORE=$(du -sb /var/cache/apt/archives 2>/dev/null | awk '{print $1}')
@@ -193,9 +204,12 @@ if ask_user "Do you want to clear terminal history?"; then
         echo "${CYAN}[DRY RUN] Would clear terminal history files${NC}"
     else
         # Try to clear common history files
-        for f in "$HOME/.bash_history" "$HOME/.zsh_history"; do
+        for f in "$REAL_HOME/.bash_history" "$REAL_HOME/.zsh_history"; do
             if [ -f "$f" ]; then
                 : >"$f"
+                if [ "$REAL_USER" != "root" ] && [ -n "${SUDO_USER:-}" ]; then
+                    chown "$REAL_USER:" "$f" 2>/dev/null || true
+                fi
                 echo "Cleared $f"
             fi
         done

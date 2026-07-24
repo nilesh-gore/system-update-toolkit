@@ -37,3 +37,9 @@ jobs:
           # Run Pester tests and output detailed results
           Invoke-Pester -Path .\tests\win_update_util.Tests.ps1 -Output Detailed
 
+      - name: Run Dry-Run verification for PowerShell script
+        shell: pwsh
+        run: |
+          # Verify PowerShell script runs cleanly in dry-run mode
+          pwsh -File .\win_update_util.ps1 -Yes -DryRun -Notify
+

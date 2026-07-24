@@ -68,8 +68,8 @@ run_script() {
         printf "${GREEN}✅ Detected OS: ${BOLD}%s${NC}\n" "$_os_display"
         printf "${CYAN}🚀 Launching specialized utility: %s...${NC}\n\n" "$_script_name"
         chmod +x "$SCRIPT_DIR/$_script_name"
-        # Execute with all passed arguments
-        sh "$SCRIPT_DIR/$_script_name" "$@"
+        # Execute with all passed arguments, respecting shebang header interpreters
+        "$SCRIPT_DIR/$_script_name" "$@"
     else
         printf "${RED}❌ Error: Sub-script '%s' not found in %s${NC}\n" "$_script_name" "$SCRIPT_DIR"
         exit 1

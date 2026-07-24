@@ -90,13 +90,24 @@ else
     exit 1
 fi
 
+# Determine actual non-root user and home directory portably
+if [ -n "${SUDO_USER:-}" ]; then
+    REAL_USER="$SUDO_USER"
+    REAL_HOME=$(getent passwd "$REAL_USER" 2>/dev/null | cut -d: -f6 || eval echo "~$REAL_USER")
+else
+    REAL_USER="${USER:-}"
+    REAL_HOME="${HOME:-}"
+fi
+[ -z "$REAL_USER" ] && REAL_USER=$(whoami)
+[ -z "$REAL_HOME" ] && REAL_HOME="$HOME"
+
 printf "\n${BLUE}==>${NC} ${BOLD}Collecting disk usage before cleanup...${NC}\n"
 
 # Capture DNF cache size (handles both dnf and dnf5)
 DNF_CACHE_BEFORE=$(du -sb /var/cache/dnf /var/cache/dnf5 2>/dev/null | awk '{sum+=$1} END {print sum}')
 [ -z "$DNF_CACHE_BEFORE" ] && DNF_CACHE_BEFORE=0
 
-APP_CACHE_BEFORE=$(du -sb /home/*/.cache 2>/dev/null | awk '{sum+=$1} END {print sum}')
+APP_CACHE_BEFORE=$(du -sb "$REAL_HOME/.cache" 2>/dev/null | awk '{print $1}')
 [ -z "$APP_CACHE_BEFORE" ] && APP_CACHE_BEFORE=0
 
 JOURNAL_BEFORE=$(journalctl --disk-usage --no-pager 2>/dev/null | grep "disk space" | awk '{print $6}' | numfmt --from=iec 2>/dev/null || echo 0)
@@ -137,17 +148,17 @@ fi
 if ask_user "Do you want to clear user application caches (~/.cache)?"; then
     echo "${BLUE}==>${NC} ${BOLD}Clearing user application cache...${NC}"
     if [ "$DRY_RUN" = true ]; then
-        echo "${CYAN}[DRY RUN] Would run: sudo rm -rf /home/*/.cache/*${NC}"
+        echo "${CYAN}[DRY RUN] Would run: rm -rf \"$REAL_HOME/.cache/\"*${NC}"
     else
-        sudo rm -rf /home/*/.cache/* 2>/dev/null || true
+        rm -rf "$REAL_HOME"/.cache/* 2>/dev/null || true
     fi
 
     echo "${BLUE}==>${NC} ${BOLD}Clearing thumbnail cache...${NC}"
     if [ "$DRY_RUN" = true ]; then
-        echo "${CYAN}[DRY RUN] Would run: sudo rm -rf /home/*/.cache/thumbnails/* && sudo rm -rf /home/*/.thumbnails/*${NC}"
+        echo "${CYAN}[DRY RUN] Would run: rm -rf \"$REAL_HOME/.cache/thumbnails/\"* && rm -rf \"$REAL_HOME/.thumbnails/\"*${NC}"
     else
-        sudo rm -rf /home/*/.cache/thumbnails/* 2>/dev/null || true
-        sudo rm -rf /home/*/.thumbnails/* 2>/dev/null || true
+        rm -rf "$REAL_HOME"/.cache/thumbnails/* 2>/dev/null || true
+        rm -rf "$REAL_HOME"/.thumbnails/* 2>/dev/null || true
     fi
 else
     echo "Skipping user cache cleanup."
@@ -201,7 +212,7 @@ fi
 DNF_CACHE_AFTER=$(du -sb /var/cache/dnf /var/cache/dnf5 2>/dev/null | awk '{sum+=$1} END {print sum}')
 [ -z "$DNF_CACHE_AFTER" ] && DNF_CACHE_AFTER=0
 
-APP_CACHE_AFTER=$(du -sb /home/*/.cache 2>/dev/null | awk '{sum+=$1} END {print sum}')
+APP_CACHE_AFTER=$(du -sb "$REAL_HOME/.cache" 2>/dev/null | awk '{print $1}')
 [ -z "$APP_CACHE_AFTER" ] && APP_CACHE_AFTER=0
 
 JOURNAL_AFTER=$(journalctl --disk-usage --no-pager 2>/dev/null | grep "disk space" | awk '{print $6}' | numfmt --from=iec 2>/dev/null || echo 0)
@@ -241,9 +252,12 @@ if ask_user "Do you want to clear terminal history?"; then
     if [ "$DRY_RUN" = true ]; then
         echo "${CYAN}[DRY RUN] Would clear terminal history files${NC}"
     else
-        for f in "$HOME/.bash_history" "$HOME/.zsh_history"; do
+        for f in "$REAL_HOME/.bash_history" "$REAL_HOME/.zsh_history"; do
             if [ -f "$f" ]; then
                 : >"$f"
+                if [ "$REAL_USER" != "root" ] && [ -n "${SUDO_USER:-}" ]; then
+                    chown "$REAL_USER:" "$f" 2>/dev/null || true
+                fi
                 echo "Cleared $f"
             fi
         done

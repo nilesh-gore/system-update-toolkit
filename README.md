@@ -1,4 +1,4 @@
-# 🚀 System Update Toolkit — Cross-Platform System Maintenance & Cleanup Automation
+# 🚀 System Update Toolkit — Automated Cross-Platform System Update, Cache Cleanup & Disk Space Recovery
 
 <div align="center">
 
@@ -21,10 +21,11 @@
 [![GitHub stars](https://img.shields.io/github/stars/nilesh-gore/system-update-toolkit?style=social)](https://github.com/nilesh-gore/system-update-toolkit/stargazers)
 [![GitHub forks](https://img.shields.io/github/forks/nilesh-gore/system-update-toolkit?style=social)](https://github.com/nilesh-gore/system-update-toolkit/network/members)
 
-**Stop typing the same 10 update-and-cleanup commands by hand, on every machine, every week.**
-One script detects your OS and runs the right maintenance routine — updates, cache purges, disk recovery, and a before/after summary — safely and interactively. Nothing destructive runs without your say-so.
+**Automate repetitive system updates and disk cleanup tasks with a single, unified command.**
 
-> *One script. Five platforms. Gigabytes recovered.* 💾
+One script automatically detects your operating system and runs the correct system maintenance routine—updating system packages, purging application cache, rotating logs, cleaning up temp files, and performing disk recovery—safely and interactively. Nothing runs without your authorization.
+
+> *One script. Five platforms. Gigabytes of disk space recovered.* 💾
 
 **⚡ Try it in 10 seconds:**
 
@@ -32,11 +33,11 @@ One script detects your OS and runs the right maintenance routine — updates, c
 curl -fsSL https://raw.githubusercontent.com/nilesh-gore/system-update-toolkit/main/install.sh | sh
 ```
 
-*macOS · Ubuntu/Debian · Fedora/RHEL · ChromeOS — see [Quick Start](#-quick-start) for Windows and the git-clone route.*
+*macOS (Homebrew) · Ubuntu/Debian (APT) · Fedora (DNF/DNF5) · ChromeOS (Debian Crostini) — see [Quick Start](#-quick-start) for Windows and the Git clone instructions.*
 
 <img src="assets/social_card.png" alt="System Update Toolkit - Automated system updates, cache cleanup, and disk space recovery for Linux macOS Windows ChromeOS" width="800">
 
-*The ultimate premium maintenance suite for developers*
+*The ultimate premium terminal maintenance suite for developers and power users*
 
 </div>
 
@@ -329,7 +330,7 @@ Step 8  →  Optional: Clear terminal history
 ## 📸 Screenshots & Terminal Output
 
 <div align="center">
-  <img src="assets/terminal_preview.png" alt="System Update Toolkit Terminal Output" width="600">
+  <img src="assets/terminal_preview.png" alt="System Update Toolkit Terminal Output - Interactive cross-platform system update and cleanup summary" width="600">
 </div>
 
 
@@ -415,15 +416,36 @@ crontab -e
 ## ❓ Frequently Asked Questions
 
 <details>
-<summary><b>Will this delete my personal files?</b></summary>
+<summary><b>Will this script delete my personal files?</b></summary>
 
-**No.** The scripts only clean system-managed caches, temporary files, old package versions, and log files. Your documents, projects, and personal data are never touched.
+**No.** The scripts only clean system-managed caches, temporary files, old package versions, and system log files. Your documents, projects, and personal data are completely untouched.
 </details>
 
 <details>
-<summary><b>Can I run this on a server?</b></summary>
+<summary><b>How to run system updates and clean cache with a single script?</b></summary>
 
-**Yes.** The Linux script (`update_util.sh`) works great on headless servers. All interactive prompts can be bypassed by piping input: `echo "y" | sudo ./update_util.sh`
+Simply run `./toolkit.sh`. The toolkit automatically detects your host operating system (macOS, Ubuntu, Fedora, ChromeOS, or Windows) and runs the appropriate tailored script (`brew_update_util.sh`, `update_util.sh`, etc.) to perform all updates and cleanups in one go.
+</details>
+
+<details>
+<summary><b>Can I run this on a headless server or in non-interactive CI mode?</b></summary>
+
+**Yes.** The Linux script (`update_util.sh`) and others can be run non-interactively. Simply use the `-y` or `--yes` command-line flags to automatically approve all prompts:
+```bash
+sudo ./toolkit.sh --yes
+```
+</details>
+
+<details>
+<summary><b>How do I safely clear package cache and logs on Ubuntu/Debian?</b></summary>
+
+The `update_util.sh` script does this automatically. It cleans the APT cache (`apt-get clean`), clears the thumbnail cache, clears old log revisions, and vacuums systemd journal logs keeping only the last 7 days of logs.
+</details>
+
+<details>
+<summary><b>How do I clear terminal shell history in macOS or Linux?</b></summary>
+
+When run interactively, the scripts will prompt you at the end to clear your terminal history (supporting Zsh and Bash on macOS/Linux/ChromeOS, and PSReadLine history on Windows). This is fully secure and clears the active session log as well as history files.
 </details>
 
 <details>
@@ -436,15 +458,15 @@ It varies by system. Typical results:
 </details>
 
 <details>
-<summary><b>Is it safe to run frequently?</b></summary>
+<summary><b>How can I automate these system maintenance scripts?</b></summary>
 
-**Absolutely.** Running weekly is recommended. If everything is already up to date, the scripts complete in seconds with no changes.
+You can set up automated weekly runs. The toolkit has a built-in helper: running `./toolkit.sh --schedule` sets up a weekly automated job (using cron) on Unix-like systems. Alternatively, you can configure standard tools like `cron` for Linux, `launchd` for macOS, or `Task Scheduler` for Windows. Check the [Automation & Scheduling](#-automation--scheduling) section for instructions.
 </details>
 
 <details>
-<summary><b>Does it support Arch or other Linux distros?</b></summary>
+<summary><b>Does it support Arch Linux or other package managers?</b></summary>
 
-Currently, **Debian/Ubuntu** (`apt`) and **Fedora/RHEL** (`dnf`) based distros are officially supported. Support for `pacman` (Arch) is planned for future releases. Contributions welcome!
+Currently, **Debian/Ubuntu** (`apt`), **Fedora/RHEL** (`dnf`/`dnf5`), and **macOS** (`brew`) are officially supported. Support for `pacman` (Arch) is planned for future releases. Contributions are welcome!
 </details>
 
 ---

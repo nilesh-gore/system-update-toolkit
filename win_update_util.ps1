@@ -1,4 +1,4 @@
-﻿# Windows System Update Utility
+# Windows System Update Utility
 # A premium PowerShell script to keep your Windows environment in top shape.
 
 param(
@@ -90,17 +90,21 @@ Write-Host "${BOLD}${CYAN}*        Windows System Update Utility           *${NC
 Write-Host "${BOLD}${CYAN}**************************************************${NC}"
 
 # 1. Check for Admin Privileges (Windows only)
+$script:IsAdministrator = $false
 if ($IsWindows -ne $false) {
     $currentPrincipal = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())
-    if (-not $currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
+    if ($currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
+        $script:IsAdministrator = $true
+    } else {
         Write-Host "${RED}Warning: Not running as Administrator. Some tasks may fail.${NC}"
     }
 }
 
-
 # 1.5 Check for Low Storage Alert (10 GB threshold = 10737418240 bytes)
 $systemDrive = $env:SystemDrive
 $driveInfo = Get-PSDrive -Name $systemDrive[0] -ErrorAction SilentlyContinue
+$script:FreeBytesBefore = if ($driveInfo) { $driveInfo.Free } else { 0 }
+
 if ($driveInfo -and $driveInfo.Free -lt 10737418240) {
     $freeGB = [Math]::Round($driveInfo.Free / 1GB, 2)
     Write-Host "${RED}⚠️  WARNING: Low Disk Space! Only ${freeGB} GB available on drive ${systemDrive}.${NC}"
@@ -140,6 +144,20 @@ if (Get-Command wsl -ErrorAction SilentlyContinue) {
 
 # 5. Disk Cleanup
 Write-Host "`n${BLUE}==>${NC} ${BOLD}Running System Cleanup...${NC}"
+$HasSageSet = $false
+if (Test-Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches") {
+    $keys = Get-ChildItem "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches" -ErrorAction SilentlyContinue
+    foreach ($k in $keys) {
+        if ($k.GetValue("StateFlags0001") -ne $null) {
+            $HasSageSet = $true
+            break
+        }
+    }
+}
+if (-not $HasSageSet -and $IsWindows -ne $false) {
+    Write-Host "${YELLOW}Tip: Disk Cleanup preset 1 has not been configured. Running '/sagerun:1' might skip files.${NC}"
+    Write-Host "To configure it, run this command once in an elevated shell: ${CYAN}cleanmgr.exe /sageset:1${NC}"
+}
 if ($script:IsDryRun) {
     Write-Host "${CYAN}[DRY RUN] Would launch: cleanmgr.exe /sagerun:1${NC}"
 } else {
@@ -150,7 +168,13 @@ if ($script:IsDryRun) {
 # 6. Optional: Clear Temporary Files
 if (Confirm-Action "Do you want to clear system temporary files?") {
     Write-Host "Clearing Temp folders..."
-    $tempFolders = @("$env:TEMP", "$env:SystemRoot\Temp")
+    $tempFolders = @("$env:TEMP")
+    if ($script:IsAdministrator -or $script:IsDryRun -or $IsWindows -eq $false) {
+        $tempFolders += "$env:SystemRoot\Temp"
+    } else {
+        Write-Host "${YELLOW}⚠️  Skipping system-level Temp folder ($env:SystemRoot\Temp) because you are not running as Administrator.${NC}"
+    }
+
     foreach ($folder in $tempFolders) {
         if ($script:IsDryRun) {
             Write-Host "${CYAN}[DRY RUN] Would clear folder: $folder${NC}"
@@ -163,26 +187,41 @@ if (Confirm-Action "Do you want to clear system temporary files?") {
 
 # 7. Optional: Clear PowerShell History
 if (Confirm-Action "Do you want to clear PowerShell history?") {
-    Write-Host "Clearing PowerShell history..."
+    Write-Host "Clearing PowerShell persistent history file..."
     if ($script:IsDryRun) {
-        Write-Host "${CYAN}[DRY RUN] Would clear PSReadline history and session history${NC}"
+        Write-Host "${CYAN}[DRY RUN] Would clear PSReadline history file${NC}"
     } else {
-        Clear-History
         $histPath = (Get-PSReadLineOption).HistorySavePath
         if ($histPath -and (Test-Path $histPath)) {
             Clear-Content $histPath -ErrorAction SilentlyContinue
+            Write-Host "${GREEN}PowerShell history file cleared successfully.${NC}"
         }
+        Write-Host "${YELLOW}Note: Active terminal history in this session's window memory cannot be cleared by this script.${NC}"
+        Write-Host "To clear it manually in your active shell, type: ${CYAN}Clear-History${NC}"
     }
-    Write-Host "${GREEN}PowerShell history check complete.${NC}"
+}
+
+# Calculate disk space metrics
+$DriveAfter = Get-PSDrive -Name $systemDrive[0] -ErrorAction SilentlyContinue
+$FreeBytesAfter = if ($DriveAfter) { $DriveAfter.Free } else { 0 }
+$SavedBytes = if ($FreeBytesAfter -gt $script:FreeBytesBefore) { $FreeBytesAfter - $script:FreeBytesBefore } else { 0 }
+$HumanSaved = "0 MB"
+if ($SavedBytes -gt 0) {
+    if ($SavedBytes -ge 1GB) {
+        $HumanSaved = ([Math]::Round($SavedBytes / 1GB, 2)).ToString() + " GB"
+    } else {
+        $HumanSaved = ([Math]::Round($SavedBytes / 1MB, 2)).ToString() + " MB"
+    }
 }
 
 Write-Host "`n${BOLD}${CYAN}========== CLEANUP SUMMARY ==========${NC}"
-Write-Host "Winget packages : ${BOLD}Checked & Updated${NC}"
-Write-Host "System Cleanup  : ${BOLD}Run${NC}"
+Write-Host "Winget packages   : ${BOLD}Checked & Updated${NC}"
+Write-Host "System Cleanup    : ${BOLD}Run${NC}"
+Write-Host "Total Disk Saved  : ${BOLD}${GREEN}$HumanSaved${NC}"
 Write-Host "${BOLD}${CYAN}=====================================${NC}"
 
 Write-Host "`n${GREEN}$(Get-Date) - Windows system update completed successfully.${NC}"
 
 # Send desktop notification
-Send-Notification "Maintenance Complete!"
+Send-Notification "Maintenance Complete! $HumanSaved recovered."
 
