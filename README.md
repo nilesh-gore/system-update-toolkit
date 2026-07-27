@@ -469,7 +469,11 @@ You can set up automated weekly runs. The toolkit has a built-in helper: running
 Currently, **Debian/Ubuntu** (`apt`), **Fedora/RHEL** (`dnf`/`dnf5`), and **macOS** (`brew`) are officially supported. Support for `pacman` (Arch) is planned for future releases. Contributions are welcome!
 </details>
 
----
+<details>
+<summary><b>Is it safe to run this toolkit regularly?</b></summary>
+
+**Yes.** The toolkit is designed to be safely run as part of your regular maintenance routine. It only updates packages using the operating system's official package manager and removes temporary files, caches, old package versions, and logs that are safe to clean. It never modifies your personal files or project data.
+</details>
 
 ## 🧪 Testing & Verification
 
