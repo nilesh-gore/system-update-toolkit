@@ -474,6 +474,18 @@ Currently, **Debian/Ubuntu** (`apt`), **Fedora/RHEL** (`dnf`/`dnf5`), and **macO
 
 **Yes.** The toolkit is designed to be safely run as part of your regular maintenance routine. It only updates packages using the operating system's official package manager and removes temporary files, caches, old package versions, and logs that are safe to clean. It never modifies your personal files or project data.
 </details>
+<details>
+  
+<summary><b>Does the toolkit support a preview mode before making changes?</b></summary>
+
+**Yes.** The toolkit includes a built-in **Dry Run** mode using the `-d` or `--dry-run` flag. In this mode, it analyzes your system and shows which packages would be updated and which cleanup actions would be performed—without actually modifying anything. This is ideal if you want to review the maintenance plan before running it.
+
+```bash
+./toolkit.sh --dry-run
+```
+
+Dry Run mode helps you verify operations safely, making it suitable for production systems, servers, and cautious first-time users.
+</details>
 
 ## 🧪 Testing & Verification
 
