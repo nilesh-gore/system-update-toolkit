@@ -46,6 +46,15 @@ done
 
 set -eu
 
+# Color definitions for a premium look
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+BLUE='\033[0;34m'
+CYAN='\033[0;36m'
+YELLOW='\033[1;33m'
+BOLD='\033[1m'
+NC='\033[0m' # No Color
+
 # Helper function: prompt user with y/n/a support
 # Usage: ask_user "prompt message" && { do stuff }
 ask_user() {
@@ -61,15 +70,6 @@ ask_user() {
         *) return 1 ;;
     esac
 }
-
-# Color definitions for a premium look
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-BLUE='\033[0;34m'
-CYAN='\033[0;36m'
-YELLOW='\033[1;33m'
-BOLD='\033[1m'
-NC='\033[0m' # No Color
 
 send_notification() {
     if [ "$NOTIFY" = true ]; then
@@ -144,6 +144,26 @@ else
     sudo apt-get autoclean -y
 fi
 
+# 3.5. Optional: Clear user application caches
+if ask_user "Do you want to clear user application caches (~/.cache)?"; then
+    echo "${BLUE}==>${NC} ${BOLD}Clearing user application cache...${NC}"
+    if [ "$DRY_RUN" = true ]; then
+        echo "${CYAN}[DRY RUN] Would run: rm -rf \"$REAL_HOME/.cache/\"*${NC}"
+    else
+        rm -rf "$REAL_HOME"/.cache/* 2>/dev/null || true
+    fi
+
+    echo "${BLUE}==>${NC} ${BOLD}Clearing thumbnail cache...${NC}"
+    if [ "$DRY_RUN" = true ]; then
+        echo "${CYAN}[DRY RUN] Would run: rm -rf \"$REAL_HOME/.cache/thumbnails/\"* && rm -rf \"$REAL_HOME/.thumbnails/\"*${NC}"
+    else
+        rm -rf "$REAL_HOME"/.cache/thumbnails/* 2>/dev/null || true
+        rm -rf "$REAL_HOME"/.thumbnails/* 2>/dev/null || true
+    fi
+else
+    echo "Skipping user cache cleanup."
+fi
+
 # 4. Optional: Update Global NPM Packages
 if command -v npm >/dev/null 2>&1; then
     if ask_user "Do you want to check for global NPM package updates?"; then
@@ -171,7 +191,11 @@ fi
 
 # 6. System consistency check
 printf "\n${BLUE}==>${NC} ${BOLD}Checking for system file inconsistencies...${NC}\n"
-sudo apt-get check || echo "${YELLOW}Warning: system file inconsistencies detected!${NC}"
+if [ "$DRY_RUN" = true ]; then
+    echo "${CYAN}[DRY RUN] Would run: sudo apt-get check${NC}"
+else
+    sudo apt-get check || echo "${YELLOW}Warning: system file inconsistencies detected!${NC}"
+fi
 
 # 7. Disk Space Summary
 APT_CACHE_AFTER=$(du -sb /var/cache/apt/archives 2>/dev/null | awk '{print $1}')
@@ -219,7 +243,7 @@ else
     echo "Skipping history clear."
 fi
 
-printf "\n${GREEN}%s - ChromeOS maintenance completed successfully.${NC}\n" "$(date)"
+printf "\n${GREEN}%s - ChromeOS maintenance completed successfully.${NC}\n" "$(date)" | sudo tee -a /var/log/sysupdate.log
 
 # Send desktop notification
 if [ "$PART_CLEARED" -gt "$CLEARED" ]; then

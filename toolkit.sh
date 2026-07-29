@@ -77,7 +77,6 @@ run_script() {
 }
 
 # Main Execution
-OS=$(detect_os)
 
 # Handle help/version before banner if needed, or just let sub-scripts handle it
 case "${1:-}" in
@@ -125,6 +124,7 @@ case "${1:-}" in
         ;;
 esac
 
+OS=$(detect_os)
 print_banner
 
 case "$OS" in

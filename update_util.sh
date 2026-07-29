@@ -46,6 +46,15 @@ done
 
 set -eu
 
+# Color definitions for a premium look
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+BLUE='\033[0;34m'
+CYAN='\033[0;36m'
+YELLOW='\033[1;33m'
+BOLD='\033[1m'
+NC='\033[0m' # No Color
+
 # Helper function: prompt user with y/n/a support
 # Usage: ask_user "prompt message" && { do stuff }
 ask_user() {
@@ -61,15 +70,6 @@ ask_user() {
         *) return 1 ;;
     esac
 }
-
-# Color definitions for a premium look
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-BLUE='\033[0;34m'
-CYAN='\033[0;36m'
-YELLOW='\033[1;33m'
-BOLD='\033[1m'
-NC='\033[0m' # No Color
 
 send_notification() {
     if [ "$NOTIFY" = true ]; then
@@ -188,10 +188,16 @@ else
 fi
 
 echo "${BLUE}==>${NC} ${BOLD}Listing held packages...${NC}"
-sudo apt-mark showhold || true
+if [ "$DRY_RUN" = true ]; then
+    echo "${CYAN}[DRY RUN] Would run: sudo apt-mark showhold${NC}"
+else
+    sudo apt-mark showhold || true
+fi
 
 echo "${BLUE}==>${NC} ${BOLD}Verifying package installation integrity...${NC}"
-if command -v debsums >/dev/null 2>&1; then
+if [ "$DRY_RUN" = true ]; then
+    echo "${CYAN}[DRY RUN] Would run: debsums -s${NC}"
+elif command -v debsums >/dev/null 2>&1; then
     sudo debsums -s || echo "${RED}Integrity check found issues!${NC}"
 else
     echo "${YELLOW}debsums not installed, skipping integrity check.${NC}"
@@ -220,7 +226,11 @@ else
 fi
 
 printf "\n${BLUE}==>${NC} ${BOLD}Checking for system file inconsistencies...${NC}\n"
-sudo apt-get check || echo "${YELLOW}Warning: system file inconsistencies detected!${NC}"
+if [ "$DRY_RUN" = true ]; then
+    echo "${CYAN}[DRY RUN] Would run: sudo apt-get check${NC}"
+else
+    sudo apt-get check || echo "${YELLOW}Warning: system file inconsistencies detected!${NC}"
+fi
 
 APT_CACHE_AFTER=$(du -sb /var/cache/apt/archives 2>/dev/null | awk '{print $1}')
 [ -z "$APT_CACHE_AFTER" ] && APT_CACHE_AFTER=0

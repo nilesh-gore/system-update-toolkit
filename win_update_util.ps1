@@ -1,4 +1,4 @@
-﻿# Windows System Update Utility
+# Windows System Update Utility
 # A premium PowerShell script to keep your Windows environment in top shape.
 
 param(
@@ -42,7 +42,7 @@ $ErrorActionPreference = "Stop"
 # Built from [char]27 rather than the `e escape token, which Windows
 # PowerShell 5.1 (the documented minimum supported version) does not
 # recognize and would print literally instead of rendering as color.
-$Host.UI.RawUI.WindowTitle = "Windows System Update Utility"
+try { $Host.UI.RawUI.WindowTitle = "Windows System Update Utility" } catch { <# Non-Windows hosts may not support setting window title #> }
 $Esc = [char]27
 $CYAN = "$Esc[1;36m"
 $GREEN = "$Esc[1;32m"
@@ -164,9 +164,11 @@ if (-not $HasSageSet -and $IsWindows -ne $false) {
 }
 if ($script:IsDryRun) {
     Write-Host "${CYAN}[DRY RUN] Would launch: cleanmgr.exe /sagerun:1${NC}"
-} else {
+} elseif ($IsWindows -ne $false) {
     Write-Host "${YELLOW}This will launch the Disk Cleanup tool. Please select the items you wish to clean.${NC}"
     Start-Process "cleanmgr.exe" -ArgumentList "/sagerun:1" -Wait
+} else {
+    Write-Host "${YELLOW}Skipping Disk Cleanup (not running on Windows).${NC}"
 }
 
 # 6. Optional: Clear Temporary Files

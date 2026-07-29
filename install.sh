@@ -20,6 +20,22 @@ NC='\033[0m'
 # --- Config ---
 REPO_URL="https://github.com/nilesh-gore/system-update-toolkit.git"
 INSTALL_DIR="$HOME/.system-update-toolkit"
+DRY_RUN=false
+
+# --- Parse arguments ---
+for arg in "$@"; do
+    case "$arg" in
+        -d|--dry-run) DRY_RUN=true ;;
+        -h|--help)
+            echo "Usage: curl -fsSL <url> | sh -- [OPTIONS]"
+            echo ""
+            echo "Options:"
+            echo "  -d, --dry-run    Show what would happen without making changes"
+            echo "  -h, --help       Show this help message and exit"
+            exit 0
+            ;;
+    esac
+done
 
 echo ""
 echo "${CYAN}**************************************************${NC}"
@@ -78,22 +94,30 @@ if ! command -v git >/dev/null 2>&1; then
 fi
 
 # --- Clone or update ---
-if [ -d "$INSTALL_DIR" ]; then
-    echo "${YELLOW}📁 Toolkit already installed at $INSTALL_DIR${NC}"
-    echo "${CYAN}===> Updating to latest version...${NC}"
-    cd "$INSTALL_DIR"
-    git pull --quiet
-    echo "${GREEN}✅ Updated successfully!${NC}"
+if [ "$DRY_RUN" = true ]; then
+    if [ -d "$INSTALL_DIR" ]; then
+        echo "${CYAN}[DRY RUN] Would update existing installation at $INSTALL_DIR${NC}"
+    else
+        echo "${CYAN}[DRY RUN] Would clone $REPO_URL to $INSTALL_DIR${NC}"
+    fi
+    echo "${CYAN}[DRY RUN] Would make scripts executable${NC}"
 else
-    echo "${CYAN}===> Downloading System Update Toolkit...${NC}"
-    git clone --quiet "$REPO_URL" "$INSTALL_DIR"
-    echo "${GREEN}✅ Downloaded successfully!${NC}"
+    if [ -d "$INSTALL_DIR" ]; then
+        echo "${YELLOW}📁 Toolkit already installed at $INSTALL_DIR${NC}"
+        echo "${CYAN}===> Updating to latest version...${NC}"
+        (cd "$INSTALL_DIR" && git pull --quiet)
+        echo "${GREEN}✅ Updated successfully!${NC}"
+    else
+        echo "${CYAN}===> Downloading System Update Toolkit...${NC}"
+        git clone --quiet "$REPO_URL" "$INSTALL_DIR"
+        echo "${GREEN}✅ Downloaded successfully!${NC}"
+    fi
+
+    echo ""
+
+    # --- Make scripts executable ---
+    chmod +x "$INSTALL_DIR"/*.sh 2>/dev/null || true
 fi
-
-echo ""
-
-# --- Make scripts executable ---
-chmod +x "$INSTALL_DIR"/*.sh 2>/dev/null || true
 
 # --- Select and run the right script ---
 case "$OS" in
@@ -121,6 +145,13 @@ echo "${CYAN}  Run it anytime with:${NC}"
 echo "${GREEN}  $INSTALL_DIR/$SCRIPT${NC}"
 echo "${CYAN}──────────────────────────────────────────${NC}"
 echo ""
+
+if [ "$DRY_RUN" = true ]; then
+    echo "${CYAN}[DRY RUN] Would prompt to run the toolkit now${NC}"
+    echo "${GREEN}✅ Dry run complete. No changes were made.${NC}"
+    echo ""
+    exit 0
+fi
 
 # --- Ask to run now ---
 # When installed via `curl | sh`, stdin is the script itself, not the

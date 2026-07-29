@@ -46,6 +46,15 @@ done
 
 set -eu
 
+# Color definitions for a premium look
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+BLUE='\033[0;34m'
+CYAN='\033[0;36m'
+YELLOW='\033[1;33m'
+BOLD='\033[1m'
+NC='\033[0m' # No Color
+
 # Helper function: prompt user with y/n/a support
 # Usage: ask_user "prompt message" && { do stuff }
 ask_user() {
@@ -61,15 +70,6 @@ ask_user() {
         *) return 1 ;;
     esac
 }
-
-# Color definitions for a premium look
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-BLUE='\033[0;34m'
-CYAN='\033[0;36m'
-YELLOW='\033[1;33m'
-BOLD='\033[1m'
-NC='\033[0m' # No Color
 
 send_notification() {
     if [ "$NOTIFY" = true ]; then
@@ -184,7 +184,7 @@ else
 fi
 
 # 8. Check for any services that might need a restart
-if command -v brew services >/dev/null 2>&1; then
+if brew services list >/dev/null 2>&1; then
     printf "\n${BLUE}==>${NC} ${BOLD}Checking Homebrew services...${NC}\n"
     # Check if any services are started
     if brew services list | grep -q "started"; then
@@ -207,8 +207,12 @@ fi
 
 # 9. Optional: Run Brew Doctor
 if ask_user "Do you want to run 'brew doctor' to check for potential issues?"; then
-    echo "Running brew doctor..."
-    brew doctor || echo "${YELLOW}Brew doctor found some issues (see above).${NC}"
+    if [ "$DRY_RUN" = true ]; then
+        echo "${CYAN}[DRY RUN] Would run: brew doctor${NC}"
+    else
+        echo "Running brew doctor..."
+        brew doctor || echo "${YELLOW}Brew doctor found some issues (see above).${NC}"
+    fi
 fi
 
 # Capture disk usage after cleanup

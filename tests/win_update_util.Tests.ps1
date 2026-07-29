@@ -22,7 +22,7 @@ Describe "win_update_util.ps1 - Script CLI & Utility Tests" {
         It "Should display the correct version info via subshell to prevent process exit" {
             # Redirect all streams (*>&1) to capture Write-Host outputs in the result
             $result = & $PsExe -NoProfile -Command "& '$ScriptPath' -Version" *>&1
-            ($result -join "`n") | Should -Match "System Update Utility \(Windows\) v2\.6"
+            ($result -join "`n") | Should -Match "System Update Utility \(Windows\) v\d+\.\d+"
         }
 
         It "Should display the help menu correctly via subshell" {

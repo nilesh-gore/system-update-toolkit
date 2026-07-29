@@ -9,6 +9,7 @@ Fixes #(issue number)
 ## 🧪 Testing
 
 - [ ] Tested on **Linux** (Ubuntu/Debian)
+- [ ] Tested on **Fedora/RHEL** (DNF)
 - [ ] Tested on **macOS** (Homebrew)
 - [ ] Tested on **Windows** (PowerShell + Winget)
 - [ ] Tested on **ChromeOS** (Crostini)

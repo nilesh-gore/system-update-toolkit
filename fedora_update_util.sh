@@ -46,6 +46,15 @@ done
 
 set -eu
 
+# Color definitions for a premium look
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+BLUE='\033[0;34m'
+CYAN='\033[0;36m'
+YELLOW='\033[1;33m'
+BOLD='\033[1m'
+NC='\033[0m' # No Color
+
 # Helper function: prompt user with y/n/a support
 ask_user() {
     if [ "$AUTO_YES" = true ]; then
@@ -60,15 +69,6 @@ ask_user() {
         *) return 1 ;;
     esac
 }
-
-# Color definitions for a premium look
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-BLUE='\033[0;34m'
-CYAN='\033[0;36m'
-YELLOW='\033[1;33m'
-BOLD='\033[1m'
-NC='\033[0m' # No Color
 
 send_notification() {
     if [ "$NOTIFY" = true ]; then

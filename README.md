@@ -63,7 +63,7 @@ curl -fsSL https://raw.githubusercontent.com/nilesh-gore/system-update-toolkit/m
 
 ## 📌 About
 
-**System Update Utility** is a collection of lightweight, interactive shell scripts designed to automate the tedious process of keeping your operating system, packages, and development tools up to date.
+**System Update Toolkit** is a collection of lightweight, interactive shell scripts designed to automate the tedious process of keeping your operating system, packages, and development tools up to date.
 
 Whether you're a developer maintaining multiple machines, a sysadmin managing servers, or a power user who wants a clean system — this toolkit has you covered.
 
@@ -311,6 +311,10 @@ Step 8  →  Optional: Clear terminal history
 | **Interactive Prompts** | ✅ | ✅ | ✅ | ✅ | ✅ |
 | **POSIX Compatible** | ✅ | ✅ | ✅ | — | ✅ |
 | **Yes to All (`-y`)** | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **Dry Run (`-d`)** | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **Desktop Notifications** | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **Auto-Scheduling** | ✅ (cron) | ✅ (cron) | ✅ (cron) | ❌ | ✅ (cron) |
+| **Logging** | ✅ | ✅ | — | — | ✅ |
 | **Low Storage Alerts**| ✅ (10 GB) | ✅ (10 GB) | ✅ (10 GB) | ✅ (10 GB) | ✅ (10 GB) |
 
 ---
@@ -593,6 +597,6 @@ Distributed under the **MIT License**. See [`LICENSE`](LICENSE) for more informa
 
 ⭐ **Found this useful? Star the repo and share it!** ⭐
 
-[⬆ Back to Top](#-system-update-toolkit--cross-platform-system-maintenance--cleanup-automation)
+[⬆ Back to Top](#-system-update-toolkit--automated-cross-platform-system-update-cache-cleanup--disk-space-recovery)
 
 </div>
