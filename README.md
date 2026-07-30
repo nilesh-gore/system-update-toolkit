@@ -487,6 +487,19 @@ Currently, **Debian/Ubuntu** (`apt`), **Fedora/RHEL** (`dnf`/`dnf5`), and **macO
 Dry Run mode helps you verify operations safely, making it suitable for production systems, servers, and cautious first-time users.
 </details>
 
+<details>
+<summary><b>Can I use this toolkit on production servers?</b></summary>
+
+**Yes.** The toolkit is designed to be safe for production environments when used responsibly. It relies on your operating system's official package manager (APT, DNF, Homebrew, or Winget) and only performs standard maintenance tasks such as installing updates, removing obsolete packages, cleaning caches, rotating logs, and reclaiming disk space. For extra confidence, you can first preview all planned actions using the built-in **Dry Run** mode:
+
+```bash
+./toolkit.sh --dry-run
+```
+
+Review the output, then rerun the toolkit without `--dry-run` when you're ready to perform the maintenance.
+
+</details>
+
 ## 🧪 Testing & Verification
 
 We use automated unit tests and static code analysis to guarantee script quality and reliability.
