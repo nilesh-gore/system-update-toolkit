@@ -500,6 +500,14 @@ Review the output, then rerun the toolkit without `--dry-run` when you're ready 
 
 </details>
 
+<details>
+<summary><b>Will this toolkit automatically reboot my computer after installing updates?</b></summary>
+
+**No.** The toolkit never forces an automatic restart or shutdown. If your operating system or package manager indicates that a reboot is recommended (for example, after a kernel or system component update), you'll see the normal system notification or package manager message. You remain in full control of when—or whether—to restart your device.
+
+This makes the toolkit safe to use on workstations, development machines, and servers where unexpected reboots could interrupt active workloads.
+</details>
+
 ## 🧪 Testing & Verification
 
 We use automated unit tests and static code analysis to guarantee script quality and reliability.
