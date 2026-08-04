@@ -42,7 +42,7 @@ $ErrorActionPreference = "Stop"
 # Built from [char]27 rather than the `e escape token, which Windows
 # PowerShell 5.1 (the documented minimum supported version) does not
 # recognize and would print literally instead of rendering as color.
-try { $Host.UI.RawUI.WindowTitle = "Windows System Update Utility" } catch { <# Non-Windows hosts may not support setting window title #> }
+try { $Host.UI.RawUI.WindowTitle = "Windows System Update Utility" } catch { Write-Debug "Window title not supported on this platform" }
 $Esc = [char]27
 $CYAN = "$Esc[1;36m"
 $GREEN = "$Esc[1;32m"
