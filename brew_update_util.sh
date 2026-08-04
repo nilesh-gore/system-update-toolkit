@@ -2,7 +2,7 @@
 # Brew System Update Utility - macOS
 # A premium, interactive script to keep your Homebrew environment in top shape.
 
-SCRIPT_VERSION="2.6.1"
+SCRIPT_VERSION="2.7.1"
 AUTO_YES=false
 DRY_RUN=false
 NOTIFY=false
@@ -44,7 +44,7 @@ while [ "$#" -gt 0 ]; do
     shift
 done
 
-set -eu
+set -u
 
 # Color definitions for a premium look
 RED='\033[0;31m'
@@ -53,7 +53,9 @@ BLUE='\033[0;34m'
 CYAN='\033[0;36m'
 YELLOW='\033[1;33m'
 BOLD='\033[1m'
+DIM='\033[2m'
 NC='\033[0m' # No Color
+TOTAL_STEPS=9
 
 # Helper function: prompt user with y/n/a support
 # Usage: ask_user "prompt message" && { do stuff }
@@ -104,115 +106,185 @@ if [ "$DISK_BEFORE" -gt 0 ] && [ "$DISK_BEFORE" -lt 10485760 ]; then
 fi
 
 # 1. Update Homebrew
-printf "\n${BLUE}==>${NC} ${BOLD}Updating Homebrew definitions...${NC}\n"
+printf "\n${BLUE}==>${NC} ${BOLD}[Step 1/${TOTAL_STEPS}] Updating Homebrew definitions...${NC}\n"
 if [ "$DRY_RUN" = true ]; then
     echo "${CYAN}[DRY RUN] Would run: brew update${NC}"
 else
-    brew update
+    if brew update; then
+        printf "${GREEN}  ✔ Homebrew definitions updated.${NC}\n"
+    else
+        printf "${RED}  ✘ Homebrew update encountered errors. Continuing...${NC}\n"
+    fi
 fi
 
 # 2. Check for outdated packages
+printf "\n${BLUE}==>${NC} ${BOLD}[Step 2/${TOTAL_STEPS}] Checking for outdated packages...${NC}\n"
 OUTDATED_FORMULAE=$(brew outdated --formula | wc -l | xargs)
 OUTDATED_CASKS=$(brew outdated --cask | wc -l | xargs)
 
-echo "${GREEN}Found $OUTDATED_FORMULAE outdated formulae and $OUTDATED_CASKS outdated casks.${NC}"
+echo "${GREEN}  Found $OUTDATED_FORMULAE outdated formulae and $OUTDATED_CASKS outdated casks.${NC}"
 
 # 3. Upgrade installed formulae
 if [ "$OUTDATED_FORMULAE" -gt 0 ]; then
-    printf "\n${BLUE}==>${NC} ${BOLD}Upgrading installed formulae...${NC}\n"
-    if [ "$DRY_RUN" = true ]; then
-        echo "${CYAN}[DRY RUN] Would run: brew upgrade${NC}"
-    else
-        brew upgrade
+    printf "\n${BLUE}==>${NC} ${BOLD}[Step 3/${TOTAL_STEPS}] Upgrading installed formulae...${NC}\n"
+
+    # Get the list of outdated formulae
+    FORMULA_LIST=$(brew outdated --formula 2>/dev/null | awk '{print $1}')
+    FORMULA_TOTAL=$(echo "$FORMULA_LIST" | grep -c . || true)
+
+    if [ "$FORMULA_TOTAL" -gt 0 ]; then
+        FORMULA_INDEX=0
+        echo "$FORMULA_LIST" | while IFS= read -r formula; do
+            FORMULA_INDEX=$((FORMULA_INDEX + 1))
+            printf "\n${BLUE}  ==>${NC} ${BOLD}[%d/%d] Upgrading formula: ${CYAN}%s${NC}${BOLD}...${NC}\n" "$FORMULA_INDEX" "$FORMULA_TOTAL" "$formula"
+            if [ "$DRY_RUN" = true ]; then
+                echo "${CYAN}  [DRY RUN] Would run: brew upgrade $formula${NC}"
+            else
+                if brew upgrade "$formula"; then
+                    printf "${GREEN}    ✔ %s upgraded successfully.${NC}\n" "$formula"
+                else
+                    printf "${RED}    ✘ %s upgrade failed. Continuing with remaining formulae...${NC}\n" "$formula"
+                fi
+            fi
+        done
     fi
 else
-    printf "\n${GREEN}All formulae are already up to date.${NC}\n"
+    printf "\n${BLUE}==>${NC} ${BOLD}[Step 3/${TOTAL_STEPS}] Upgrading installed formulae...${NC}\n"
+    printf "${GREEN}  ✔ All formulae are already up to date.${NC}\n"
 fi
 
 # 4. Upgrade installed casks
 if [ "$OUTDATED_CASKS" -gt 0 ]; then
-    printf "\n${BLUE}==>${NC} ${BOLD}Upgrading installed casks...${NC}\n"
+    printf "\n${BLUE}==>${NC} ${BOLD}[Step 4/${TOTAL_STEPS}] Upgrading installed casks...${NC}\n"
     echo "${YELLOW}Tip: Greedy mode also upgrades casks that auto-update (Chrome, Slack, etc.).${NC}"
+    GREEDY_FLAG=""
     if ask_user "Do you want to use greedy upgrade for casks?"; then
-        if [ "$DRY_RUN" = true ]; then
-            echo "${CYAN}[DRY RUN] Would run: brew upgrade --cask --greedy${NC}"
-        else
-            brew upgrade --cask --greedy
-        fi
+        GREEDY_FLAG="--greedy"
+    fi
+
+    # Get the list of outdated casks
+    if [ -n "$GREEDY_FLAG" ]; then
+        CASK_LIST=$(brew outdated --cask --greedy 2>/dev/null | awk '{print $1}')
     else
-        if [ "$DRY_RUN" = true ]; then
-            echo "${CYAN}[DRY RUN] Would run: brew upgrade --cask${NC}"
-        else
-            brew upgrade --cask
-        fi
+        CASK_LIST=$(brew outdated --cask 2>/dev/null | awk '{print $1}')
+    fi
+
+    CASK_TOTAL=$(echo "$CASK_LIST" | grep -c . || true)
+    if [ "$CASK_TOTAL" -gt 0 ]; then
+        CASK_INDEX=0
+        echo "$CASK_LIST" | while IFS= read -r cask; do
+            CASK_INDEX=$((CASK_INDEX + 1))
+            printf "\n${BLUE}  ==>${NC} ${BOLD}[%d/%d] Upgrading cask: ${CYAN}%s${NC}${BOLD}...${NC}\n" "$CASK_INDEX" "$CASK_TOTAL" "$cask"
+            if [ "$DRY_RUN" = true ]; then
+                echo "${CYAN}  [DRY RUN] Would run: brew upgrade --cask $cask${NC}"
+            else
+                if brew upgrade --cask "$cask"; then
+                    printf "${GREEN}    ✔ %s upgraded successfully.${NC}\n" "$cask"
+                else
+                    printf "${RED}    ✘ %s upgrade failed. Continuing with remaining casks...${NC}\n" "$cask"
+                fi
+            fi
+        done
+    else
+        printf "${GREEN}  ✔ All casks are already up to date.${NC}\n"
     fi
 else
-    printf "\n${GREEN}All casks are already up to date.${NC}\n"
+    printf "\n${BLUE}==>${NC} ${BOLD}[Step 4/${TOTAL_STEPS}] Upgrading installed casks...${NC}\n"
+    printf "${GREEN}  ✔ All casks are already up to date.${NC}\n"
 fi
 
 # 5. Remove unused dependencies
-printf "\n${BLUE}==>${NC} ${BOLD}Removing unused dependencies (autoremove)...${NC}\n"
+printf "\n${BLUE}==>${NC} ${BOLD}[Step 5/${TOTAL_STEPS}] Removing unused dependencies (autoremove)...${NC}\n"
 if [ "$DRY_RUN" = true ]; then
     echo "${CYAN}[DRY RUN] Would run: brew autoremove${NC}"
 else
-    brew autoremove
+    if brew autoremove; then
+        printf "${GREEN}  ✔ Unused dependencies removed.${NC}\n"
+    else
+        printf "${RED}  ✘ Autoremove encountered errors. Continuing...${NC}\n"
+    fi
 fi
 
 # 6. Cleanup old versions and downloads
-printf "\n${BLUE}==>${NC} ${BOLD}Cleaning up Homebrew...${NC}\n"
+printf "\n${BLUE}==>${NC} ${BOLD}[Step 6/${TOTAL_STEPS}] Cleaning up Homebrew...${NC}\n"
 if [ "$DRY_RUN" = true ]; then
     echo "${CYAN}[DRY RUN] Would run: brew cleanup -s${NC}"
 else
-    brew cleanup -s
+    if brew cleanup -s; then
+        printf "${GREEN}  ✔ Homebrew cleanup complete.${NC}\n"
+    else
+        printf "${RED}  ✘ Cleanup encountered errors. Continuing...${NC}\n"
+    fi
 fi
 
 # 7. Optional: Remove old cached downloads
+printf "\n${BLUE}==>${NC} ${BOLD}[Step 7/${TOTAL_STEPS}] Remove old cached downloads${NC}\n"
 if ask_user "Do you want to remove old cached downloads from ~/Library/Caches/Homebrew?"; then
-    echo "Removing old cached downloads..."
+    printf "${DIM}  Removing old cached downloads...${NC}\n"
     _cache_dir="${HOME:-}/Library/Caches/Homebrew"
     if [ -n "${HOME:-}" ] && [ -d "$_cache_dir" ]; then
         if [ "$DRY_RUN" = true ]; then
-            echo "${CYAN}[DRY RUN] Would run: rm -rf \"$_cache_dir/\"*${NC}"
+            echo "${CYAN}  [DRY RUN] Would run: rm -rf \"$_cache_dir/\"*${NC}"
         else
             rm -rf "${_cache_dir:?}"/* 2>/dev/null || true
+            printf "${GREEN}  ✔ Cached downloads removed.${NC}\n"
         fi
     else
-        echo "Home directory or cache directory not found. Skipping."
+        printf "${YELLOW}  ⚠ Home directory or cache directory not found. Skipping.${NC}\n"
     fi
 else
-    echo "Skipping removal of Homebrew cache."
+    printf "${DIM}  Skipped removal of Homebrew cache.${NC}\n"
 fi
 
 # 8. Check for any services that might need a restart
+printf "\n${BLUE}==>${NC} ${BOLD}[Step 8/${TOTAL_STEPS}] Checking Homebrew services...${NC}\n"
 if brew services list >/dev/null 2>&1; then
-    printf "\n${BLUE}==>${NC} ${BOLD}Checking Homebrew services...${NC}\n"
     # Check if any services are started
     if brew services list | grep -q "started"; then
-        echo "${YELLOW}Note: Some services are running. If they were updated, they may need a restart.${NC}"
+        RUNNING_SVCS=$(brew services list | grep "started" | awk '{print $1}')
+        SVC_COUNT=$(echo "$RUNNING_SVCS" | grep -c . || true)
+        printf "${YELLOW}  Found %d running service(s). They may need a restart after updates.${NC}\n" "$SVC_COUNT"
         if ask_user "Would you like to see the list of running services?"; then
             brew services list
         fi
         if ask_user "Would you like to restart all started Homebrew services to apply any updates?"; then
             if [ "$DRY_RUN" = true ]; then
-                echo "${CYAN}[DRY RUN] Would restart all started services${NC}"
+                echo "${CYAN}  [DRY RUN] Would restart all $SVC_COUNT started services${NC}"
             else
-                brew services list | grep "started" | awk '{print $1}' | while read -r svc; do
-                    echo "Restarting service: $svc..."
-                    brew services restart "$svc"
+                SVC_INDEX=0
+                echo "$RUNNING_SVCS" | while IFS= read -r svc; do
+                    SVC_INDEX=$((SVC_INDEX + 1))
+                    printf "${BLUE}  ==>${NC} ${BOLD}[%d/%d] Restarting service: ${CYAN}%s${NC}${BOLD}...${NC}\n" "$SVC_INDEX" "$SVC_COUNT" "$svc"
+                    if brew services restart "$svc"; then
+                        printf "${GREEN}    ✔ %s restarted.${NC}\n" "$svc"
+                    else
+                        printf "${RED}    ✘ %s restart failed.${NC}\n" "$svc"
+                    fi
                 done
             fi
         fi
+    else
+        printf "${GREEN}  ✔ No running services found.${NC}\n"
     fi
+else
+    printf "${DIM}  brew services not available. Skipping.${NC}\n"
 fi
 
 # 9. Optional: Run Brew Doctor
+printf "\n${BLUE}==>${NC} ${BOLD}[Step 9/${TOTAL_STEPS}] Health check (brew doctor)${NC}\n"
 if ask_user "Do you want to run 'brew doctor' to check for potential issues?"; then
     if [ "$DRY_RUN" = true ]; then
-        echo "${CYAN}[DRY RUN] Would run: brew doctor${NC}"
+        echo "${CYAN}  [DRY RUN] Would run: brew doctor${NC}"
     else
-        echo "Running brew doctor..."
-        brew doctor || echo "${YELLOW}Brew doctor found some issues (see above).${NC}"
+        printf "${DIM}  Running brew doctor...${NC}\n"
+        if brew doctor; then
+            printf "${GREEN}  ✔ No issues found.${NC}\n"
+        else
+            printf "${YELLOW}  ⚠ Brew doctor found some issues (see above).${NC}\n"
+        fi
     fi
+else
+    printf "${DIM}  Skipped health check.${NC}\n"
 fi
 
 # Capture disk usage after cleanup
