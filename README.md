@@ -512,6 +512,31 @@ Review the output, then rerun the toolkit without `--dry-run` when you're ready 
 This makes the toolkit safe to use on workstations, development machines, and servers where unexpected reboots could interrupt active workloads.
 </details>
 
+<details>
+<summary><b>Does this toolkit clean Docker images, containers, or volumes?</b></summary>
+
+**Not yet.** The current release focuses on operating system maintenance, package updates, cache cleanup, temporary files, and disk space recovery. It intentionally does **not** remove Docker images, containers, networks, or volumes to avoid accidentally deleting development or production resources.
+
+Docker cleanup is planned for a future release and may include optional removal of:
+- Dangling images
+- Unused containers
+- Unused volumes
+- Build cache
+
+Until then, you can safely use Docker's built-in cleanup command:
+
+```bash
+docker system prune
+```
+
+or, to also remove unused volumes:
+
+```bash
+docker system prune --volumes
+```
+
+</details>
+
 ## 🧪 Testing & Verification
 
 We use automated unit tests and static code analysis to guarantee script quality and reliability.
