@@ -2,7 +2,7 @@
 # System Update Utility - ChromeOS (Linux/Crostini)
 # A premium script tailored for the ChromeOS Linux environment.
 
-SCRIPT_VERSION="2.6.1"
+SCRIPT_VERSION="2.7.0"
 AUTO_YES=false
 DRY_RUN=false
 NOTIFY=false

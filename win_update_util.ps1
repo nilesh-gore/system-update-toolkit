@@ -11,7 +11,7 @@ param(
     [switch]$Version
 )
 
-$ScriptVersion = "2.6.1"
+$ScriptVersion = "2.7.0"
 $script:AutoYes = $Yes
 $script:IsDryRun = $DryRun
 $script:NotifyUser = $Notify
