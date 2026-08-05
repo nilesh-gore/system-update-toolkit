@@ -233,7 +233,9 @@ cleanup_lock() {
 
 trap cleanup_lock EXIT HUP INT TERM
 
-if [ "$(id -u)" -ne 0 ]; then
+# Root privileges are required only for real maintenance operations.
+# Dry-run mode performs no system modifications and is safe for CI/non-root use.
+if [ "$DRY_RUN" = false ] && [ "$(id -u)" -ne 0 ]; then
     fatal "Run this script as root, for example: sudo ./update_util_updated.sh"
 fi
 
