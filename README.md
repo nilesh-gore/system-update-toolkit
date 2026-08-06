@@ -387,6 +387,26 @@ This enables package integrity verification. The script will skip this step if n
 
 ---
 
+<details>
+<summary><b>📦 Package manager lock file detected</b></summary>
+
+Another package manager process (such as Software Updater, GNOME Software, or another terminal session) may already be running, preventing updates.
+
+**Ubuntu/Debian**
+```bash
+sudo lsof /var/lib/dpkg/lock-frontend
+sudo lsof /var/lib/apt/lists/lock
+```
+
+**Fedora/RHEL**
+```bash
+sudo lsof /var/cache/dnf
+```
+
+Wait for the active process to finish before running the toolkit again. Avoid deleting lock files manually, as doing so may leave the package database in an inconsistent state.
+
+</details>
+
 ## ⏰ Automation & Scheduling
 
 ### 🐧 Linux — Cron Job
