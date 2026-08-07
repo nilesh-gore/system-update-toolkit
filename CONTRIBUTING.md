@@ -1,143 +1,374 @@
 # 🤝 Contributing to System Update Toolkit
 
-First off, **thank you** for considering contributing! Every contribution helps make this toolkit better for everyone.
+First off, **thank you** for considering contributing! 🎉
 
-## 📋 Table of Contents
+Whether you're fixing a typo, reporting a bug, improving documentation, or adding a major feature, your contribution is greatly appreciated. Every contribution helps make **System Update Toolkit** better for everyone.
+
+---
+
+# 📋 Table of Contents
 
 - [Code of Conduct](#-code-of-conduct)
-- [How Can I Contribute?](#-how-can-i-contribute)
+- [Supported Platforms](#-supported-platforms)
+- [Development Requirements](#-development-requirements)
+- [Repository Layout](#-repository-layout)
+- [Ways to Contribute](#-ways-to-contribute)
 - [Getting Started](#-getting-started)
 - [Development Guidelines](#-development-guidelines)
-- [Submitting Changes](#-submitting-changes)
+- [Testing Checklist](#-testing-checklist)
+- [Coding Standards](#-coding-standards)
+- [Security Guidelines](#-security-guidelines)
+- [Performance Guidelines](#-performance-guidelines)
+- [Pull Request Process](#-pull-request-process)
+- [Branch Naming](#-branch-naming)
+- [Commit Message Guidelines](#-commit-message-guidelines)
+- [Continuous Integration](#-continuous-integration)
+- [Documentation Standards](#-documentation-standards)
 - [Style Guide](#-style-guide)
+- [License](#-license)
+- [Recognition](#-recognition)
+- [Questions](#-questions)
 
 ---
 
-## 📜 Code of Conduct
+# 📜 Code of Conduct
 
-This project follows a simple rule: **be kind and respectful**. We're all here to build something useful together.
+This project follows one simple rule:
 
----
+> **Be respectful, welcoming, and constructive.**
 
-## 💡 How Can I Contribute?
+Please:
 
-### 🐛 Report Bugs
-- Use the [Bug Report](https://github.com/nilesh-gore/system-update-toolkit/issues/new?template=bug_report.md) issue template
-- Include your OS version, shell version, and steps to reproduce
+- Be polite
+- Respect different opinions
+- Give constructive feedback
+- Help newcomers
+- Keep discussions professional
 
-### ✨ Suggest Features
-- Use the [Feature Request](https://github.com/nilesh-gore/system-update-toolkit/issues/new?template=feature_request.md) issue template
-- Describe the problem your feature would solve
-
-### 🔧 Submit Code
-Here are some ideas:
-- **Add support for Arch Linux** (`pacman` package manager) and **OpenSUSE** (`zypper` package manager)
-- **Add Chocolatey support** for Windows alongside Winget
-- **Add Docker cleanup logic** (dangling images/volumes)
-- **Implement a "Doctor" health check** for Windows/Linux/Fedora
-- **Improve error handling** and edge cases
-- **Add unit tests** for script functions
+Harassment, discrimination, or abusive behavior will not be tolerated.
 
 ---
 
-## 🚀 Getting Started
+# 💻 Supported Platforms
 
-1. **Fork** the repository
-2. **Clone** your fork:
-   ```bash
-   git clone https://github.com/YOUR_USERNAME/system-update-toolkit.git
-   cd system-update-toolkit
-   ```
-3. **Create** a feature branch:
-   ```bash
-   git checkout -b feature/your-feature-name
-   ```
-4. **Make** your changes
-5. **Test** on your platform
-6. **Commit** and **push**
-
----
-
-## 📐 Development Guidelines
-
-### Shell Scripts (`.sh`)
-
-- **POSIX compliance**: Prefer POSIX-compatible syntax where possible
-- **ShellCheck**: All scripts must pass [ShellCheck](https://www.shellcheck.net/) with no errors
-  ```bash
-  shellcheck your_script.sh
-  ```
-- **Interactive prompts**: Use the shared `ask_user()` function pattern for consistency
-- **Colors**: Use the established ANSI color variables (`GREEN`, `CYAN`, `YELLOW`, `RED`, `NC`)
-- **Error handling**: Always check if commands exist before running them
-
-### PowerShell Scripts (`.ps1`)
-
-- Follow existing patterns in `win_update_util.ps1`
-- Use ANSI escape codes for colored output (matching the patterns in `win_update_util.ps1`)
-- Check for admin privileges where needed
-
-### General
-
-- Keep scripts **lightweight** — no external dependencies
-- Every cleanup action should be **interactive** (confirm before destructive operations)
-- Include a **cleanup summary** with disk space recovered
-- Support the **"Yes to All" (`a`)** prompt pattern
+| Platform | Package Manager | Status |
+|-----------|-----------------|--------|
+| Ubuntu | APT | ✅ Stable |
+| Debian | APT | ✅ Stable |
+| Linux Mint | APT | ✅ Stable |
+| Pop!_OS | APT | ✅ Stable |
+| Fedora | DNF | ✅ Stable |
+| RHEL / AlmaLinux / Rocky | DNF | ✅ Stable |
+| ChromeOS (Crostini) | APT | ✅ Stable |
+| macOS | Homebrew | ✅ Stable |
+| Windows | Winget | ✅ Stable |
+| Arch Linux | Pacman | 🚧 Planned |
+| OpenSUSE | Zypper | 🚧 Planned |
 
 ---
 
-## 📤 Submitting Changes
+# 🛠 Development Requirements
 
-1. **Commit** with a clear message following [Conventional Commits](https://www.conventionalcommits.org/):
-   ```
-   feat: add Fedora (dnf) support
-   fix: handle missing brew command gracefully
-   docs: update comparison matrix for new platform
-   ```
+Recommended tools:
 
-2. **Push** to your fork:
-   ```bash
-   git push origin feature/your-feature-name
-   ```
+- Git
+- ShellCheck
+- PowerShell 7+
+- Bash or POSIX-compatible shell
+- GitHub CLI (optional)
 
-3. **Open a Pull Request** against `main` with:
-   - A clear description of what changed
-   - The platform(s) you tested on
-   - Screenshots of terminal output (if applicable)
+Verify installation:
 
----
-
-## 🎨 Style Guide
-
-### Naming
-- Script files: `lowercase_with_underscores.sh`
-- Functions: `snake_case()`
-- Variables: `UPPER_CASE` for constants, `lower_case` for locals
-
-### Script Structure
 ```bash
-#!/bin/sh
-# ============================================
-# Script Name: your_script.sh
-# Description: Brief description
-# Platform:    Target OS
-# ============================================
+git --version
+shellcheck --version
+pwsh --version
 
-# --- Color Definitions ---
-# --- Helper Functions ---
-# --- Main Logic ---
-# --- Cleanup Summary ---
-```
+📁 Repository Layout
+system-update-toolkit/
+├── toolkit.sh
+├── update_util.sh
+├── fedora_update_util.sh
+├── chromeos_update_util.sh
+├── brew_update_util.sh
+├── win_update_util.ps1
+├── README.md
+├── CONTRIBUTING.md
+├── CHANGELOG.md
+├── LICENSE
+├── docs/
+├── assets/
+└── .github/
 
-### Terminal Output
-- Use `===>` prefix for major steps
-- Use `✅` for success, `⚠️` for warnings, `❌` for errors
-- Always show a cleanup summary at the end
+💡 Ways to Contribute
+🐛 Report Bugs
 
----
+Before opening an issue:
 
-## ❓ Questions?
+Search existing issues
+Test on the latest release
+Include your OS version
+Include shell version
+Include terminal output
+Provide steps to reproduce
+Include screenshots when appropriate
+✨ Suggest Features
 
-Feel free to [open an issue](https://github.com/nilesh-gore/system-update-toolkit/issues) or start a [discussion](https://github.com/nilesh-gore/system-update-toolkit/discussions).
+Feature requests should include:
 
-**Thank you for contributing! 🙏**
+Problem description
+Proposed solution
+Expected behavior
+Possible implementation ideas
+🔧 Submit Code
+
+Examples:
+
+Add Arch Linux support
+Add OpenSUSE support
+Add Chocolatey support
+Add Scoop support
+Docker cleanup
+Podman cleanup
+Health Check ("Doctor") mode
+Better logging
+Performance improvements
+Error handling improvements
+Documentation updates
+Unit tests
+CI improvements
+🚀 Getting Started
+1. Fork the repository
+
+Click Fork on GitHub.
+
+2. Clone
+git clone https://github.com/YOUR_USERNAME/system-update-toolkit.git
+cd system-update-toolkit
+
+3. Create a branch
+git checkout -b feature/my-feature
+
+4. Make your changes
+
+Keep commits focused and easy to review.
+
+5. Test
+./toolkit.sh --dry-run
+
+
+Run ShellCheck:
+
+shellcheck *.sh
+
+6. Commit
+git commit -m "feat: add Arch Linux support"
+
+7. Push
+git push origin feature/my-feature
+
+8. Open a Pull Request
+
+Include:
+
+Description
+Tested platforms
+Screenshots (if applicable)
+Related issues
+📐 Development Guidelines
+Shell Scripts
+Prefer POSIX syntax
+Pass ShellCheck with no errors
+Quote variables
+Use printf instead of echo for formatted output
+Prefer command -v
+Avoid eval
+Handle errors gracefully
+Reuse helper functions
+PowerShell
+Follow existing coding style
+Use approved verbs
+Check administrator privileges
+Handle exceptions properly
+General
+Keep scripts lightweight
+Avoid unnecessary dependencies
+Support Dry Run mode
+Confirm destructive operations
+Keep output user-friendly
+Maintain backward compatibility
+✅ Testing Checklist
+
+Before opening a Pull Request:
+
+ No syntax errors
+ ShellCheck passes
+ Help command works
+ Version command works
+ Dry Run works
+ Interactive prompts work
+ Cleanup summary appears
+ Exit codes are correct
+ Documentation updated
+🔢 Exit Codes
+Code	Meaning
+0	Success
+1	General Error
+2	Invalid Arguments
+126	Permission Denied
+127	Command Not Found
+🔒 Security Guidelines
+
+Please avoid:
+
+Hardcoded passwords
+API keys
+Access tokens
+Secrets
+Credentials
+Unsafe eval
+Blind recursive deletion
+
+Always validate user input before execution.
+
+⚡ Performance Guidelines
+
+Please:
+
+Minimize external command usage
+Avoid unnecessary subprocesses
+Reuse helper functions
+Keep startup fast
+Reduce unnecessary disk access
+📤 Pull Request Process
+
+Before requesting review:
+
+ Code tested
+ Documentation updated
+ CHANGELOG updated (if applicable)
+ No merge conflicts
+ CI passes
+ Conventional Commits used
+🌿 Branch Naming
+
+Examples:
+
+feature/add-arch-support
+feature/docker-cleanup
+fix/flatpak-update
+fix/cache-cleanup
+docs/readme-update
+docs/contributing-update
+refactor/wrapper
+test/add-shell-tests
+ci/github-actions
+
+📝 Commit Message Guidelines
+
+This project follows Conventional Commits.
+
+Examples:
+
+feat: add Fedora support
+feat: add Docker cleanup
+fix: handle missing brew gracefully
+fix: prevent Flatpak update failure
+docs: improve installation guide
+docs: update screenshots
+refactor: simplify wrapper detection
+test: add ShellCheck workflow
+ci: add GitHub Actions
+style: format shell scripts
+
+🤖 Continuous Integration
+
+Pull Requests should pass:
+
+ShellCheck
+PowerShell syntax validation
+Markdown lint
+YAML validation
+GitHub Actions workflows
+
+Please resolve CI failures before requesting review.
+
+📚 Documentation Standards
+
+If your contribution changes functionality, update:
+
+README.md
+CHANGELOG.md
+Screenshots (if applicable)
+Usage examples
+Command documentation
+
+Documentation improvements are always welcome.
+
+🎨 Style Guide
+Naming
+
+Files
+
+update_util.sh
+chromeos_update_util.sh
+fedora_update_util.sh
+
+
+Functions
+
+snake_case()
+
+
+Variables
+
+UPPER_CASE
+lower_case
+
+Terminal Output
+
+Use:
+
+==> for major steps
+✅ Success
+⚠️ Warning
+❌ Error
+ℹ️ Information
+
+Always display a cleanup summary.
+
+📄 License
+
+By contributing to this project, you agree that your contributions will be licensed under the MIT License.
+
+❤️ Recognition
+
+Every contribution matters.
+
+Whether you:
+
+Report a bug
+Fix a typo
+Improve documentation
+Add a feature
+Review Pull Requests
+Improve performance
+Help other users
+
+you are helping make System Update Toolkit better for everyone.
+
+Thank you! 🎉
+
+❓ Questions?
+
+Need help?
+
+Open a GitHub Issue
+Start a GitHub Discussion
+Review the project documentation
+
+Happy coding! 🚀
+
+:::
+
+This is ready to save directly as **`CONTRIBUTING.md`** in your repository.
