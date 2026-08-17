@@ -535,25 +535,14 @@ This makes the toolkit safe to use on workstations, development machines, and se
 <details>
 <summary><b>Does this toolkit clean Docker images, containers, or volumes?</b></summary>
 
-**Not yet.** The current release focuses on operating system maintenance, package updates, cache cleanup, temporary files, and disk space recovery. It intentionally does **not** remove Docker images, containers, networks, or volumes to avoid accidentally deleting development or production resources.
-
-Docker cleanup is planned for a future release and may include optional removal of:
+**Yes.** If the `docker` CLI is detected on your system, the toolkit can optionally reclaim space via `docker system prune --volumes`, removing:
 - Dangling images
-- Unused containers
+- Stopped containers
+- Unused networks
 - Unused volumes
 - Build cache
 
-Until then, you can safely use Docker's built-in cleanup command:
-
-```bash
-docker system prune
-```
-
-or, to also remove unused volumes:
-
-```bash
-docker system prune --volumes
-```
+This step never runs automatically — on macOS, Fedora/RHEL, Arch/Manjaro/EndeavourOS, ChromeOS, and Windows you'll be asked to confirm before it runs (or pre-approve everything with `-y`/`-Yes`). On Ubuntu/Debian, pass the `--docker-cleanup` flag explicitly to enable it — `--yes` alone does not turn it on there. If Docker isn't installed, this step is skipped automatically and the rest of the toolkit runs normally.
 
 </details>
 
@@ -592,7 +581,6 @@ Contributions are what make the open-source community such an amazing place to l
 ### 💡 Ideas for Contributions
 - Add support for OpenSUSE (`zypper`)
 - Add Chocolatey support for Windows alongside Winget
-- Add Docker cleanup logic (dangling images/volumes)
 - Implement a "Doctor" health check for Windows/Linux/Fedora
 
 ---
