@@ -490,7 +490,7 @@ You can set up automated weekly runs. The toolkit has a built-in helper: running
 <details>
 <summary><b>Does it support Arch Linux or other package managers?</b></summary>
 
-Currently, **Debian/Ubuntu** (`apt`), **Fedora/RHEL** (`dnf`/`dnf5`), and **macOS** (`brew`) are officially supported. Support for `pacman` (Arch) is planned for future releases. Contributions are welcome!
+**Debian/Ubuntu** (`apt`), **Fedora/RHEL** (`dnf`/`dnf5`), **macOS** (`brew`), and **Arch/Manjaro/EndeavourOS** (`pacman`) are all officially supported. OpenSUSE (`zypper`) support is planned for a future release. Contributions are welcome!
 </details>
 
 <details>
@@ -562,9 +562,9 @@ docker system prune --volumes
 We use automated unit tests and static code analysis to guarantee script quality and reliability.
 
 ### Unix Shell Scripts
-Unix-based shell scripts (`toolkit.sh`, `brew_update_util.sh`, `update_util.sh`, `fedora_update_util.sh`, `chromeos_update_util.sh`) are linted and verified using `shellcheck`:
+Unix-based shell scripts (`toolkit.sh`, `brew_update_util.sh`, `update_util.sh`, `fedora_update_util.sh`, `chromeos_update_util.sh`, `arch_update_util.sh`) are linted and verified using `shellcheck`:
 ```bash
-shellcheck toolkit.sh brew_update_util.sh update_util.sh fedora_update_util.sh chromeos_update_util.sh install.sh
+shellcheck toolkit.sh brew_update_util.sh update_util.sh fedora_update_util.sh chromeos_update_util.sh arch_update_util.sh install.sh
 ```
 
 ### Windows PowerShell Script
@@ -590,7 +590,7 @@ Contributions are what make the open-source community such an amazing place to l
 5. **Open** a Pull Request
 
 ### 💡 Ideas for Contributions
-- Add support for Arch Linux (`pacman`) and OpenSUSE (`zypper`)
+- Add support for OpenSUSE (`zypper`)
 - Add Chocolatey support for Windows alongside Winget
 - Add Docker cleanup logic (dangling images/volumes)
 - Implement a "Doctor" health check for Windows/Linux/Fedora

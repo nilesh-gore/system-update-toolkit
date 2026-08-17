@@ -40,6 +40,8 @@ detect_os() {
                     echo "debian"
                 elif echo "$ID" | grep -qiE "fedora|centos|rhel|almalinux|rocky"; then
                     echo "fedora"
+                elif echo "$ID" | grep -qiE "arch|manjaro|endeavouros|garuda|arcolinux"; then
+                    echo "arch"
                 else
                     echo "linux_generic"
                 fi
@@ -136,6 +138,9 @@ case "$OS" in
         ;;
     fedora)
         run_script "fedora_update_util.sh" "Fedora/RHEL (DNF)" "$@"
+        ;;
+    arch)
+        run_script "arch_update_util.sh" "Arch Linux (Pacman)" "$@"
         ;;
     chromeos)
         run_script "chromeos_update_util.sh" "ChromeOS (Linux)" "$@"

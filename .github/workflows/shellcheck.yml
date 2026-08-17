@@ -39,7 +39,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Make scripts executable
-        run: chmod +x toolkit.sh update_util.sh fedora_update_util.sh chromeos_update_util.sh brew_update_util.sh install.sh
+        run: chmod +x toolkit.sh update_util.sh fedora_update_util.sh chromeos_update_util.sh brew_update_util.sh arch_update_util.sh install.sh
 
       - name: Run toolkit in dry-run mode
         run: ./toolkit.sh --dry-run --yes --notify
