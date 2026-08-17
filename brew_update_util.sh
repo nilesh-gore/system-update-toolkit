@@ -55,7 +55,7 @@ YELLOW='\033[1;33m'
 BOLD='\033[1m'
 DIM='\033[2m'
 NC='\033[0m' # No Color
-TOTAL_STEPS=9
+TOTAL_STEPS=10
 
 # Helper function: prompt user with y/n/a support
 # Usage: ask_user "prompt message" && { do stuff }
@@ -285,6 +285,24 @@ if ask_user "Do you want to run 'brew doctor' to check for potential issues?"; t
     fi
 else
     printf "${DIM}  Skipped health check.${NC}\n"
+fi
+
+# 10. Optional: Docker cleanup
+if command -v docker >/dev/null 2>&1; then
+    printf "\n${BLUE}==>${NC} ${BOLD}[Step 10/${TOTAL_STEPS}] Docker cleanup${NC}\n"
+    if ask_user "Do you want to run Docker cleanup (dangling images, stopped containers, unused networks/volumes, build cache)?"; then
+        if [ "$DRY_RUN" = true ]; then
+            echo "${CYAN}  [DRY RUN] Would run: docker system prune --volumes -f${NC}"
+        else
+            if docker system prune --volumes -f; then
+                printf "${GREEN}  ✔ Docker resources cleaned up.${NC}\n"
+            else
+                printf "${RED}  ✘ Docker cleanup encountered errors.${NC}\n"
+            fi
+        fi
+    else
+        printf "${DIM}  Skipped Docker cleanup.${NC}\n"
+    fi
 fi
 
 # Capture disk usage after cleanup

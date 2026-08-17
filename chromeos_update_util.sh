@@ -197,6 +197,20 @@ else
     sudo apt-get check || echo "${YELLOW}Warning: system file inconsistencies detected!${NC}"
 fi
 
+# 6.5. Optional: Docker cleanup
+if command -v docker >/dev/null 2>&1; then
+    if ask_user "Do you want to run Docker cleanup (dangling images, stopped containers, unused networks/volumes, build cache)?"; then
+        echo "${BLUE}==>${NC} ${BOLD}Cleaning up Docker resources...${NC}"
+        if [ "$DRY_RUN" = true ]; then
+            echo "${CYAN}[DRY RUN] Would run: docker system prune --volumes -f${NC}"
+        else
+            docker system prune --volumes -f || echo "${RED}Docker cleanup encountered errors.${NC}"
+        fi
+    else
+        echo "Skipping Docker cleanup."
+    fi
+fi
+
 # 7. Disk Space Summary
 APT_CACHE_AFTER=$(du -sb /var/cache/apt/archives 2>/dev/null | awk '{print $1}')
 [ -z "$APT_CACHE_AFTER" ] && APT_CACHE_AFTER=0

@@ -209,6 +209,21 @@ if command -v snap >/dev/null 2>&1; then
     done
 fi
 
+if command -v docker >/dev/null 2>&1; then
+    if ask_user "Do you want to run Docker cleanup (dangling images, stopped containers, unused networks/volumes, build cache)?"; then
+        echo "${BLUE}==>${NC} ${BOLD}Cleaning up Docker resources...${NC}"
+        if [ "$DRY_RUN" = true ]; then
+            echo "${CYAN}[DRY RUN] Would run: docker system prune --volumes -f${NC}"
+        else
+            docker system prune --volumes -f || echo "${RED}Docker cleanup encountered errors.${NC}"
+        fi
+    else
+        echo "Skipping Docker cleanup."
+    fi
+else
+    printf "\n${YELLOW}Docker is not installed. Skipping Docker cleanup.${NC}\n"
+fi
+
 DNF_CACHE_AFTER=$(du -sb /var/cache/dnf /var/cache/dnf5 2>/dev/null | awk '{sum+=$1} END {print sum}')
 [ -z "$DNF_CACHE_AFTER" ] && DNF_CACHE_AFTER=0
 

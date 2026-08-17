@@ -207,6 +207,23 @@ if (Confirm-Action "Do you want to clear PowerShell history?") {
     }
 }
 
+# 7.5. Optional: Docker Cleanup
+if (Get-Command docker -ErrorAction SilentlyContinue) {
+    if (Confirm-Action "Do you want to run Docker cleanup (dangling images, stopped containers, unused networks/volumes, build cache)?") {
+        Write-Host "`n${BLUE}==>${NC} ${BOLD}Cleaning up Docker resources...${NC}"
+        if ($script:IsDryRun) {
+            Write-Host "${CYAN}[DRY RUN] Would run: docker system prune --volumes -f${NC}"
+        } else {
+            docker system prune --volumes -f
+            if ($LASTEXITCODE -eq 0) {
+                Write-Host "${GREEN}Docker resources cleaned up.${NC}"
+            } else {
+                Write-Host "${RED}Docker cleanup encountered errors.${NC}"
+            }
+        }
+    }
+}
+
 # Calculate disk space metrics
 $DriveAfter = Get-PSDrive -Name $systemDrive[0] -ErrorAction SilentlyContinue
 $FreeBytesAfter = if ($DriveAfter) { $DriveAfter.Free } else { 0 }

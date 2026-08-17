@@ -9,6 +9,7 @@ NOTIFY=false
 CLEAR_CACHE=false
 CLEAR_HISTORY=false
 FULL_UPGRADE=false
+DOCKER_CLEANUP=false
 COLOR_ENABLED=true
 LOCK_DIR="/run/lock/system-update-utility.lock"
 LOG_FILE="/var/log/sysupdate.log"
@@ -27,16 +28,18 @@ Options:
       --clear-cache      Clear selected safe user caches
       --clear-history    Clear Bash and Zsh history files
       --full-upgrade     Use apt-get full-upgrade instead of upgrade
+      --docker-cleanup   Run 'docker system prune --volumes' if Docker is installed
       --no-color         Disable coloured terminal output
 
 Examples:
   sudo ./update_util_updated.sh
   sudo ./update_util_updated.sh --yes --full-upgrade
   sudo ./update_util_updated.sh --dry-run --clear-cache
+  sudo ./update_util_updated.sh --yes --docker-cleanup
 
 Safety notes:
   --yes only affects APT confirmations. It does not automatically enable
-  cache deletion or terminal-history deletion.
+  cache deletion, terminal-history deletion, or Docker cleanup.
 USAGE
 }
 
@@ -67,6 +70,9 @@ while [ "$#" -gt 0 ]; do
             ;;
         --full-upgrade)
             FULL_UPGRADE=true
+            ;;
+        --docker-cleanup)
+            DOCKER_CLEANUP=true
             ;;
         --no-color)
             COLOR_ENABLED=false
@@ -413,6 +419,17 @@ if command_exists snap; then
     fi
 else
     printf 'Snap is not installed; Snap maintenance was skipped.\n'
+fi
+
+if command_exists docker; then
+    if [ "$DOCKER_CLEANUP" = true ]; then
+        info "Cleaning up unused Docker resources..."
+        run_command docker system prune --volumes -f
+    else
+        printf 'Skipping Docker cleanup. Use --docker-cleanup to enable it.\n'
+    fi
+else
+    printf 'Docker is not installed; Docker cleanup was skipped.\n'
 fi
 
 if [ "$CLEAR_HISTORY" = true ]; then
