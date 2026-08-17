@@ -42,6 +42,8 @@ detect_os() {
                     echo "fedora"
                 elif echo "$ID" | grep -qiE "arch|manjaro|endeavouros|garuda|arcolinux"; then
                     echo "arch"
+                elif echo "$ID" | grep -qiE "opensuse|sles|suse"; then
+                    echo "opensuse"
                 else
                     echo "linux_generic"
                 fi
@@ -141,6 +143,9 @@ case "$OS" in
         ;;
     arch)
         run_script "arch_update_util.sh" "Arch Linux (Pacman)" "$@"
+        ;;
+    opensuse)
+        run_script "opensuse_update_util.sh" "openSUSE (Zypper)" "$@"
         ;;
     chromeos)
         run_script "chromeos_update_util.sh" "ChromeOS (Linux)" "$@"
