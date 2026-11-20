@@ -16,6 +16,9 @@ Describe "win_update_util.ps1 - Script CLI & Utility Tests" {
         # so that Pester's mocking engine can locate and mock them in child contexts.
         New-Item -Path "function:global:Send-Notification" -Value { param($Message) } -Force | Out-Null
         New-Item -Path "function:global:Confirm-Action" -Value { param($Prompt) } -Force | Out-Null
+        # Stand-in for the docker CLI so tests never touch a real daemon;
+        # a non-zero exit code makes the script treat the daemon as unreachable.
+        New-Item -Path "function:global:docker" -Value { $global:LASTEXITCODE = 1 } -Force | Out-Null
     }
 
     Context "Script Version & Help Parameters" {
@@ -138,6 +141,54 @@ Describe "win_update_util.ps1 - Script CLI & Utility Tests" {
 
             ($outputs -join "`n") | Should -Match "Would clear folder: C:\\MockTemp"
             ($outputs -join "`n") | Should -Match "Would clear folder: C:\\Windows\\Temp"
+        }
+
+        It "Should NOT clear history or prune Docker when only -Yes is given" {
+            Mock Get-PSDrive {
+                [PSCustomObject]@{ Name = 'C'; Free = 50 * 1GB }
+            }
+            Mock Get-Command {
+                if ($Name -eq 'docker') { return $true }
+                return $false
+            }
+            Mock Send-Notification {}
+            $env:SystemDrive = "C:"
+
+            $outputs = [System.Collections.Generic.List[string]]::new()
+            Mock Write-Host {
+                if ($Object) { $outputs.Add($Object) }
+            }
+
+            . $ScriptPath -Yes -DryRun
+
+            $text = $outputs -join "`n"
+            $text | Should -Match "Pass -ClearHistory to run it"
+            $text | Should -Match "Pass -DockerCleanup to run it"
+            $text | Should -Not -Match "Would clear PSReadline history file"
+            $text | Should -Not -Match "Would run: docker system prune"
+        }
+
+        It "Should run history and Docker cleanup in dry-run when their switches are given" {
+            Mock Get-PSDrive {
+                [PSCustomObject]@{ Name = 'C'; Free = 50 * 1GB }
+            }
+            Mock Get-Command {
+                if ($Name -eq 'docker') { return $true }
+                return $false
+            }
+            Mock Send-Notification {}
+            $env:SystemDrive = "C:"
+
+            $outputs = [System.Collections.Generic.List[string]]::new()
+            Mock Write-Host {
+                if ($Object) { $outputs.Add($Object) }
+            }
+
+            . $ScriptPath -Yes -DryRun -ClearHistory -DockerCleanup
+
+            $text = $outputs -join "`n"
+            $text | Should -Match "Would clear PSReadline history file"
+            $text | Should -Match "Would run: docker system prune --volumes -f"
         }
     }
 }

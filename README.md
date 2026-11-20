@@ -121,7 +121,7 @@ Docker's default `json-file` log driver never rotates logs, so long-running cont
 - ✅ Real-time disk partition space tracking via `df` (total physical storage reclaimed)
 - ✅ **Dry Run Support** (`-d`): Preview cleanup actions safely
 - ✅ **Desktop Notifications**: Pings you when updates are done
-- ✅ **Yes to All** mode: type `a` at any prompt, or use `-y` flag to auto-approve everything
+- ✅ **Yes to All** mode: type `a` at any prompt, or use `-y`, to auto-approve routine prompts (destructive steps need their own flags)
 - ✅ **Low Storage Alert**: Native terminal and desktop notification warnings if system free space drops below 10 GB
 
 ### 🐧 Ubuntu / Debian — `debian_update_util.sh`
@@ -134,7 +134,7 @@ Docker's default `json-file` log driver never rotates logs, so long-running cont
 - ✅ System file consistency check (`apt-get check`)
 - ✅ Logs all operations to `/var/log/sysupdate.log`
 - ✅ Real-time disk partition space tracking via `df` (total physical storage reclaimed)
-- ✅ **Yes to All** mode: type `a` at any prompt to auto-approve all remaining prompts
+- ✅ **Yes to All** mode: type `a` at any prompt to auto-approve remaining routine prompts (destructive steps are still asked)
 - ✅ **Low Storage Alert**: Native warning and desktop notifications if system free space drops below 10 GB
 
 ### 🎩 Fedora / RHEL / CentOS — `fedora_update_util.sh`
@@ -146,7 +146,7 @@ Docker's default `json-file` log driver never rotates logs, so long-running cont
 - ✅ Flatpak app updates and unused runtime removal
 - ✅ Optional Snap package refresh and old revision removal
 - ✅ Real-time disk partition space tracking via `df` (total physical storage reclaimed)
-- ✅ **Yes to All** mode: type `a` at any prompt to auto-approve all remaining prompts
+- ✅ **Yes to All** mode: type `a` at any prompt to auto-approve remaining routine prompts (destructive steps are still asked)
 - ✅ **Low Storage Alert**: Native warning and desktop notifications if system free space drops below 10 GB
 
 ### 🪟 Windows — `win_update_util.ps1`
@@ -160,7 +160,7 @@ Docker's default `json-file` log driver never rotates logs, so long-running cont
 - ✅ Native **.NET Toast Notifications** (`System.Windows.Forms.NotifyIcon`) on all Windows editions
 - ✅ Admin privilege detection with warnings
 - ✅ Windows Store app reminder
-- ✅ **Yes to All** mode: type `a` at any prompt to auto-approve all remaining prompts
+- ✅ **Yes to All** mode: type `a` at any prompt to auto-approve remaining routine prompts (destructive steps are still asked)
 - ✅ **Low Storage Alert**: Native alert banner and toast notification warnings if system partition free space drops below 10 GB
 
 ### 💻 ChromeOS — `chromeos_update_util.sh`
@@ -171,7 +171,7 @@ Docker's default `json-file` log driver never rotates logs, so long-running cont
 - ✅ Optional Python pip upgrade and outdated package listing
 - ✅ Interactive terminal history clearing
 - ✅ Real-time disk partition space tracking via `df`
-- ✅ **Yes to All** mode: type `a` at any prompt to auto-approve all remaining prompts
+- ✅ **Yes to All** mode: type `a` at any prompt to auto-approve remaining routine prompts (destructive steps are still asked)
 - ✅ **Low Storage Alert**: Native warnings and desktop notifications if system container free space drops below 10 GB
 
 ---
@@ -224,10 +224,15 @@ The primary entry point for all systems. It automatically detects the host OS an
 ./toolkit.sh [OPTIONS]
 
 Options:
-  -y, --yes     Automatic yes to all prompts
+  -y, --yes     Automatic yes to routine prompts (never to destructive ones)
   -d, --dry-run Preview what will happen without changes
   --notify      Send desktop notification on completion
   --schedule    Setup weekly automated maintenance (Unix)
+
+Destructive actions (never enabled by --yes):
+  --clear-cache     Clear user application caches (Linux)
+  --clear-history   Clear shell history files
+  --docker-cleanup  Run 'docker system prune --volumes'
   -h, --help    Show help message
   -v, --version Show version info
 ```
@@ -467,10 +472,15 @@ Simply run `./toolkit.sh`. The toolkit automatically detects your host operating
 <details>
 <summary><b>Can I run this on a headless server or in non-interactive CI mode?</b></summary>
 
-**Yes.** The Linux script (`debian_update_util.sh`) and others can be run non-interactively. Simply use the `-y` or `--yes` command-line flags to automatically approve all prompts:
+**Yes.** Every script can run non-interactively. Use `-y`/`--yes` to approve routine prompts (package upgrades, package-manager cache cleanup, health checks):
 ```bash
 sudo ./toolkit.sh --yes
 ```
+`--yes` never approves destructive steps. Wiping `~/.cache`, clearing shell history and `docker system prune --volumes` are skipped unless you pass their flags explicitly:
+```bash
+sudo ./toolkit.sh --yes --clear-cache --clear-history --docker-cleanup
+```
+On Windows the equivalents are `-ClearHistory` and `-DockerCleanup` (`toolkit.sh` translates the Unix-style options for you). When there is no terminal (cron, CI), destructive steps are skipped unless their flag is given.
 </details>
 
 <details>
@@ -555,7 +565,7 @@ This makes the toolkit safe to use on workstations, development machines, and se
 - Unused volumes
 - Build cache
 
-This step never runs automatically — on macOS, Fedora/RHEL, Arch/Manjaro/EndeavourOS, ChromeOS, and Windows you'll be asked to confirm before it runs (or pre-approve everything with `-y`/`-Yes`). On Ubuntu/Debian, pass the `--docker-cleanup` flag explicitly to enable it — `--yes` alone does not turn it on there. If Docker isn't installed, this step is skipped automatically and the rest of the toolkit runs normally.
+Because it deletes unused volumes, this step never runs automatically and is **not** approved by `-y`/`--yes` or by answering `a` (all). Either pass `--docker-cleanup` (`-DockerCleanup` on Windows), or answer `y` at its own prompt in an interactive session. If Docker isn't installed, this step is skipped automatically and the rest of the toolkit runs normally.
 
 </details>
 
@@ -601,6 +611,7 @@ Contributions are what make the open-source community such an amazing place to l
 
 | Version | Date | Changes |
 | :--- | :--- | :--- |
+| **v3.2.0** | 2026-11-20 | **Safer `--yes`**: `-y`/`--yes` (and answering `a` at a prompt) now only approve routine prompts on every platform. Destructive steps (wiping `~/.cache`, clearing shell history, `docker system prune --volumes`) need explicit `--clear-cache`, `--clear-history`, `--docker-cleanup` flags (`-ClearHistory`, `-DockerCleanup` on Windows), or an explicit `y` at their own prompt; without a terminal they are skipped. Previously the weekly `--schedule` job (which runs with `-y`) would clear history and prune Docker volumes. `toolkit.sh` now translates options for the Windows script. |
 | **v3.1.0** | 2026-11-20 | **Docker Log Management (all platforms)**: New shared `lib/docker_logs.sh` used by every Unix script. Each run reports Docker container log sizes, the largest containers, and how many containers have no log size limit, and warns when a log exceeds 100M. New `--docker-logs-truncate[=SIZE]` (empties oversized `json-file` logs in place) and `--docker-log-rotation` (merges `max-size: 50m`, `max-file: 3` into `daemon.json` with a timestamped backup and `dockerd --validate`; Docker is never restarted automatically) on Linux. macOS (Docker Desktop/Colima) and Windows (Docker Desktop) report unlimited containers and print the settings to apply. Neither option is enabled by `--yes`. A failed `--docker-cleanup` no longer aborts the Ubuntu run; Arch and openSUSE scripts are now executable in git. The Ubuntu/Debian script was renamed from `update_util.sh` to `debian_update_util.sh` to match the other platform scripts (`toolkit.sh` users are unaffected). |
 | **v2.7.0** | 2026-08-05 | **Per-Package Progress & Cross-Platform Hardening Release**: Enhanced macOS Homebrew update utility with per-package progress tracking (`[X/Y]`) and individual error handling for formulae and casks; hardened PowerShell scripts for cross-platform CI safety and PSScriptAnalyzer compliance; expanded documentation with Docker cleanup, safety guidelines, and reboot behavior details; updated CI action dependencies. |
 | **v2.6.1** | 2026-07-20 | **Reliability & Compatibility Patch**: Fixed the `curl \| sh` installer's confirmation prompt, which could silently consume the script's own remaining lines instead of reading user input in piped/non-interactive contexts. Fixed Windows color output, which previously only rendered correctly on PowerShell 6+ despite PowerShell 5.1 being the documented minimum. Hardened the Debian and ChromeOS cleanup scripts so a single failed cache clear, snap removal, or `apt-get check` no longer aborts the run before the summary is shown. |

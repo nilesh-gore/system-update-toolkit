@@ -94,10 +94,15 @@ case "${1:-}" in
         echo "Options:"
         echo "  -h, --help       Show this help and exit"
         echo "  -v, --version    Show version information"
-        echo "  -y, --yes        Automatic yes to all prompts (non-interactive)"
+        echo "  -y, --yes        Automatic yes to routine prompts (never to destructive ones)"
         echo "  -d, --dry-run    Show what would be done without making changes"
         echo "  --notify         Send desktop notification on completion"
         echo "  --schedule       Setup weekly automated maintenance (Unix only)"
+        echo ""
+        echo "Destructive actions (never enabled by --yes):"
+        echo "  --clear-cache    Clear user application caches (Linux)"
+        echo "  --clear-history  Clear shell history files"
+        echo "  --docker-cleanup Run 'docker system prune --volumes' (deletes unused volumes)"
         echo ""
         echo "Docker log options (Unix scripts; passed through to the platform script):"
         echo "  --docker-logs-truncate[=SIZE]  Empty container logs larger than SIZE (default 100M)"
@@ -157,12 +162,26 @@ case "$OS" in
     windows)
         printf "${GREEN}✅ Detected OS: ${BOLD}Windows${NC}\n"
         if command -v powershell.exe >/dev/null 2>&1 || command -v powershell >/dev/null 2>&1; then
+            # The PowerShell script uses -Yes/-DryRun style switches, so translate
+            # the Unix-style options instead of passing them through unchanged.
+            ps_args=""
+            for arg in "$@"; do
+                case "$arg" in
+                    -y|--yes) ps_args="$ps_args -Yes" ;;
+                    -d|--dry-run) ps_args="$ps_args -DryRun" ;;
+                    --notify) ps_args="$ps_args -Notify" ;;
+                    --clear-history) ps_args="$ps_args -ClearHistory" ;;
+                    --docker-cleanup) ps_args="$ps_args -DockerCleanup" ;;
+                    *) printf "${YELLOW}Ignoring option not supported on Windows: %s${NC}\n" "$arg" ;;
+                esac
+            done
             printf "${CYAN}🚀 Launching PowerShell utility...${NC}\n\n"
+            ps_exe=powershell
             if command -v powershell.exe >/dev/null 2>&1; then
-                powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$SCRIPT_DIR/win_update_util.ps1" "$@"
-            else
-                powershell -NoProfile -ExecutionPolicy Bypass -File "$SCRIPT_DIR/win_update_util.ps1" "$@"
+                ps_exe=powershell.exe
             fi
+            # shellcheck disable=SC2086 # ps_args only ever holds the fixed switch names above
+            "$ps_exe" -NoProfile -ExecutionPolicy Bypass -File "$SCRIPT_DIR/win_update_util.ps1" $ps_args
         else
             echo "${YELLOW}⚠️  PowerShell not found. Please run the PowerShell script manually:${NC}"
             echo "   powershell -File \".\win_update_util.ps1\""
