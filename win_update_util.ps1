@@ -224,6 +224,47 @@ if (Get-Command docker -ErrorAction SilentlyContinue) {
     }
 }
 
+# 7.6. Docker container logs (report only)
+# Docker Desktop keeps container logs and the daemon config inside its VM, so
+# they cannot be measured or truncated from Windows. Instead, report which
+# containers run without a log size limit and explain how to set one.
+$script:DockerLogSummary = $null
+if (Get-Command docker -ErrorAction SilentlyContinue) {
+    $previousPreference = $ErrorActionPreference
+    $ErrorActionPreference = "Continue"
+    try {
+        docker info *> $null
+        if ($LASTEXITCODE -eq 0) {
+            Write-Host "`n${BLUE}==>${NC} ${BOLD}Checking Docker container logs...${NC}"
+            $containerIds = @(docker ps -aq 2>$null | Where-Object { $_ })
+            $unlimitedCount = 0
+            if ($containerIds.Count -gt 0) {
+                $logConfigs = @(docker inspect --format '{{.HostConfig.LogConfig.Type}}|{{index .HostConfig.LogConfig.Config "max-size"}}' @containerIds 2>$null)
+                foreach ($logConfig in $logConfigs) {
+                    $parts = "$logConfig" -split '\|', 2
+                    if ($parts[0] -eq "json-file" -and -not $parts[1]) { $unlimitedCount++ }
+                }
+            }
+
+            Write-Host "Container logs live inside the Docker Desktop VM; sizes cannot be measured from Windows."
+            if ($unlimitedCount -gt 0) {
+                Write-Host "${YELLOW}$unlimitedCount of $($containerIds.Count) container(s) have no log size limit and can grow without bound.${NC}"
+                Write-Host "To limit them, open Docker Desktop > Settings > Docker Engine, add the following, then Apply & restart:"
+                Write-Host "    ${CYAN}`"log-opts`": { `"max-size`": `"50m`", `"max-file`": `"3`" }${NC}"
+                Write-Host "Existing containers pick this up once recreated (docker compose up -d --force-recreate)."
+                $script:DockerLogSummary = "${YELLOW}$unlimitedCount of $($containerIds.Count) container(s) unlimited${NC}"
+            } elseif ($containerIds.Count -gt 0) {
+                Write-Host "${GREEN}All containers have a log size limit.${NC}"
+                $script:DockerLogSummary = "${GREEN}All containers limited${NC}"
+            } else {
+                Write-Host "No containers found."
+            }
+        }
+    } finally {
+        $ErrorActionPreference = $previousPreference
+    }
+}
+
 # Calculate disk space metrics
 $DriveAfter = Get-PSDrive -Name $systemDrive[0] -ErrorAction SilentlyContinue
 $FreeBytesAfter = if ($DriveAfter) { $DriveAfter.Free } else { 0 }
@@ -240,6 +281,9 @@ if ($SavedBytes -gt 0) {
 Write-Host "`n${BOLD}${CYAN}========== CLEANUP SUMMARY ==========${NC}"
 Write-Host "Winget packages   : ${BOLD}Checked & Updated${NC}"
 Write-Host "System Cleanup    : ${BOLD}Run${NC}"
+if ($script:DockerLogSummary) {
+    Write-Host "Docker log limits : ${BOLD}$($script:DockerLogSummary)"
+}
 Write-Host "Total Disk Saved  : ${BOLD}${GREEN}$HumanSaved${NC}"
 Write-Host "${BOLD}${CYAN}=====================================${NC}"
 
