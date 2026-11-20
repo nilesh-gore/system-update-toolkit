@@ -17,7 +17,6 @@ else
     docker_logs_validate() { :; }
     docker_logs_run() { printf 'Docker log checks skipped: lib/docker_logs.sh was not found.\n'; }
     docker_logs_summary() { :; }
-    DOCKER_LOG_SAVED=0
 fi
 
 while [ "$#" -gt 0 ]; do

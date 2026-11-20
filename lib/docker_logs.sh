@@ -474,6 +474,7 @@ docker_logs_run() {
     rm -f "$DOCKER_LOG_SCAN"
     DOCKER_LOG_SCAN=""
     if ! _dl_is_dry_run; then
+        # shellcheck disable=SC2034 # read by the calling scripts
         DOCKER_LOG_SAVED=$DOCKER_LOG_FREED
     fi
 }
