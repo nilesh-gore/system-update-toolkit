@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>System Update Toolkit — Cross-Platform System Maintenance & Cleanup Automation</title>
-    <meta name="description" content="Automate system updates, clean package caches, and recover gigabytes of disk space on macOS, Ubuntu, Fedora, Windows, and ChromeOS. Safe, interactive cross-platform maintenance scripts.">
+    <meta name="description" content="Automate system updates, clean package caches, and recover gigabytes of disk space on macOS, Ubuntu, Fedora, Arch, openSUSE, Windows, and ChromeOS. Safe, interactive cross-platform maintenance scripts.">
     <meta name="keywords" content="system update, system maintenance, cleanup script, disk cleanup, cache cleaner, homebrew update, apt update, dnf5 update, winget, shell script, automation, devops, sysadmin, linux, fedora, macos, windows, chromeos">
     <meta name="author" content="Nilesh Gore">
     <link rel="canonical" href="https://nilesh-gore.github.io/system-update-toolkit/">
@@ -22,10 +22,10 @@
         "price": "0.00",
         "priceCurrency": "USD"
       },
-      "description": "Cross-platform system maintenance & cleanup automation tool. Automate package updates, clean caches, and recover disk space on Ubuntu, Fedora, macOS, Windows, and ChromeOS with one command.",
+      "description": "Cross-platform system maintenance & cleanup automation tool. Automate package updates, clean caches, and recover disk space on Ubuntu, Fedora, Arch, openSUSE, macOS, Windows, and ChromeOS with one command.",
       "downloadUrl": "https://github.com/nilesh-gore/system-update-toolkit",
       "releaseNotes": "https://github.com/nilesh-gore/system-update-toolkit/releases",
-      "softwareVersion": "2.7.0",
+      "softwareVersion": "3.2.0",
       "license": "https://opensource.org/licenses/MIT",
       "author": {
         "@type": "Person",
@@ -417,7 +417,7 @@
     <div class="container">
         <!-- Hero -->
         <section class="hero">
-            <div class="hero-badge">🚀 Open Source &middot; MIT License &middot; v2.6.1</div>
+            <div class="hero-badge">🚀 Open Source &middot; MIT License &middot; v3.2.0</div>
             <h1>
                 <span class="gradient-text">System Update</span><br>Toolkit
             </h1>
@@ -479,6 +479,18 @@
                 <p>Debian updates, Flatpak refresh, npm &amp; pip upgrades</p>
                 <code>chromeos_update_util.sh</code>
             </div>
+            <div class="platform-card">
+                <div class="icon">🏔️</div>
+                <h3>Arch / Manjaro</h3>
+                <p>pacman upgrade, orphan removal, paccache, journal vacuum</p>
+                <code>arch_update_util.sh</code>
+            </div>
+            <div class="platform-card">
+                <div class="icon">🦎</div>
+                <h3>openSUSE</h3>
+                <p>zypper refresh &amp; update, unneeded packages, cache clean</p>
+                <code>opensuse_update_util.sh</code>
+            </div>
         </section>
 
         <!-- Features -->
@@ -506,8 +518,8 @@
                 <div class="feature">
                     <div class="emoji">🛡️</div>
                     <div>
-                        <h4>Safe & Interactive</h4>
-                        <p>Nothing runs without confirmation. Your files are never touched</p>
+                        <h4>Safe by Default</h4>
+                        <p>--yes only approves routine steps; cache, history and Docker wipes need their own flags</p>
                     </div>
                 </div>
                 <div class="feature">
@@ -538,13 +550,20 @@
                         <p>Instant warnings if free space drops below 10 GB to prevent lags</p>
                     </div>
                 </div>
+                <div class="feature">
+                    <div class="emoji">🐳</div>
+                    <div>
+                        <h4>Docker Log Control</h4>
+                        <p>Finds runaway container logs, truncates them and sets up log rotation</p>
+                    </div>
+                </div>
             </div>
         </section>
 
         <!-- Stats -->
         <div class="stats">
             <div class="stat">
-                <div class="number" data-target="5">0</div>
+                <div class="number" data-target="7">0</div>
                 <div class="label">Platforms</div>
             </div>
             <div class="stat">

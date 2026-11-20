@@ -9,7 +9,7 @@
 # License: MIT
 # ==============================================================================
 
-SCRIPT_VERSION="2.7.0"
+SCRIPT_VERSION="3.2.0"
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 set -eu
@@ -80,6 +80,84 @@ run_script() {
     fi
 }
 
+# Weekly maintenance via cron.
+# Linux: the job goes in root's crontab. debian_update_util.sh requires root,
+# and the other Linux scripts call sudo, which cannot prompt for a password
+# under cron. macOS: the job stays in the user's crontab, because Homebrew
+# refuses to run as root. Every entry carries SCHEDULE_MARKER so updating or
+# removing it never touches other cron lines.
+SCHEDULE_MARKER="# system-update-toolkit"
+# Exact tail of the entry written by toolkit.sh versions before 3.2.0.
+LEGACY_SCHEDULE_TAIL='toolkit.sh" -y --notify > /dev/null 2>&1'
+
+schedule_crontab() {
+    if [ "$CRON_AS_ROOT" = true ] && [ "$(id -u)" -ne 0 ]; then
+        sudo crontab "$@"
+    else
+        crontab "$@"
+    fi
+}
+
+# Remove toolkit entries using the crontab command given as arguments.
+remove_schedule_entries() {
+    cron_old=$(mktemp)
+    cron_new=$(mktemp)
+    "$@" -l >"$cron_old" 2>/dev/null || : >"$cron_old"
+    grep -v -F -e "$SCHEDULE_MARKER" -e "$LEGACY_SCHEDULE_TAIL" "$cron_old" >"$cron_new" || true
+    if ! cmp -s "$cron_old" "$cron_new"; then
+        "$@" "$cron_new"
+    fi
+    rm -f "$cron_old" "$cron_new"
+}
+
+manage_schedule() {
+    OS=$(detect_os)
+    if [ "$OS" = "windows" ] || [ "$OS" = "unknown" ]; then
+        printf "${RED}❌ Error: Automated scheduling is currently only supported on Unix-based systems (Linux/macOS).${NC}\n"
+        echo "For Windows, use Task Scheduler to run win_update_util.ps1 -Yes weekly (see README)."
+        exit 1
+    fi
+
+    if [ "$OS" = "macos" ]; then
+        CRON_AS_ROOT=false
+        cron_path="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+        cron_log="$HOME/Library/Logs/system-update-toolkit.log"
+    else
+        CRON_AS_ROOT=true
+        cron_path="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+        cron_log="/var/log/sysupdate-cron.log"
+        # Older versions wrote the job to the invoking user's crontab, where it
+        # could not run; remove it from there too.
+        if [ "$(id -u)" -ne 0 ]; then
+            remove_schedule_entries crontab
+        fi
+    fi
+
+    remove_schedule_entries schedule_crontab
+
+    if [ "$1" = "--unschedule" ]; then
+        printf "${GREEN}✅ Weekly maintenance schedule removed.${NC}\n"
+        return 0
+    fi
+
+    printf "${YELLOW}Setting up weekly maintenance (Mondays at midnight)...${NC}\n"
+    cron_new=$(mktemp)
+    schedule_crontab -l >"$cron_new" 2>/dev/null || : >"$cron_new"
+    printf '0 0 * * 1 PATH=%s "%s/toolkit.sh" -y --notify >>"%s" 2>&1 %s\n' \
+        "$cron_path" "$SCRIPT_DIR" "$cron_log" "$SCHEDULE_MARKER" >>"$cron_new"
+    schedule_crontab "$cron_new"
+    rm -f "$cron_new"
+
+    if [ "$CRON_AS_ROOT" = true ]; then
+        printf "${GREEN}✅ Scheduled weekly maintenance in root's crontab.${NC}\n"
+    else
+        printf "${GREEN}✅ Scheduled weekly maintenance in your crontab.${NC}\n"
+    fi
+    echo "   Log file: $cron_log"
+    echo "   The job runs with -y: destructive steps (cache, history, Docker cleanup) are skipped."
+    echo "   Remove it with: ./toolkit.sh --unschedule"
+}
+
 # Main Execution
 
 # Handle help/version before banner if needed, or just let sub-scripts handle it
@@ -98,6 +176,7 @@ case "${1:-}" in
         echo "  -d, --dry-run    Show what would be done without making changes"
         echo "  --notify         Send desktop notification on completion"
         echo "  --schedule       Setup weekly automated maintenance (Unix only)"
+        echo "  --unschedule     Remove the weekly maintenance job"
         echo ""
         echo "Destructive actions (never enabled by --yes):"
         echo "  --clear-cache    Clear user application caches (Linux)"
@@ -113,26 +192,8 @@ case "${1:-}" in
         echo "System Update Toolkit v$SCRIPT_VERSION (Unified Wrapper)"
         exit 0
         ;;
-    --schedule)
-        OS=$(detect_os)
-        if [ "$OS" = "windows" ] || [ "$OS" = "unknown" ]; then
-            echo "${RED}❌ Error: Automated scheduling is currently only supported on Unix-based systems (Linux/macOS).${NC}"
-            echo "For Windows, please use 'Task Scheduler' to run toolkit.ps1 weekly."
-            exit 1
-        fi
-        printf "${YELLOW}Setting up weekly maintenance (Mondays at Midnight)...${NC}\n"
-        # Create secure temporary files
-        cron_bkp=$(mktemp)
-        cron_new=$(mktemp)
-        # Check if crontab exists, if not create empty one
-        crontab -l > "$cron_bkp" 2>/dev/null || touch "$cron_bkp"
-        # Remove existing toolkit entries to avoid duplicates
-        grep -v "toolkit.sh" "$cron_bkp" > "$cron_new"
-        # Add new entry
-        echo "0 0 * * 1 \"$SCRIPT_DIR/toolkit.sh\" -y --notify > /dev/null 2>&1" >> "$cron_new"
-        crontab "$cron_new"
-        rm -f "$cron_bkp" "$cron_new"
-        echo "${GREEN}✅ Successfully scheduled weekly maintenance!${NC}"
+    --schedule|--unschedule)
+        manage_schedule "$1"
         exit 0
         ;;
 esac
