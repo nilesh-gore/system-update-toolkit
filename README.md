@@ -87,7 +87,7 @@ Whether you're a developer maintaining multiple machines, a sysadmin managing se
 
 <table>
 <tr>
-<td align="center"><b>🐧 Ubuntu / Debian</b><br>APT<br><code>update_util.sh</code></td>
+<td align="center"><b>🐧 Ubuntu / Debian</b><br>APT<br><code>debian_update_util.sh</code></td>
 <td align="center"><b>🎩 Fedora / RHEL</b><br>DNF<br><code>fedora_update_util.sh</code></td>
 <td align="center"><b>🍎 macOS</b><br>Homebrew<br><code>brew_update_util.sh</code></td>
 <td align="center"><b>🪟 Windows</b><br>PowerShell + Winget<br><code>win_update_util.ps1</code></td>
@@ -124,7 +124,7 @@ Docker's default `json-file` log driver never rotates logs, so long-running cont
 - ✅ **Yes to All** mode: type `a` at any prompt, or use `-y` flag to auto-approve everything
 - ✅ **Low Storage Alert**: Native terminal and desktop notification warnings if system free space drops below 10 GB
 
-### 🐧 Ubuntu / Debian — `update_util.sh`
+### 🐧 Ubuntu / Debian — `debian_update_util.sh`
 - ✅ Full system update (`apt-get update` + `full-upgrade`)
 - ✅ Fixes broken packages and installs missing dependencies
 - ✅ Deep cleanup: APT cache, app caches (`~/.cache`), and thumbnail directories
@@ -208,7 +208,7 @@ Either way, `toolkit.sh` automatically detects your OS and runs the correct main
 If you prefer to run a specific script directly:
 
 * **🍎 macOS:** `./brew_update_util.sh`
-* **🐧 Ubuntu/Debian:** `sudo ./update_util.sh`
+* **🐧 Ubuntu/Debian:** `sudo ./debian_update_util.sh`
 * **🎩 Fedora/RHEL:** `sudo ./fedora_update_util.sh`
 * **💻 ChromeOS:** `./chromeos_update_util.sh`
 * **🪟 Windows:** `powershell -File .\win_update_util.ps1`
@@ -247,7 +247,7 @@ Step 10 →  Display cleanup summary
 Step 11 →  Optional: Clear terminal history
 ```
 
-### Ubuntu / Debian: `update_util.sh`
+### Ubuntu / Debian: `debian_update_util.sh`
 ```
 Step 1  →  Capture disk usage (before)
 Step 2  →  Update package lists
@@ -379,7 +379,7 @@ Then add it to your PATH as instructed by the installer.
 
 Always run the Linux script with `sudo`:
 ```bash
-sudo ./update_util.sh
+sudo ./debian_update_util.sh
 ```
 </details>
 
@@ -428,7 +428,7 @@ Wait for the active process to finish before running the toolkit again. Avoid de
 crontab -e
 
 # Run every Sunday at 3 AM
-0 3 * * 0 /path/to/update_util.sh >> /var/log/sysupdate.log 2>&1
+0 3 * * 0 /path/to/debian_update_util.sh >> /var/log/sysupdate.log 2>&1
 ```
 
 ### 🍎 macOS — launchd
@@ -461,13 +461,13 @@ crontab -e
 <details>
 <summary><b>How to run system updates and clean cache with a single script?</b></summary>
 
-Simply run `./toolkit.sh`. The toolkit automatically detects your host operating system (macOS, Ubuntu, Fedora, ChromeOS, or Windows) and runs the appropriate tailored script (`brew_update_util.sh`, `update_util.sh`, etc.) to perform all updates and cleanups in one go.
+Simply run `./toolkit.sh`. The toolkit automatically detects your host operating system (macOS, Ubuntu, Fedora, ChromeOS, or Windows) and runs the appropriate tailored script (`brew_update_util.sh`, `debian_update_util.sh`, etc.) to perform all updates and cleanups in one go.
 </details>
 
 <details>
 <summary><b>Can I run this on a headless server or in non-interactive CI mode?</b></summary>
 
-**Yes.** The Linux script (`update_util.sh`) and others can be run non-interactively. Simply use the `-y` or `--yes` command-line flags to automatically approve all prompts:
+**Yes.** The Linux script (`debian_update_util.sh`) and others can be run non-interactively. Simply use the `-y` or `--yes` command-line flags to automatically approve all prompts:
 ```bash
 sudo ./toolkit.sh --yes
 ```
@@ -476,7 +476,7 @@ sudo ./toolkit.sh --yes
 <details>
 <summary><b>How do I safely clear package cache and logs on Ubuntu/Debian?</b></summary>
 
-The `update_util.sh` script does this automatically. It cleans the APT cache (`apt-get clean`), clears the thumbnail cache, clears old log revisions, and vacuums systemd journal logs keeping only the last 7 days of logs.
+The `debian_update_util.sh` script does this automatically. It cleans the APT cache (`apt-get clean`), clears the thumbnail cache, clears old log revisions, and vacuums systemd journal logs keeping only the last 7 days of logs.
 </details>
 
 <details>
@@ -564,9 +564,9 @@ This step never runs automatically — on macOS, Fedora/RHEL, Arch/Manjaro/Endea
 We use automated unit tests and static code analysis to guarantee script quality and reliability.
 
 ### Unix Shell Scripts
-Unix-based shell scripts (`toolkit.sh`, `brew_update_util.sh`, `update_util.sh`, `fedora_update_util.sh`, `chromeos_update_util.sh`, `arch_update_util.sh`, `opensuse_update_util.sh`) are linted and verified using `shellcheck`:
+Unix-based shell scripts (`toolkit.sh`, `brew_update_util.sh`, `debian_update_util.sh`, `fedora_update_util.sh`, `chromeos_update_util.sh`, `arch_update_util.sh`, `opensuse_update_util.sh`) are linted and verified using `shellcheck`:
 ```bash
-shellcheck toolkit.sh brew_update_util.sh update_util.sh fedora_update_util.sh chromeos_update_util.sh arch_update_util.sh opensuse_update_util.sh install.sh
+shellcheck toolkit.sh brew_update_util.sh debian_update_util.sh fedora_update_util.sh chromeos_update_util.sh arch_update_util.sh opensuse_update_util.sh install.sh
 ```
 
 ### Windows PowerShell Script
@@ -601,7 +601,7 @@ Contributions are what make the open-source community such an amazing place to l
 
 | Version | Date | Changes |
 | :--- | :--- | :--- |
-| **v3.1.0** | 2026-11-20 | **Docker Log Management (all platforms)**: New shared `lib/docker_logs.sh` used by every Unix script. Each run reports Docker container log sizes, the largest containers, and how many containers have no log size limit, and warns when a log exceeds 100M. New `--docker-logs-truncate[=SIZE]` (empties oversized `json-file` logs in place) and `--docker-log-rotation` (merges `max-size: 50m`, `max-file: 3` into `daemon.json` with a timestamped backup and `dockerd --validate`; Docker is never restarted automatically) on Linux. macOS (Docker Desktop/Colima) and Windows (Docker Desktop) report unlimited containers and print the settings to apply. Neither option is enabled by `--yes`. A failed `--docker-cleanup` no longer aborts the Ubuntu run; Arch and openSUSE scripts are now executable in git. |
+| **v3.1.0** | 2026-11-20 | **Docker Log Management (all platforms)**: New shared `lib/docker_logs.sh` used by every Unix script. Each run reports Docker container log sizes, the largest containers, and how many containers have no log size limit, and warns when a log exceeds 100M. New `--docker-logs-truncate[=SIZE]` (empties oversized `json-file` logs in place) and `--docker-log-rotation` (merges `max-size: 50m`, `max-file: 3` into `daemon.json` with a timestamped backup and `dockerd --validate`; Docker is never restarted automatically) on Linux. macOS (Docker Desktop/Colima) and Windows (Docker Desktop) report unlimited containers and print the settings to apply. Neither option is enabled by `--yes`. A failed `--docker-cleanup` no longer aborts the Ubuntu run; Arch and openSUSE scripts are now executable in git. The Ubuntu/Debian script was renamed from `update_util.sh` to `debian_update_util.sh` to match the other platform scripts (`toolkit.sh` users are unaffected). |
 | **v2.7.0** | 2026-08-05 | **Per-Package Progress & Cross-Platform Hardening Release**: Enhanced macOS Homebrew update utility with per-package progress tracking (`[X/Y]`) and individual error handling for formulae and casks; hardened PowerShell scripts for cross-platform CI safety and PSScriptAnalyzer compliance; expanded documentation with Docker cleanup, safety guidelines, and reboot behavior details; updated CI action dependencies. |
 | **v2.6.1** | 2026-07-20 | **Reliability & Compatibility Patch**: Fixed the `curl \| sh` installer's confirmation prompt, which could silently consume the script's own remaining lines instead of reading user input in piped/non-interactive contexts. Fixed Windows color output, which previously only rendered correctly on PowerShell 6+ despite PowerShell 5.1 being the documented minimum. Hardened the Debian and ChromeOS cleanup scripts so a single failed cache clear, snap removal, or `apt-get check` no longer aborts the run before the summary is shown. |
 | **v2.6** | 2026-05-21 | **Proactive Storage Warning & Testing Release**: Added proactive low disk space checks (10 GB threshold) with native terminal alerts and desktop notifications across all five supported operating systems (macOS, Ubuntu, Fedora, ChromeOS, Windows) to prevent system slowdowns. Relocated and engineered a fully mocked, platform-agnostic Pester test suite in a dedicated `tests/` folder for seamless local testing on macOS/Linux and standard GitHub Actions CI integration. |

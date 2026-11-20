@@ -87,10 +87,14 @@ pwsh --version
 📁 Repository Layout
 system-update-toolkit/
 ├── toolkit.sh
-├── update_util.sh
+├── debian_update_util.sh
 ├── fedora_update_util.sh
+├── arch_update_util.sh
+├── opensuse_update_util.sh
 ├── chromeos_update_util.sh
 ├── brew_update_util.sh
+├── lib/
+│   └── docker_logs.sh
 ├── win_update_util.ps1
 ├── README.md
 ├── CONTRIBUTING.md
@@ -310,7 +314,7 @@ Naming
 
 Files
 
-update_util.sh
+debian_update_util.sh
 chromeos_update_util.sh
 fedora_update_util.sh
 
