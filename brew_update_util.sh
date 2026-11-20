@@ -6,6 +6,9 @@ SCRIPT_VERSION="2.7.0"
 AUTO_YES=false
 DRY_RUN=false
 NOTIFY=false
+YES_FLAG=false
+CLEAR_HISTORY=false
+DOCKER_CLEANUP=false
 SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
 
 if [ -r "$SCRIPT_DIR/lib/docker_logs.sh" ]; then
@@ -27,9 +30,11 @@ while [ "$#" -gt 0 ]; do
             echo "Options:"
             echo "  -h, --help       Show this help message and exit"
             echo "  -v, --version    Show version information"
-            echo "  -y, --yes        Automatic yes to all prompts"
+            echo "  -y, --yes        Automatic yes to routine prompts (never to destructive ones)"
             echo "  -d, --dry-run    Show what would be done without making changes"
             echo "  --notify         Send desktop notification on completion"
+            echo "  --clear-history  Clear Bash/Zsh history files"
+            echo "  --docker-cleanup Run 'docker system prune --volumes' (deletes unused volumes)"
             docker_logs_help
             echo ""
             echo "A premium system update utility for macOS (Homebrew)."
@@ -42,12 +47,19 @@ while [ "$#" -gt 0 ]; do
             ;;
         -y|--yes)
             AUTO_YES=true
+            YES_FLAG=true
             ;;
         -d|--dry-run)
             DRY_RUN=true
             ;;
         --notify)
             NOTIFY=true
+            ;;
+        --clear-history)
+            CLEAR_HISTORY=true
+            ;;
+        --docker-cleanup)
+            DOCKER_CLEANUP=true
             ;;
         *)
             docker_logs_parse_arg "$1" && { shift; continue; }
@@ -83,6 +95,27 @@ ask_user() {
     read -r REPLY
     case "$REPLY" in
         a|A|all|ALL) AUTO_YES=true; return 0 ;;
+        y|Y|yes|YES) return 0 ;;
+        *) return 1 ;;
+    esac
+}
+
+# Destructive actions (deleting caches, history, Docker volumes) are never
+# approved by -y/--yes or by answering "all": they need their own flag, or an
+# explicit "y" at an interactive prompt. Without a terminal they are skipped.
+confirm_destructive() {
+    if [ "$1" = true ]; then
+        return 0
+    fi
+    if [ "$YES_FLAG" = true ] || [ ! -t 0 ]; then
+        printf "\n${YELLOW}Skipped (destructive): %s${NC}\n" "$3"
+        printf "${YELLOW}Pass %s to run it; -y does not enable it.${NC}\n" "$2"
+        return 1
+    fi
+    printf "\n${YELLOW}%s${NC}\n" "$3"
+    printf "${BOLD}[y]es / [n]o${NC}: "
+    read -r REPLY || REPLY=""
+    case "$REPLY" in
         y|Y|yes|YES) return 0 ;;
         *) return 1 ;;
     esac
@@ -305,7 +338,7 @@ fi
 # 10. Optional: Docker cleanup
 if command -v docker >/dev/null 2>&1; then
     printf "\n${BLUE}==>${NC} ${BOLD}[Step 10/${TOTAL_STEPS}] Docker cleanup${NC}\n"
-    if ask_user "Do you want to run Docker cleanup (dangling images, stopped containers, unused networks/volumes, build cache)?"; then
+    if confirm_destructive "$DOCKER_CLEANUP" --docker-cleanup "Do you want to run Docker cleanup (dangling images, stopped containers, unused networks/volumes, build cache)?"; then
         if [ "$DRY_RUN" = true ]; then
             echo "${CYAN}  [DRY RUN] Would run: docker system prune --volumes -f${NC}"
         else
@@ -358,7 +391,7 @@ docker_logs_summary 24
 echo "${BOLD}${CYAN}=====================================${NC}"
 
 # Optional terminal history clearing
-if ask_user "Do you want to clear terminal history?"; then
+if confirm_destructive "$CLEAR_HISTORY" --clear-history "Do you want to clear terminal history?"; then
     echo "Clearing terminal history..."
     if [ "$DRY_RUN" = true ]; then
         echo "${CYAN}[DRY RUN] Would clear terminal history files${NC}"

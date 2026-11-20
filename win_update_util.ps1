@@ -7,6 +7,8 @@ param(
     [Alias("d")]
     [switch]$DryRun,
     [switch]$Notify,
+    [switch]$ClearHistory,
+    [switch]$DockerCleanup,
     [switch]$Help,
     [switch]$Version
 )
@@ -17,12 +19,14 @@ $script:IsDryRun = $DryRun
 $script:NotifyUser = $Notify
 
 if ($Help) {
-    Write-Host "Usage: .\win_update_util.ps1 [-Yes] [-DryRun] [-Notify] [-Help] [-Version]"
+    Write-Host "Usage: .\win_update_util.ps1 [-Yes] [-DryRun] [-Notify] [-ClearHistory] [-DockerCleanup] [-Help] [-Version]"
     Write-Host ""
     Write-Host "Options:"
-    Write-Host "  -Yes, -y    Automatic yes to all prompts"
+    Write-Host "  -Yes, -y    Automatic yes to routine prompts (never to destructive ones)"
     Write-Host "  -DryRun, -d Show what would be done without making changes"
     Write-Host "  -Notify     Send desktop notification on completion"
+    Write-Host "  -ClearHistory   Clear the PowerShell history file"
+    Write-Host "  -DockerCleanup  Run 'docker system prune --volumes' (deletes unused volumes)"
     Write-Host "  -Help       Show this help message and exit"
     Write-Host "  -Version    Show version information"
     Write-Host ""
@@ -64,6 +68,27 @@ function Confirm-Action {
         { $_ -match '^y(es)?$' } { return $true }
         default { return $false }
     }
+}
+
+# Destructive actions (history, Docker volumes) are never approved by -Yes or
+# by answering "all": they need their own switch, or an explicit "y" at an
+# interactive prompt.
+function Confirm-Destructive {
+    param(
+        [bool]$Enabled,
+        [string]$SwitchName,
+        [string]$Prompt
+    )
+    if ($Enabled) { return $true }
+    if ($Yes -or -not [Environment]::UserInteractive) {
+        Write-Host "`n${YELLOW}Skipped (destructive): $Prompt${NC}"
+        Write-Host "${YELLOW}Pass $SwitchName to run it; -Yes does not enable it.${NC}"
+        return $false
+    }
+    Write-Host "`n${YELLOW}$Prompt${NC}"
+    Write-Host "${BOLD}[y]es / [n]o${NC}: " -NoNewline
+    $reply = Read-Host
+    return ($reply -match '^y(es)?$')
 }
 
 function Send-Notification {
@@ -192,7 +217,7 @@ if (Confirm-Action "Do you want to clear system temporary files?") {
 }
 
 # 7. Optional: Clear PowerShell History
-if (Confirm-Action "Do you want to clear PowerShell history?") {
+if (Confirm-Destructive -Enabled $ClearHistory.IsPresent -SwitchName "-ClearHistory" -Prompt "Do you want to clear PowerShell history?") {
     Write-Host "Clearing PowerShell persistent history file..."
     if ($script:IsDryRun) {
         Write-Host "${CYAN}[DRY RUN] Would clear PSReadline history file${NC}"
@@ -209,7 +234,7 @@ if (Confirm-Action "Do you want to clear PowerShell history?") {
 
 # 7.5. Optional: Docker Cleanup
 if (Get-Command docker -ErrorAction SilentlyContinue) {
-    if (Confirm-Action "Do you want to run Docker cleanup (dangling images, stopped containers, unused networks/volumes, build cache)?") {
+    if (Confirm-Destructive -Enabled $DockerCleanup.IsPresent -SwitchName "-DockerCleanup" -Prompt "Do you want to run Docker cleanup (dangling images, stopped containers, unused networks/volumes, build cache)?") {
         Write-Host "`n${BLUE}==>${NC} ${BOLD}Cleaning up Docker resources...${NC}"
         if ($script:IsDryRun) {
             Write-Host "${CYAN}[DRY RUN] Would run: docker system prune --volumes -f${NC}"
