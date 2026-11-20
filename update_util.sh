@@ -2,7 +2,7 @@
 # System Update Utility - Ubuntu/Debian
 # Safe system updates, package repair, cleanup, reporting, and optional notifications.
 
-SCRIPT_VERSION="3.0.0"
+SCRIPT_VERSION="3.1.0"
 AUTO_YES=false
 DRY_RUN=false
 NOTIFY=false
@@ -14,10 +14,23 @@ COLOR_ENABLED=true
 LOCK_DIR="/run/lock/system-update-utility.lock"
 LOG_FILE="/var/log/sysupdate.log"
 WARNINGS=0
+SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
+
+if [ -r "$SCRIPT_DIR/lib/docker_logs.sh" ]; then
+    # shellcheck source=lib/docker_logs.sh
+    . "$SCRIPT_DIR/lib/docker_logs.sh"
+else
+    docker_logs_parse_arg() { return 1; }
+    docker_logs_help() { :; }
+    docker_logs_validate() { :; }
+    docker_logs_run() { printf 'Docker log checks skipped: lib/docker_logs.sh was not found.\n'; }
+    docker_logs_summary() { :; }
+    DOCKER_LOG_SAVED=0
+fi
 
 show_help() {
     cat <<USAGE
-Usage: sudo ./update_util_updated.sh [OPTIONS]
+Usage: sudo ./update_util.sh [OPTIONS]
 
 Options:
   -h, --help             Show this help message and exit
@@ -30,16 +43,23 @@ Options:
       --full-upgrade     Use apt-get full-upgrade instead of upgrade
       --docker-cleanup   Run 'docker system prune --volumes' if Docker is installed
       --no-color         Disable coloured terminal output
+$(docker_logs_help | sed 's/^  --/      --/')
 
 Examples:
-  sudo ./update_util_updated.sh
-  sudo ./update_util_updated.sh --yes --full-upgrade
-  sudo ./update_util_updated.sh --dry-run --clear-cache
-  sudo ./update_util_updated.sh --yes --docker-cleanup
+  sudo ./update_util.sh
+  sudo ./update_util.sh --yes --full-upgrade
+  sudo ./update_util.sh --dry-run --clear-cache
+  sudo ./update_util.sh --yes --docker-cleanup
+  sudo ./update_util.sh --docker-logs-truncate=200M --docker-log-rotation
 
 Safety notes:
   --yes only affects APT confirmations. It does not automatically enable
-  cache deletion, terminal-history deletion, or Docker cleanup.
+  cache deletion, terminal-history deletion, Docker cleanup, Docker log
+  truncation, or Docker daemon configuration changes.
+
+Docker logs:
+  Container log sizes are always reported (read-only). Truncation permanently
+  discards old log lines. The daemon is never restarted automatically.
 USAGE
 }
 
@@ -82,6 +102,7 @@ while [ "$#" -gt 0 ]; do
             break
             ;;
         *)
+            docker_logs_parse_arg "$1" && { shift; continue; }
             printf 'Unknown option: %s\n\n' "$1" >&2
             show_help >&2
             exit 1
@@ -242,7 +263,7 @@ trap cleanup_lock EXIT HUP INT TERM
 # Root privileges are required only for real maintenance operations.
 # Dry-run mode performs no system modifications and is safe for CI/non-root use.
 if [ "$DRY_RUN" = false ] && [ "$(id -u)" -ne 0 ]; then
-    fatal "Run this script as root, for example: sudo ./update_util_updated.sh"
+    fatal "Run this script as root, for example: sudo ./update_util.sh"
 fi
 
 if [ ! -r /etc/os-release ]; then
@@ -263,6 +284,8 @@ case "${ID:-}" in
 esac
 
 command_exists apt-get || fatal "apt-get is not installed."
+
+docker_logs_validate
 command_exists dpkg || fatal "dpkg is not installed."
 
 if [ "$DRY_RUN" = false ]; then
@@ -424,13 +447,15 @@ fi
 if command_exists docker; then
     if [ "$DOCKER_CLEANUP" = true ]; then
         info "Cleaning up unused Docker resources..."
-        run_command docker system prune --volumes -f
+        run_command docker system prune --volumes -f || warn "Docker cleanup failed."
     else
         printf 'Skipping Docker cleanup. Use --docker-cleanup to enable it.\n'
     fi
 else
     printf 'Docker is not installed; Docker cleanup was skipped.\n'
 fi
+
+docker_logs_run "Checking Docker container logs..."
 
 if [ "$CLEAR_HISTORY" = true ]; then
     info "Clearing shell history files..."
@@ -473,7 +498,7 @@ PART_CLEARED=$((DISK_AFTER - DISK_BEFORE))
 [ "$JOURNAL_DIFF" -ge 0 ] || JOURNAL_DIFF=0
 [ "$PART_CLEARED" -ge 0 ] || PART_CLEARED=0
 
-TOTAL_SAVED=$((APT_DIFF + APP_DIFF + JOURNAL_DIFF))
+TOTAL_SAVED=$((APT_DIFF + APP_DIFF + JOURNAL_DIFF + DOCKER_LOG_SAVED))
 HUMAN_TOTAL=$(human_bytes "$TOTAL_SAVED")
 HUMAN_PART_SAVED=$(human_bytes "$PART_CLEARED")
 
@@ -481,6 +506,7 @@ printf '\n%b========== MAINTENANCE SUMMARY ==========%b\n' "$BOLD$CYAN" "$NC"
 printf 'APT cache cleared      : %b%s%b\n' "$BOLD" "$(human_bytes "$APT_DIFF")" "$NC"
 printf 'Selected app caches    : %b%s%b\n' "$BOLD" "$(human_bytes "$APP_DIFF")" "$NC"
 printf 'Journal logs cleared   : %b%s%b\n' "$BOLD" "$(human_bytes "$JOURNAL_DIFF")" "$NC"
+docker_logs_summary 23
 printf '%s\n' '-----------------------------------------'
 printf 'Measured cache savings : %b%s%b\n' "$GREEN$BOLD" "$HUMAN_TOTAL" "$NC"
 printf 'Root filesystem gain   : %b%s%b\n' "$GREEN$BOLD" "$HUMAN_PART_SAVED" "$NC"

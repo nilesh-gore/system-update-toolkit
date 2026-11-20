@@ -98,6 +98,10 @@ case "${1:-}" in
         echo "  -d, --dry-run    Show what would be done without making changes"
         echo "  --notify         Send desktop notification on completion"
         echo "  --schedule       Setup weekly automated maintenance (Unix only)"
+        echo ""
+        echo "Docker log options (Unix scripts; passed through to the platform script):"
+        echo "  --docker-logs-truncate[=SIZE]  Empty container logs larger than SIZE (default 100M)"
+        echo "  --docker-log-rotation          Configure Docker log rotation (max-size 50m, max-file 3)"
         exit 0
         ;;
     -v|--version)

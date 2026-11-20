@@ -99,6 +99,15 @@ Whether you're a developer maintaining multiple machines, a sysadmin managing se
 
 ## ✨ Features at a Glance
 
+### 🐳 Docker Container Logs — all platforms
+Docker's default `json-file` log driver never rotates logs, so long-running containers can silently fill the disk — and `docker system prune` does not touch them. Every script now:
+- ✅ **Reports** container log sizes (Linux), the largest offenders, and how many containers have **no log size limit** (all platforms) — read-only, every run
+- ✅ Warns when any container log exceeds 100M
+- ✅ `--docker-logs-truncate[=SIZE]` empties oversized logs in place; containers keep running (Linux)
+- ✅ `--docker-log-rotation` merges `max-size: 50m` / `max-file: 3` into `daemon.json` with a timestamped backup and `dockerd --validate`; Docker is never restarted automatically (Linux)
+- ✅ Docker Desktop (macOS/Windows) and Colima keep logs inside a VM, so the scripts print the exact settings to apply instead
+- ✅ Neither option is enabled by `--yes`
+
 ### 🍎 macOS — `brew_update_util.sh`
 - ✅ Updates Homebrew definitions (`brew update`)
 - ✅ Smart detection of outdated formulae and casks before upgrading
@@ -249,9 +258,13 @@ Step 6  →  Clean APT cache, app caches, thumbnails
 Step 7  →  Vacuum journal logs (7-day retention)
 Step 8  →  Refresh Snap packages & remove old revisions
 Step 9  →  Verify package integrity (debsums)
-Step 10 →  Capture disk usage (after) & display summary
-Step 11 →  Optional: Clear terminal history
-Step 12 →  Log to /var/log/sysupdate.log
+Step 10 →  Optional: Docker cleanup (--docker-cleanup)
+Step 11 →  Report Docker container log sizes & rotation status
+           Optional: truncate large logs (--docker-logs-truncate[=SIZE])
+           Optional: configure log rotation (--docker-log-rotation)
+Step 12 →  Optional: Clear terminal history
+Step 13 →  Capture disk usage (after) & display summary
+Step 14 →  Log to /var/log/sysupdate.log
 ```
 
 ### Fedora / RHEL: `fedora_update_util.sh`
@@ -588,6 +601,7 @@ Contributions are what make the open-source community such an amazing place to l
 
 | Version | Date | Changes |
 | :--- | :--- | :--- |
+| **v3.1.0** | 2026-11-20 | **Docker Log Management (all platforms)**: New shared `lib/docker_logs.sh` used by every Unix script. Each run reports Docker container log sizes, the largest containers, and how many containers have no log size limit, and warns when a log exceeds 100M. New `--docker-logs-truncate[=SIZE]` (empties oversized `json-file` logs in place) and `--docker-log-rotation` (merges `max-size: 50m`, `max-file: 3` into `daemon.json` with a timestamped backup and `dockerd --validate`; Docker is never restarted automatically) on Linux. macOS (Docker Desktop/Colima) and Windows (Docker Desktop) report unlimited containers and print the settings to apply. Neither option is enabled by `--yes`. A failed `--docker-cleanup` no longer aborts the Ubuntu run; Arch and openSUSE scripts are now executable in git. |
 | **v2.7.0** | 2026-08-05 | **Per-Package Progress & Cross-Platform Hardening Release**: Enhanced macOS Homebrew update utility with per-package progress tracking (`[X/Y]`) and individual error handling for formulae and casks; hardened PowerShell scripts for cross-platform CI safety and PSScriptAnalyzer compliance; expanded documentation with Docker cleanup, safety guidelines, and reboot behavior details; updated CI action dependencies. |
 | **v2.6.1** | 2026-07-20 | **Reliability & Compatibility Patch**: Fixed the `curl \| sh` installer's confirmation prompt, which could silently consume the script's own remaining lines instead of reading user input in piped/non-interactive contexts. Fixed Windows color output, which previously only rendered correctly on PowerShell 6+ despite PowerShell 5.1 being the documented minimum. Hardened the Debian and ChromeOS cleanup scripts so a single failed cache clear, snap removal, or `apt-get check` no longer aborts the run before the summary is shown. |
 | **v2.6** | 2026-05-21 | **Proactive Storage Warning & Testing Release**: Added proactive low disk space checks (10 GB threshold) with native terminal alerts and desktop notifications across all five supported operating systems (macOS, Ubuntu, Fedora, ChromeOS, Windows) to prevent system slowdowns. Relocated and engineered a fully mocked, platform-agnostic Pester test suite in a dedicated `tests/` folder for seamless local testing on macOS/Linux and standard GitHub Actions CI integration. |

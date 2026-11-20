@@ -6,6 +6,18 @@ SCRIPT_VERSION="2.7.0"
 AUTO_YES=false
 DRY_RUN=false
 NOTIFY=false
+SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
+
+if [ -r "$SCRIPT_DIR/lib/docker_logs.sh" ]; then
+    # shellcheck source=lib/docker_logs.sh
+    . "$SCRIPT_DIR/lib/docker_logs.sh"
+else
+    docker_logs_parse_arg() { return 1; }
+    docker_logs_help() { :; }
+    docker_logs_validate() { :; }
+    docker_logs_run() { printf 'Docker log checks skipped: lib/docker_logs.sh was not found.\n'; }
+    docker_logs_summary() { :; }
+fi
 
 while [ "$#" -gt 0 ]; do
     case "$1" in
@@ -18,6 +30,7 @@ while [ "$#" -gt 0 ]; do
             echo "  -y, --yes        Automatic yes to all prompts"
             echo "  -d, --dry-run    Show what would be done without making changes"
             echo "  --notify         Send desktop notification on completion"
+            docker_logs_help
             echo ""
             echo "A premium system update utility for macOS (Homebrew)."
             echo "Automates updates, cache cleanup, and disk recovery."
@@ -37,6 +50,7 @@ while [ "$#" -gt 0 ]; do
             NOTIFY=true
             ;;
         *)
+            docker_logs_parse_arg "$1" && { shift; continue; }
             echo "Unknown option: $1"
             exit 1
             ;;
@@ -44,6 +58,7 @@ while [ "$#" -gt 0 ]; do
     shift
 done
 
+docker_logs_validate
 set -u
 
 # Color definitions for a premium look
@@ -55,7 +70,7 @@ YELLOW='\033[1;33m'
 BOLD='\033[1m'
 DIM='\033[2m'
 NC='\033[0m' # No Color
-TOTAL_STEPS=10
+TOTAL_STEPS=11
 
 # Helper function: prompt user with y/n/a support
 # Usage: ask_user "prompt message" && { do stuff }
@@ -305,6 +320,9 @@ if command -v docker >/dev/null 2>&1; then
     fi
 fi
 
+# 11. Docker container logs (Docker Desktop / Colima: report and guidance only)
+docker_logs_run "[Step 11/${TOTAL_STEPS}] Checking Docker container logs..."
+
 # Capture disk usage after cleanup
 BREW_CACHE_AFTER=$(du -sk "$(brew --cache)" 2>/dev/null | awk '{print $1}')
 BREW_CACHE_AFTER=${BREW_CACHE_AFTER:-0}
@@ -336,6 +354,7 @@ HUMAN_PART_SAVED=$(human_readable "$PART_CLEARED")
 printf "\n${BOLD}${CYAN}========== CLEANUP SUMMARY ==========${NC}\n"
 echo "${CYAN}Homebrew cache cleared  : ${BOLD}$HUMAN_SAVED${NC}"
 echo "${CYAN}Total partition cleared : ${BOLD}$HUMAN_PART_SAVED${NC}"
+docker_logs_summary 24
 echo "${BOLD}${CYAN}=====================================${NC}"
 
 # Optional terminal history clearing

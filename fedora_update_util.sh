@@ -6,6 +6,19 @@ SCRIPT_VERSION="2.7.0"
 AUTO_YES=false
 DRY_RUN=false
 NOTIFY=false
+SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
+
+if [ -r "$SCRIPT_DIR/lib/docker_logs.sh" ]; then
+    # shellcheck source=lib/docker_logs.sh
+    . "$SCRIPT_DIR/lib/docker_logs.sh"
+else
+    docker_logs_parse_arg() { return 1; }
+    docker_logs_help() { :; }
+    docker_logs_validate() { :; }
+    docker_logs_run() { printf 'Docker log checks skipped: lib/docker_logs.sh was not found.\n'; }
+    docker_logs_summary() { :; }
+    DOCKER_LOG_SAVED=0
+fi
 
 while [ "$#" -gt 0 ]; do
     case "$1" in
@@ -18,6 +31,7 @@ while [ "$#" -gt 0 ]; do
             echo "  -y, --yes        Automatic yes to all prompts"
             echo "  -d, --dry-run    Show what would be done without making changes"
             echo "  --notify         Send desktop notification on completion"
+            docker_logs_help
             echo ""
             echo "A premium system update utility for Fedora/RHEL/CentOS."
             echo "Automates updates, cache cleanup, and disk recovery."
@@ -37,6 +51,7 @@ while [ "$#" -gt 0 ]; do
             NOTIFY=true
             ;;
         *)
+            docker_logs_parse_arg "$1" && { shift; continue; }
             echo "Unknown option: $1"
             exit 1
             ;;
@@ -44,6 +59,7 @@ while [ "$#" -gt 0 ]; do
     shift
 done
 
+docker_logs_validate
 set -eu
 
 # Color definitions for a premium look
@@ -224,6 +240,8 @@ else
     printf "\n${YELLOW}Docker is not installed. Skipping Docker cleanup.${NC}\n"
 fi
 
+docker_logs_run "Checking Docker container logs..."
+
 DNF_CACHE_AFTER=$(du -sb /var/cache/dnf /var/cache/dnf5 2>/dev/null | awk '{sum+=$1} END {print sum}')
 [ -z "$DNF_CACHE_AFTER" ] && DNF_CACHE_AFTER=0
 
@@ -246,7 +264,7 @@ JOURNAL_DIFF=$((JOURNAL_BEFORE - JOURNAL_AFTER))
 [ "$APP_DIFF" -lt 0 ] && APP_DIFF=0
 [ "$JOURNAL_DIFF" -lt 0 ] && JOURNAL_DIFF=0
 
-TOTAL_SAVED=$((DNF_DIFF + APP_DIFF + JOURNAL_DIFF))
+TOTAL_SAVED=$((DNF_DIFF + APP_DIFF + JOURNAL_DIFF + DOCKER_LOG_SAVED))
 HUMAN_TOTAL=$(numfmt --to=iec "$TOTAL_SAVED" 2>/dev/null || echo "$TOTAL_SAVED bytes")
 
 PART_CLEARED=$((DISK_AFTER - DISK_BEFORE))
@@ -256,6 +274,7 @@ HUMAN_PART_SAVED=$(numfmt --to=iec "$PART_CLEARED" 2>/dev/null || echo "$PART_CL
 echo "DNF cache cleared     : ${BOLD}$(numfmt --to=iec "$DNF_DIFF" 2>/dev/null || echo "$DNF_DIFF bytes")${NC}"
 echo "App cache cleared     : ${BOLD}$(numfmt --to=iec "$APP_DIFF" 2>/dev/null || echo "$APP_DIFF bytes")${NC}"
 echo "Journal cleared       : ${BOLD}$(numfmt --to=iec "$JOURNAL_DIFF" 2>/dev/null || echo "$JOURNAL_DIFF bytes")${NC}"
+docker_logs_summary 22
 echo "-------------------------------------"
 echo "Specific Caches Saved : ${BOLD}${GREEN}$HUMAN_TOTAL${NC}"
 echo "Total Partition Saved : ${BOLD}${GREEN}$HUMAN_PART_SAVED${NC}"

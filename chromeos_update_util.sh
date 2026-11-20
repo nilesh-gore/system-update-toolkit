@@ -6,6 +6,18 @@ SCRIPT_VERSION="2.7.0"
 AUTO_YES=false
 DRY_RUN=false
 NOTIFY=false
+SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
+
+if [ -r "$SCRIPT_DIR/lib/docker_logs.sh" ]; then
+    # shellcheck source=lib/docker_logs.sh
+    . "$SCRIPT_DIR/lib/docker_logs.sh"
+else
+    docker_logs_parse_arg() { return 1; }
+    docker_logs_help() { :; }
+    docker_logs_validate() { :; }
+    docker_logs_run() { printf 'Docker log checks skipped: lib/docker_logs.sh was not found.\n'; }
+    docker_logs_summary() { :; }
+fi
 
 while [ "$#" -gt 0 ]; do
     case "$1" in
@@ -18,6 +30,7 @@ while [ "$#" -gt 0 ]; do
             echo "  -y, --yes        Automatic yes to all prompts"
             echo "  -d, --dry-run    Show what would be done without making changes"
             echo "  --notify         Send desktop notification on completion"
+            docker_logs_help
             echo ""
             echo "A premium system update utility for ChromeOS (Crostini)."
             echo "Automates updates, cache cleanup, and disk recovery."
@@ -37,6 +50,7 @@ while [ "$#" -gt 0 ]; do
             NOTIFY=true
             ;;
         *)
+            docker_logs_parse_arg "$1" && { shift; continue; }
             echo "Unknown option: $1"
             exit 1
             ;;
@@ -44,6 +58,7 @@ while [ "$#" -gt 0 ]; do
     shift
 done
 
+docker_logs_validate
 set -eu
 
 # Color definitions for a premium look
@@ -211,6 +226,8 @@ if command -v docker >/dev/null 2>&1; then
     fi
 fi
 
+docker_logs_run "Checking Docker container logs..."
+
 # 7. Disk Space Summary
 APT_CACHE_AFTER=$(du -sb /var/cache/apt/archives 2>/dev/null | awk '{print $1}')
 [ -z "$APT_CACHE_AFTER" ] && APT_CACHE_AFTER=0
@@ -228,6 +245,7 @@ HUMAN_PART_SAVED=$(numfmt --to=iec "$PART_CLEARED" 2>/dev/null || echo "$PART_CL
 
 printf "\n${BOLD}${CYAN}========== CLEANUP SUMMARY ==========${NC}\n"
 echo "APT cache cleared     : ${BOLD}$HUMAN_CLEARED${NC}"
+docker_logs_summary 22
 echo "Total Partition Saved : ${BOLD}${GREEN}$HUMAN_PART_SAVED${NC}"
 echo "System packages       : ${BOLD}Updated & Cleaned${NC}"
 if command -v flatpak >/dev/null 2>&1; then
