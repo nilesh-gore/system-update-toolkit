@@ -140,7 +140,7 @@ case "$OS" in
         run_script "brew_update_util.sh" "macOS (Homebrew)" "$@"
         ;;
     debian)
-        run_script "update_util.sh" "Ubuntu/Debian (APT)" "$@"
+        run_script "debian_update_util.sh" "Ubuntu/Debian (APT)" "$@"
         ;;
     fedora)
         run_script "fedora_update_util.sh" "Fedora/RHEL (DNF)" "$@"
@@ -171,7 +171,7 @@ case "$OS" in
         ;;
     linux_generic)
         echo "${YELLOW}⚠️  Detected generic Linux. Attempting to use Debian/Ubuntu script...${NC}"
-        run_script "update_util.sh" "Linux (Generic)" "$@"
+        run_script "debian_update_util.sh" "Linux (Generic)" "$@"
         ;;
     *)
         echo "${RED}❌ Error: Unsupported Operating System detected.${NC}"

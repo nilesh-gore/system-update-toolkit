@@ -30,7 +30,7 @@ fi
 
 show_help() {
     cat <<USAGE
-Usage: sudo ./update_util.sh [OPTIONS]
+Usage: sudo ./debian_update_util.sh [OPTIONS]
 
 Options:
   -h, --help             Show this help message and exit
@@ -46,11 +46,11 @@ Options:
 $(docker_logs_help | sed 's/^  --/      --/')
 
 Examples:
-  sudo ./update_util.sh
-  sudo ./update_util.sh --yes --full-upgrade
-  sudo ./update_util.sh --dry-run --clear-cache
-  sudo ./update_util.sh --yes --docker-cleanup
-  sudo ./update_util.sh --docker-logs-truncate=200M --docker-log-rotation
+  sudo ./debian_update_util.sh
+  sudo ./debian_update_util.sh --yes --full-upgrade
+  sudo ./debian_update_util.sh --dry-run --clear-cache
+  sudo ./debian_update_util.sh --yes --docker-cleanup
+  sudo ./debian_update_util.sh --docker-logs-truncate=200M --docker-log-rotation
 
 Safety notes:
   --yes only affects APT confirmations. It does not automatically enable
@@ -263,7 +263,7 @@ trap cleanup_lock EXIT HUP INT TERM
 # Root privileges are required only for real maintenance operations.
 # Dry-run mode performs no system modifications and is safe for CI/non-root use.
 if [ "$DRY_RUN" = false ] && [ "$(id -u)" -ne 0 ]; then
-    fatal "Run this script as root, for example: sudo ./update_util.sh"
+    fatal "Run this script as root, for example: sudo ./debian_update_util.sh"
 fi
 
 if [ ! -r /etc/os-release ]; then
