@@ -121,6 +121,7 @@ Whether you're a developer maintaining multiple machines, a sysadmin managing se
 - ✅ Deep cleanup: APT cache, app caches (`~/.cache`), and thumbnail directories
 - ✅ Systemd journal log rotation (keeps only last 7 days)
 - ✅ Snap package refresh and old revision removal
+- ✅ **Docker log management**: reports container log sizes every run, `--docker-logs-truncate[=SIZE]` empties oversized logs (default 100M), `--docker-log-rotation` adds `max-size`/`max-file` limits to `daemon.json` (with backup; never restarts Docker)
 - ✅ Package integrity verification via `debsums`
 - ✅ System file consistency check (`apt-get check`)
 - ✅ Logs all operations to `/var/log/sysupdate.log`
@@ -249,9 +250,13 @@ Step 6  →  Clean APT cache, app caches, thumbnails
 Step 7  →  Vacuum journal logs (7-day retention)
 Step 8  →  Refresh Snap packages & remove old revisions
 Step 9  →  Verify package integrity (debsums)
-Step 10 →  Capture disk usage (after) & display summary
-Step 11 →  Optional: Clear terminal history
-Step 12 →  Log to /var/log/sysupdate.log
+Step 10 →  Optional: Docker cleanup (--docker-cleanup)
+Step 11 →  Report Docker container log sizes & rotation status
+           Optional: truncate large logs (--docker-logs-truncate[=SIZE])
+           Optional: configure log rotation (--docker-log-rotation)
+Step 12 →  Optional: Clear terminal history
+Step 13 →  Capture disk usage (after) & display summary
+Step 14 →  Log to /var/log/sysupdate.log
 ```
 
 ### Fedora / RHEL: `fedora_update_util.sh`
@@ -588,6 +593,7 @@ Contributions are what make the open-source community such an amazing place to l
 
 | Version | Date | Changes |
 | :--- | :--- | :--- |
+| **v3.1.0** | 2026-11-20 | **Docker Log Management (Ubuntu/Debian)**: `update_util.sh` now reports Docker container log sizes and whether log rotation is configured on every run, warns when a log exceeds 100M, and adds `--docker-logs-truncate[=SIZE]` (empties oversized `json-file` logs in place) and `--docker-log-rotation` (merges `max-size: 50m`, `max-file: 3` into `daemon.json` with a timestamped backup and `dockerd --validate`; Docker is never restarted automatically). Neither option is enabled by `--yes`. A failed `--docker-cleanup` no longer aborts the run. |
 | **v2.7.0** | 2026-08-05 | **Per-Package Progress & Cross-Platform Hardening Release**: Enhanced macOS Homebrew update utility with per-package progress tracking (`[X/Y]`) and individual error handling for formulae and casks; hardened PowerShell scripts for cross-platform CI safety and PSScriptAnalyzer compliance; expanded documentation with Docker cleanup, safety guidelines, and reboot behavior details; updated CI action dependencies. |
 | **v2.6.1** | 2026-07-20 | **Reliability & Compatibility Patch**: Fixed the `curl \| sh` installer's confirmation prompt, which could silently consume the script's own remaining lines instead of reading user input in piped/non-interactive contexts. Fixed Windows color output, which previously only rendered correctly on PowerShell 6+ despite PowerShell 5.1 being the documented minimum. Hardened the Debian and ChromeOS cleanup scripts so a single failed cache clear, snap removal, or `apt-get check` no longer aborts the run before the summary is shown. |
 | **v2.6** | 2026-05-21 | **Proactive Storage Warning & Testing Release**: Added proactive low disk space checks (10 GB threshold) with native terminal alerts and desktop notifications across all five supported operating systems (macOS, Ubuntu, Fedora, ChromeOS, Windows) to prevent system slowdowns. Relocated and engineered a fully mocked, platform-agnostic Pester test suite in a dedicated `tests/` folder for seamless local testing on macOS/Linux and standard GitHub Actions CI integration. |
