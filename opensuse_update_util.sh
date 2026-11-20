@@ -2,7 +2,7 @@
 # System Update Utility - openSUSE (Leap/Tumbleweed)
 # A premium, robust script to keep your zypper-based Linux environment in top shape.
 
-SCRIPT_VERSION="2.7.0"
+SCRIPT_VERSION="3.2.0"
 AUTO_YES=false
 DRY_RUN=false
 NOTIFY=false

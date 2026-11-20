@@ -2,7 +2,7 @@
 # System Update Utility - Arch Linux / Manjaro / EndeavourOS
 # A premium, robust script to keep your pacman-based Linux environment in top shape.
 
-SCRIPT_VERSION="2.7.0"
+SCRIPT_VERSION="3.2.0"
 AUTO_YES=false
 DRY_RUN=false
 NOTIFY=false

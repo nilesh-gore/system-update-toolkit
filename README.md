@@ -8,7 +8,7 @@
 [![ShellCheck CI](https://github.com/nilesh-gore/system-update-toolkit/actions/workflows/shellcheck.yml/badge.svg)](https://github.com/nilesh-gore/system-update-toolkit/actions/workflows/shellcheck.yml)
 [![PowerShell CI](https://github.com/nilesh-gore/system-update-toolkit/actions/workflows/powershell.yml/badge.svg)](https://github.com/nilesh-gore/system-update-toolkit/actions/workflows/powershell.yml)
 [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/nilesh-gore/system-update-toolkit/badge)](https://securityscorecards.dev/viewer/?uri=github.com/nilesh-gore/system-update-toolkit)
-[![Platform](https://img.shields.io/badge/Platform-Ubuntu%20%7C%20Fedora%20%7C%20macOS%20%7C%20Windows%20%7C%20ChromeOS-blue)](#-supported-platforms)
+[![Platform](https://img.shields.io/badge/Platform-Ubuntu%20%7C%20Fedora%20%7C%20Arch%20%7C%20openSUSE%20%7C%20macOS%20%7C%20Windows%20%7C%20ChromeOS-blue)](#-supported-platforms)
 <br>
 [![GitHub top language](https://img.shields.io/github/languages/top/nilesh-gore/system-update-toolkit)](https://github.com/nilesh-gore/system-update-toolkit)
 [![GitHub code size](https://img.shields.io/github/languages/code-size/nilesh-gore/system-update-toolkit?color=blue)](https://github.com/nilesh-gore/system-update-toolkit)
@@ -25,7 +25,7 @@
 
 One script automatically detects your operating system and runs the correct system maintenance routine—updating system packages, purging application cache, rotating logs, cleaning up temp files, and performing disk recovery—safely and interactively. Nothing runs without your authorization.
 
-> *One script. Five platforms. Gigabytes of disk space recovered.* 💾
+> *One script. Seven platforms. Gigabytes of disk space recovered.* 💾
 
 **⚡ Try it in 10 seconds:**
 
@@ -33,7 +33,7 @@ One script automatically detects your operating system and runs the correct syst
 curl -fsSL https://raw.githubusercontent.com/nilesh-gore/system-update-toolkit/main/install.sh | sh
 ```
 
-*macOS (Homebrew) · Ubuntu/Debian (APT) · Fedora (DNF/DNF5) · ChromeOS (Debian Crostini) — see [Quick Start](#-quick-start) for Windows and the Git clone instructions.*
+*macOS (Homebrew) · Ubuntu/Debian (APT) · Fedora (DNF/DNF5) · Arch (pacman) · openSUSE (zypper) · ChromeOS (Debian Crostini) — see [Quick Start](#-quick-start) for Windows and the Git clone instructions.*
 
 <img src="assets/social_card.png" alt="System Update Toolkit - Automated system updates, cache cleanup, and disk space recovery for Linux macOS Windows ChromeOS" width="800">
 
@@ -56,7 +56,9 @@ curl -fsSL https://raw.githubusercontent.com/nilesh-gore/system-update-toolkit/m
 - [Troubleshooting](#-troubleshooting)
 - [Automation & Scheduling](#-automation--scheduling)
 - [FAQ](#-frequently-asked-questions)
+- [Testing & Verification](#-testing--verification)
 - [Contributing](#-contributing)
+- [Changelog](#-changelog)
 - [License](#-license)
 
 ---
@@ -93,11 +95,27 @@ Whether you're a developer maintaining multiple machines, a sysadmin managing se
 <td align="center"><b>🪟 Windows</b><br>PowerShell + Winget<br><code>win_update_util.ps1</code></td>
 <td align="center"><b>💻 ChromeOS</b><br>Crostini (Linux)<br><code>chromeos_update_util.sh</code></td>
 </tr>
+<tr>
+<td align="center"><b>🏔️ Arch / Manjaro / EndeavourOS</b><br>pacman<br><code>arch_update_util.sh</code></td>
+<td align="center"><b>🦎 openSUSE Leap / Tumbleweed</b><br>zypper<br><code>opensuse_update_util.sh</code></td>
+<td colspan="3"></td>
+</tr>
 </table>
 
 ---
 
 ## ✨ Features at a Glance
+
+### 🛡️ Safe by Default — all platforms
+`-y`/`--yes` (or answering `a` at a prompt) only approves **routine** steps such as package upgrades and package-manager cache cleanup. Steps that delete data are **never** approved by `--yes` and are skipped in cron/CI unless you ask for them:
+
+| Destructive step | Unix flag | Windows switch |
+| :--- | :--- | :--- |
+| Wipe user application caches (`~/.cache`) | `--clear-cache` (Linux) | — |
+| Clear shell history | `--clear-history` | `-ClearHistory` |
+| `docker system prune --volumes` | `--docker-cleanup` | `-DockerCleanup` |
+
+In an interactive session you can also approve each one with an explicit `y` at its own prompt.
 
 ### 🐳 Docker Container Logs — all platforms
 Docker's default `json-file` log driver never rotates logs, so long-running containers can silently fill the disk — and `docker system prune` does not touch them. Every script now:
@@ -117,7 +135,7 @@ Docker's default `json-file` log driver never rotates logs, so long-running cont
 - ✅ Optional cache purge (`~/Library/Caches/Homebrew`)
 - ✅ Integrated `brew doctor` health check
 - ✅ Detects running Homebrew background services and **autorestarts** updated ones
-- ✅ Interactive terminal history clearing (supports both Zsh and Bash)
+- ✅ Optional terminal history clearing (`--clear-history`; supports both Zsh and Bash)
 - ✅ Real-time disk partition space tracking via `df` (total physical storage reclaimed)
 - ✅ **Dry Run Support** (`-d`): Preview cleanup actions safely
 - ✅ **Desktop Notifications**: Pings you when updates are done
@@ -125,23 +143,24 @@ Docker's default `json-file` log driver never rotates logs, so long-running cont
 - ✅ **Low Storage Alert**: Native terminal and desktop notification warnings if system free space drops below 10 GB
 
 ### 🐧 Ubuntu / Debian — `debian_update_util.sh`
-- ✅ Full system update (`apt-get update` + `full-upgrade`)
+- ✅ Full system update (`apt-get update` + `upgrade`, or `full-upgrade` with `--full-upgrade`)
 - ✅ Fixes broken packages and installs missing dependencies
-- ✅ Deep cleanup: APT cache, app caches (`~/.cache`), and thumbnail directories
+- ✅ Deep cleanup: APT cache, plus thumbnail and font caches with `--clear-cache`
 - ✅ Systemd journal log rotation (keeps only last 7 days)
 - ✅ Snap package refresh and old revision removal
 - ✅ Package integrity verification via `debsums`
 - ✅ System file consistency check (`apt-get check`)
 - ✅ Logs all operations to `/var/log/sysupdate.log`
 - ✅ Real-time disk partition space tracking via `df` (total physical storage reclaimed)
-- ✅ **Yes to All** mode: type `a` at any prompt to auto-approve remaining routine prompts (destructive steps are still asked)
+- ✅ Flag-driven (no prompts): `-y` confirms APT operations only; cleanup extras are opt-in flags
+- ✅ Lock file prevents two runs at once; reports whether a reboot is required
 - ✅ **Low Storage Alert**: Native warning and desktop notifications if system free space drops below 10 GB
 
 ### 🎩 Fedora / RHEL / CentOS — `fedora_update_util.sh`
 - ✅ Next-gen **DNF5** package manager support with seamless `dnf` fallback
 - ✅ Full system update (`dnf upgrade --refresh` / `dnf5 upgrade --refresh`)
 - ✅ Removes unused dependencies (`dnf autoremove`)
-- ✅ Deep cleanup: DNF cache (`dnf clean all`), app caches (`~/.cache`)
+- ✅ Deep cleanup: DNF cache (`dnf clean all`), plus app caches (`~/.cache`) with `--clear-cache`
 - ✅ Systemd journal log rotation (keeps only last 7 days)
 - ✅ Flatpak app updates and unused runtime removal
 - ✅ Optional Snap package refresh and old revision removal
@@ -156,7 +175,7 @@ Docker's default `json-file` log driver never rotates logs, so long-running cont
 - ✅ WSL kernel update (`wsl --update`)
 - ✅ Native Disk Cleanup tool integration (`cleanmgr`)
 - ✅ Purges system and user `%TEMP%` directories
-- ✅ Clears PowerShell history and PSReadLine history securely with **robust locking protection**
+- ✅ Optional PSReadLine history clearing (`-ClearHistory`) with **robust locking protection**
 - ✅ Native **.NET Toast Notifications** (`System.Windows.Forms.NotifyIcon`) on all Windows editions
 - ✅ Admin privilege detection with warnings
 - ✅ Windows Store app reminder
@@ -169,10 +188,30 @@ Docker's default `json-file` log driver never rotates logs, so long-running cont
 - ✅ APT cache cleanup (`autoremove` + `autoclean`)
 - ✅ Optional global NPM package updates
 - ✅ Optional Python pip upgrade and outdated package listing
-- ✅ Interactive terminal history clearing
+- ✅ Optional terminal history clearing (`--clear-history`)
 - ✅ Real-time disk partition space tracking via `df`
 - ✅ **Yes to All** mode: type `a` at any prompt to auto-approve remaining routine prompts (destructive steps are still asked)
 - ✅ **Low Storage Alert**: Native warnings and desktop notifications if system container free space drops below 10 GB
+
+### 🏔️ Arch / Manjaro / EndeavourOS — `arch_update_util.sh`
+- ✅ Full system update (`pacman -Syu`)
+- ✅ Removes orphaned packages (`pacman -Rns $(pacman -Qtdq)`)
+- ✅ Package cache cleanup (`paccache -rk1`, falling back to `pacman -Sc`)
+- ✅ Systemd journal log rotation (keeps only last 7 days)
+- ✅ Flatpak and Snap updates with unused runtime / old revision removal
+- ✅ Real-time disk partition space tracking via `df`
+- ✅ **Yes to All** mode: type `a` at any prompt to auto-approve remaining routine prompts (destructive steps are still asked)
+- ✅ **Low Storage Alert**: Native warning and desktop notifications if system free space drops below 10 GB
+
+### 🦎 openSUSE Leap / Tumbleweed — `opensuse_update_util.sh`
+- ✅ Repository refresh and full update (`zypper refresh` + `zypper update`)
+- ✅ Removes unneeded packages (`zypper packages --unneeded`)
+- ✅ Package cache cleanup (`zypper clean --all`)
+- ✅ Systemd journal log rotation (keeps only last 7 days)
+- ✅ Flatpak and Snap updates with unused runtime / old revision removal
+- ✅ Real-time disk partition space tracking via `df`
+- ✅ **Yes to All** mode: type `a` at any prompt to auto-approve remaining routine prompts (destructive steps are still asked)
+- ✅ **Low Storage Alert**: Native warning and desktop notifications if system free space drops below 10 GB
 
 ---
 
@@ -209,7 +248,9 @@ If you prefer to run a specific script directly:
 
 * **🍎 macOS:** `./brew_update_util.sh`
 * **🐧 Ubuntu/Debian:** `sudo ./debian_update_util.sh`
-* **🎩 Fedora/RHEL:** `sudo ./fedora_update_util.sh`
+* **🎩 Fedora/RHEL:** `./fedora_update_util.sh` (calls `sudo` for each step)
+* **🏔️ Arch/Manjaro:** `./arch_update_util.sh` (calls `sudo` for each step)
+* **🦎 openSUSE:** `./opensuse_update_util.sh` (calls `sudo` for each step)
 * **💻 ChromeOS:** `./chromeos_update_util.sh`
 * **🪟 Windows:** `powershell -File .\win_update_util.ps1`
 </details>
@@ -224,18 +265,24 @@ The primary entry point for all systems. It automatically detects the host OS an
 ./toolkit.sh [OPTIONS]
 
 Options:
-  -y, --yes     Automatic yes to routine prompts (never to destructive ones)
-  -d, --dry-run Preview what will happen without changes
-  --notify      Send desktop notification on completion
-  --schedule    Setup weekly automated maintenance (Unix)
+  -h, --help        Show help message
+  -v, --version     Show version info
+  -y, --yes         Automatic yes to routine prompts (never to destructive ones)
+  -d, --dry-run     Preview what will happen without changes
+  --notify          Send desktop notification on completion
+  --schedule        Set up weekly automated maintenance (Linux/macOS)
+  --unschedule      Remove the weekly maintenance job
 
 Destructive actions (never enabled by --yes):
   --clear-cache     Clear user application caches (Linux)
   --clear-history   Clear shell history files
   --docker-cleanup  Run 'docker system prune --volumes'
-  -h, --help    Show help message
-  -v, --version Show version info
+
+Docker log options (Linux; report-only guidance on macOS/Windows):
+  --docker-logs-truncate[=SIZE]  Empty container logs larger than SIZE (default 100M)
+  --docker-log-rotation          Configure log rotation (max-size 50m, max-file 3)
 ```
+On Windows, `toolkit.sh` translates `--yes`, `--dry-run`, `--notify`, `--clear-history` and `--docker-cleanup` into the PowerShell switches.
 
 ### macOS: `brew_update_util.sh`
 ```
@@ -248,8 +295,10 @@ Step 6  →  Cleanup old versions (brew cleanup -s)
 Step 7  →  Optional: Purge Homebrew cache
 Step 8  →  Check running services
 Step 9  →  Optional: Run brew doctor
-Step 10 →  Display cleanup summary
-Step 11 →  Optional: Clear terminal history
+Step 10 →  Optional: Docker cleanup (--docker-cleanup)
+Step 11 →  Docker container logs: unlimited-container report & Docker Desktop guidance
+Step 12 →  Display cleanup summary
+Step 13 →  Optional: Clear terminal history (--clear-history)
 ```
 
 ### Ubuntu / Debian: `debian_update_util.sh`
@@ -259,16 +308,16 @@ Step 2  →  Update package lists
 Step 3  →  Full system upgrade
 Step 4  →  Fix broken packages & missing deps
 Step 5  →  Remove unused packages (autoremove --purge)
-Step 6  →  Clean APT cache, app caches, thumbnails
+Step 6  →  Clean APT cache (thumbnail/font caches with --clear-cache)
 Step 7  →  Vacuum journal logs (7-day retention)
-Step 8  →  Refresh Snap packages & remove old revisions
-Step 9  →  Verify package integrity (debsums)
+Step 8  →  List held packages, apt-get check, debsums integrity check
+Step 9  →  Refresh Snap packages & remove old revisions
 Step 10 →  Optional: Docker cleanup (--docker-cleanup)
 Step 11 →  Report Docker container log sizes & rotation status
            Optional: truncate large logs (--docker-logs-truncate[=SIZE])
            Optional: configure log rotation (--docker-log-rotation)
-Step 12 →  Optional: Clear terminal history
-Step 13 →  Capture disk usage (after) & display summary
+Step 12 →  Optional: Clear terminal history (--clear-history)
+Step 13 →  Capture disk usage (after) & display summary (incl. reboot required)
 Step 14 →  Log to /var/log/sysupdate.log
 ```
 
@@ -277,24 +326,62 @@ Step 14 →  Log to /var/log/sysupdate.log
 Step 1  →  Capture disk usage (before)
 Step 2  →  Refresh DNF metadata & upgrade packages
 Step 3  →  Remove unused packages (autoremove)
-Step 4  →  Clean DNF cache (clean all), app caches, thumbnails
-Step 5  →  Vacuum journal logs (7-day retention)
-Step 6  →  Update Flatpak apps & remove unused runtimes
-Step 7  →  Optional: Refresh Snap packages & remove old revisions
-Step 8  →  Capture disk usage (after) & display summary
-Step 9  →  Optional: Clear terminal history
-Step 10 →  Log to /var/log/sysupdate.log
+Step 4  →  Clean DNF cache (clean all)
+Step 5  →  Optional: Clear app caches & thumbnails (--clear-cache)
+Step 6  →  Vacuum journal logs (7-day retention)
+Step 7  →  Update Flatpak apps & remove unused runtimes
+Step 8  →  Refresh Snap packages & remove old revisions (if installed)
+Step 9  →  Optional: Docker cleanup (--docker-cleanup)
+Step 10 →  Docker container logs (report, --docker-logs-truncate, --docker-log-rotation)
+Step 11 →  Capture disk usage (after) & display summary
+Step 12 →  Optional: Clear terminal history (--clear-history)
+Step 13 →  Log to /var/log/sysupdate.log
+```
+
+### Arch / Manjaro / EndeavourOS: `arch_update_util.sh`
+```
+Step 1  →  Capture disk usage (before)
+Step 2  →  Sync repositories & upgrade (pacman -Syu)
+Step 3  →  Remove orphaned packages
+Step 4  →  Clean pacman cache (paccache -rk1 or pacman -Sc)
+Step 5  →  Optional: Clear app caches & thumbnails (--clear-cache)
+Step 6  →  Vacuum journal logs (7-day retention)
+Step 7  →  Update Flatpak / Snap & remove unused runtimes and old revisions
+Step 8  →  Optional: Docker cleanup (--docker-cleanup)
+Step 9  →  Docker container logs (report, --docker-logs-truncate, --docker-log-rotation)
+Step 10 →  Capture disk usage (after) & display summary
+Step 11 →  Optional: Clear terminal history (--clear-history)
+Step 12 →  Log to /var/log/sysupdate.log
+```
+
+### openSUSE Leap / Tumbleweed: `opensuse_update_util.sh`
+```
+Step 1  →  Capture disk usage (before)
+Step 2  →  Refresh repositories & update (zypper refresh + update)
+Step 3  →  Remove unneeded packages
+Step 4  →  Clean zypper cache (clean --all)
+Step 5  →  Optional: Clear app caches & thumbnails (--clear-cache)
+Step 6  →  Vacuum journal logs (7-day retention)
+Step 7  →  Update Flatpak / Snap & remove unused runtimes and old revisions
+Step 8  →  Optional: Docker cleanup (--docker-cleanup)
+Step 9  →  Docker container logs (report, --docker-logs-truncate, --docker-log-rotation)
+Step 10 →  Capture disk usage (after) & display summary
+Step 11 →  Optional: Clear terminal history (--clear-history)
+Step 12 →  Log to /var/log/sysupdate.log
 ```
 
 ### Windows: `win_update_util.ps1`
 ```
-Step 1  →  Check for Administrator privileges
+Step 1  →  Check for Administrator privileges & low storage
 Step 2  →  List outdated Winget packages
 Step 3  →  Optional: Upgrade all Winget packages
-Step 4  →  Update WSL kernel
+Step 4  →  Windows Store reminder & WSL kernel update
 Step 5  →  Launch Disk Cleanup (cleanmgr)
 Step 6  →  Optional: Clear temp directories
-Step 7  →  Optional: Clear PowerShell history
+Step 7  →  Optional: Clear PowerShell history (-ClearHistory)
+Step 8  →  Optional: Docker cleanup (-DockerCleanup)
+Step 9  →  Docker container logs: unlimited-container report & Docker Desktop guidance
+Step 10 →  Display cleanup summary
 ```
 
 ### ChromeOS: `chromeos_update_util.sh`
@@ -303,37 +390,45 @@ Step 1  →  Update Debian package definitions
 Step 2  →  Full system upgrade
 Step 3  →  Update Flatpak apps & remove unused runtimes
 Step 4  →  Clean APT cache (autoremove + autoclean)
-Step 5  →  Optional: Update global NPM packages
-Step 6  →  Optional: Update pip & list outdated packages
-Step 7  →  Display cleanup summary
-Step 8  →  Optional: Clear terminal history
+Step 5  →  Optional: Clear app caches & thumbnails (--clear-cache)
+Step 6  →  Optional: Update global NPM packages
+Step 7  →  Optional: Update pip & list outdated packages
+Step 8  →  System file consistency check (apt-get check)
+Step 9  →  Optional: Docker cleanup (--docker-cleanup)
+Step 10 →  Docker container logs (report, --docker-logs-truncate, --docker-log-rotation)
+Step 11 →  Display cleanup summary
+Step 12 →  Optional: Clear terminal history (--clear-history)
+Step 13 →  Log to /var/log/sysupdate.log
 ```
 
 ---
 
 ## 📊 Comparison Matrix
 
-| Feature | 🐧 Debian/Ubuntu | 🎩 Fedora/RHEL | 🍎 macOS | 🪟 Windows | 💻 ChromeOS |
-| :--- | :---: | :---: | :---: | :---: | :---: |
-| **Package Manager** | `apt` | `dnf` | `brew` | `winget` | `apt` |
-| **GUI App Updates** | `snap` | `flatpak` | `cask` | `winget` | `flatpak` |
-| **System Upgrade** | ✅ | ✅ | ✅ | ✅ | ✅ |
-| **Cache Cleanup** | ✅ | ✅ | ✅ | ✅ | ✅ |
-| **Disk Space Recovery** | ✅ | ✅ | ✅ | ✅ | ✅ |
-| **Health Check** | `debsums` | — | `brew doctor` | — | `apt-get check` |
-| **Log Vacuuming** | ✅ (journald) | ✅ (journald) | — | — | — |
-| **Service Monitor** | — | — | ✅ | — | — |
-| **Dev Tool Updates** | — | — | — | — | `npm` / `pip` |
-| **History Clearing** | ✅ | ✅ | ✅ | ✅ | ✅ |
-| **Color-coded Output** | ✅ | ✅ | ✅ | ✅ | ✅ |
-| **Interactive Prompts** | ✅ | ✅ | ✅ | ✅ | ✅ |
-| **POSIX Compatible** | ✅ | ✅ | ✅ | — | ✅ |
-| **Yes to All (`-y`)** | ✅ | ✅ | ✅ | ✅ | ✅ |
-| **Dry Run (`-d`)** | ✅ | ✅ | ✅ | ✅ | ✅ |
-| **Desktop Notifications** | ✅ | ✅ | ✅ | ✅ | ✅ |
-| **Auto-Scheduling** | ✅ (cron) | ✅ (cron) | ✅ (cron) | ❌ | ✅ (cron) |
-| **Logging** | ✅ | ✅ | — | — | ✅ |
-| **Low Storage Alerts**| ✅ (10 GB) | ✅ (10 GB) | ✅ (10 GB) | ✅ (10 GB) | ✅ (10 GB) |
+| Feature | 🐧 Debian/Ubuntu | 🎩 Fedora/RHEL | 🏔️ Arch | 🦎 openSUSE | 🍎 macOS | 🪟 Windows | 💻 ChromeOS |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| **Package Manager** | `apt` | `dnf` | `pacman` | `zypper` | `brew` | `winget` | `apt` |
+| **GUI App Updates** | `snap` | `flatpak` | `flatpak` / `snap` | `flatpak` / `snap` | `cask` | `winget` | `flatpak` |
+| **System Upgrade** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **Cache Cleanup** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **Disk Space Recovery** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **Health Check** | `debsums` | — | — | — | `brew doctor` | — | `apt-get check` |
+| **Log Vacuuming** | ✅ (journald) | ✅ (journald) | ✅ (journald) | ✅ (journald) | — | — | — |
+| **Service Monitor** | — | — | — | — | ✅ | — | — |
+| **Dev Tool Updates** | — | — | — | — | — | — | `npm` / `pip` |
+| **History Clearing (opt-in)** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **Docker Cleanup (opt-in)** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **Docker Log Report** | ✅ sizes | ✅ sizes | ✅ sizes | ✅ sizes | limits only | limits only | ✅ sizes |
+| **Docker Log Truncate / Rotation** | ✅ | ✅ | ✅ | ✅ | guidance | guidance | ✅ |
+| **Color-coded Output** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **Interactive Prompts** | — (flags) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **POSIX Compatible** | ✅ | ✅ | ✅ | ✅ | ✅ | — | ✅ |
+| **Yes to All (`-y`, routine only)** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **Dry Run (`-d`)** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **Desktop Notifications** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **Auto-Scheduling (`--schedule`)** | ✅ (root cron) | ✅ (root cron) | ✅ (root cron) | ✅ (root cron) | ✅ (user cron) | ❌ (Task Scheduler) | ✅ (root cron) |
+| **Logging** | ✅ | ✅ | ✅ | ✅ | — | — | ✅ |
+| **Low Storage Alerts**| ✅ (10 GB) | ✅ (10 GB) | ✅ (10 GB) | ✅ (10 GB) | ✅ (10 GB) | ✅ (10 GB) | ✅ (10 GB) |
 
 ---
 
@@ -343,6 +438,9 @@ Step 8  →  Optional: Clear terminal history
 | :--- | :--- | :--- |
 | **Ubuntu/Debian** | Ubuntu/Debian 18.04+, `sudo`, `apt`, `journalctl` | `snap`, `debsums`, `numfmt` (coreutils) |
 | **Fedora/RHEL** | Fedora 30+, `sudo`, `dnf`, `journalctl` | `flatpak`, `snap`, `numfmt` |
+| **Arch/Manjaro** | `sudo`, `pacman`, `journalctl` | `paccache` (pacman-contrib), `flatpak`, `snap` |
+| **openSUSE** | Leap 15+ / Tumbleweed, `sudo`, `zypper`, `journalctl` | `flatpak`, `snap` |
+| **Docker log features** | `docker` CLI | `python3` or `jq` (to edit `daemon.json`), `dockerd` 23+ (config validation) |
 | **macOS** | macOS 12+, [Homebrew](https://brew.sh) | — |
 | **Windows** | Windows 10/11, PowerShell 5.1+, [Winget](https://github.com/microsoft/winget-cli) | Administrator privileges for full cleanup |
 | **ChromeOS** | Linux (Crostini) enabled in Settings | `flatpak`, `npm`, `pip3` |
@@ -427,21 +525,27 @@ Wait for the active process to finish before running the toolkit again. Avoid de
 
 ## ⏰ Automation & Scheduling
 
-### 🐧 Linux — Cron Job
+### ✅ Recommended: built-in scheduler (Linux & macOS)
 ```bash
-# Edit crontab
-crontab -e
+./toolkit.sh --schedule     # weekly, Mondays at midnight
+./toolkit.sh --unschedule   # remove it again
+```
+- **Linux:** the job is added to **root's crontab** (you'll be asked for your `sudo` password once), because the update scripts need root and `sudo` cannot prompt inside cron. Output goes to `/var/log/sysupdate-cron.log`.
+- **macOS:** the job is added to **your** crontab, because Homebrew refuses to run as root. Output goes to `~/Library/Logs/system-update-toolkit.log`.
+- The job runs with `-y`, so destructive steps (cache wipe, history, Docker cleanup) are **skipped**. Re-running `--schedule` replaces the job instead of duplicating it, and other cron entries are never touched.
 
-# Run every Sunday at 3 AM
-0 3 * * 0 /path/to/debian_update_util.sh >> /var/log/sysupdate.log 2>&1
+### 🐧 Linux — manual cron
+```bash
+sudo crontab -e
+
+# Run every Sunday at 3 AM (root's crontab; set PATH because cron's default is minimal)
+0 3 * * 0 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin /path/to/toolkit.sh -y >> /var/log/sysupdate-cron.log 2>&1
 ```
 
-### 🍎 macOS — launchd
+### 🍎 macOS — manual cron
 ```bash
-# Create a plist in ~/Library/LaunchAgents/
-# Or use a simple cron:
 crontab -e
-0 3 * * 0 /path/to/brew_update_util.sh >> ~/brew_update.log 2>&1
+0 3 * * 0 PATH=/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin /path/to/brew_update_util.sh -y >> ~/Library/Logs/system-update-toolkit.log 2>&1
 ```
 
 ### 🪟 Windows — Task Scheduler
@@ -450,7 +554,8 @@ crontab -e
 # Trigger: Weekly
 # Action: Start a Program
 # Program: powershell.exe
-# Arguments: -File "C:\path\to\win_update_util.ps1"
+# Arguments: -NoProfile -ExecutionPolicy Bypass -File "C:\path\to\win_update_util.ps1" -Yes
+# Tick "Run with highest privileges" for system-level temp cleanup
 ```
 
 ---
@@ -460,7 +565,7 @@ crontab -e
 <details>
 <summary><b>Will this script delete my personal files?</b></summary>
 
-**No.** The scripts only clean system-managed caches, temporary files, old package versions, and system log files. Your documents, projects, and personal data are completely untouched.
+**No.** The scripts only clean system-managed caches, temporary files, old package versions, and system log files. Your documents, projects, and personal data are completely untouched. The few steps that delete user data (`~/.cache`, shell history, unused Docker volumes) are opt-in and never enabled by `--yes`.
 </details>
 
 <details>
@@ -492,7 +597,7 @@ The `debian_update_util.sh` script does this automatically. It cleans the APT ca
 <details>
 <summary><b>How do I clear terminal shell history in macOS or Linux?</b></summary>
 
-When run interactively, the scripts will prompt you at the end to clear your terminal history (supporting Zsh and Bash on macOS/Linux/ChromeOS, and PSReadLine history on Windows). This is fully secure and clears the active session log as well as history files.
+Pass `--clear-history` (`-ClearHistory` on Windows), or answer `y` when an interactive run asks at the end. It empties the Bash/Zsh history files on macOS/Linux/ChromeOS and the PSReadLine history file on Windows. History already loaded in an open terminal stays in that session's memory until you close it (run `history -c` or `Clear-History` to drop it). `--yes` never clears history.
 </details>
 
 <details>
@@ -507,7 +612,7 @@ It varies by system. Typical results:
 <details>
 <summary><b>How can I automate these system maintenance scripts?</b></summary>
 
-You can set up automated weekly runs. The toolkit has a built-in helper: running `./toolkit.sh --schedule` sets up a weekly automated job (using cron) on Unix-like systems. Alternatively, you can configure standard tools like `cron` for Linux, `launchd` for macOS, or `Task Scheduler` for Windows. Check the [Automation & Scheduling](#-automation--scheduling) section for instructions.
+Run `./toolkit.sh --schedule` for a weekly job (root's crontab on Linux, your crontab on macOS) and `./toolkit.sh --unschedule` to remove it. On Windows, use Task Scheduler. Scheduled runs use `-y`, so destructive steps are skipped. See [Automation & Scheduling](#-automation--scheduling).
 </details>
 
 <details>
@@ -537,7 +642,7 @@ Dry Run mode helps you verify operations safely, making it suitable for producti
 <details>
 <summary><b>Can I use this toolkit on production servers?</b></summary>
 
-**Yes.** The toolkit is designed to be safe for production environments when used responsibly. It relies on your operating system's official package manager (APT, DNF, Homebrew, or Winget) and only performs standard maintenance tasks such as installing updates, removing obsolete packages, cleaning caches, rotating logs, and reclaiming disk space. For extra confidence, you can first preview all planned actions using the built-in **Dry Run** mode:
+**Yes.** The toolkit is designed to be safe for production environments when used responsibly. It relies on your operating system's official package manager (APT, DNF, pacman, zypper, Homebrew, or Winget) and only performs standard maintenance tasks such as installing updates, removing obsolete packages, cleaning caches, rotating logs, and reclaiming disk space. For extra confidence, you can first preview all planned actions using the built-in **Dry Run** mode:
 
 ```bash
 ./toolkit.sh --dry-run
@@ -574,9 +679,9 @@ Because it deletes unused volumes, this step never runs automatically and is **n
 We use automated unit tests and static code analysis to guarantee script quality and reliability.
 
 ### Unix Shell Scripts
-Unix-based shell scripts (`toolkit.sh`, `brew_update_util.sh`, `debian_update_util.sh`, `fedora_update_util.sh`, `chromeos_update_util.sh`, `arch_update_util.sh`, `opensuse_update_util.sh`) are linted and verified using `shellcheck`:
+All Unix shell scripts, including the shared `lib/docker_logs.sh`, are linted with `shellcheck`, and CI runs `./toolkit.sh --dry-run --yes --notify` on every pull request:
 ```bash
-shellcheck toolkit.sh brew_update_util.sh debian_update_util.sh fedora_update_util.sh chromeos_update_util.sh arch_update_util.sh opensuse_update_util.sh install.sh
+shellcheck -x *.sh lib/*.sh
 ```
 
 ### Windows PowerShell Script
@@ -611,7 +716,7 @@ Contributions are what make the open-source community such an amazing place to l
 
 | Version | Date | Changes |
 | :--- | :--- | :--- |
-| **v3.2.0** | 2026-11-20 | **Safer `--yes`**: `-y`/`--yes` (and answering `a` at a prompt) now only approve routine prompts on every platform. Destructive steps (wiping `~/.cache`, clearing shell history, `docker system prune --volumes`) need explicit `--clear-cache`, `--clear-history`, `--docker-cleanup` flags (`-ClearHistory`, `-DockerCleanup` on Windows), or an explicit `y` at their own prompt; without a terminal they are skipped. Previously the weekly `--schedule` job (which runs with `-y`) would clear history and prune Docker volumes. `toolkit.sh` now translates options for the Windows script. |
+| **v3.2.0** | 2026-11-20 | **Safer `--yes`**: `-y`/`--yes` (and answering `a` at a prompt) now only approve routine prompts on every platform. Destructive steps (wiping `~/.cache`, clearing shell history, `docker system prune --volumes`) need explicit `--clear-cache`, `--clear-history`, `--docker-cleanup` flags (`-ClearHistory`, `-DockerCleanup` on Windows), or an explicit `y` at their own prompt; without a terminal they are skipped. Previously the weekly `--schedule` job (which runs with `-y`) would clear history and prune Docker volumes. `toolkit.sh` now translates options for the Windows script. **Scheduling fix**: `--schedule` now installs the job in root's crontab on Linux (it previously went into the user's crontab, where the scripts could not get root and failed), sets a full `PATH`, logs to `/var/log/sysupdate-cron.log` (macOS: `~/Library/Logs/system-update-toolkit.log`), only touches its own marked entry, and removes the old broken entry. New `--unschedule`. All scripts now report version 3.2.0. |
 | **v3.1.0** | 2026-11-20 | **Docker Log Management (all platforms)**: New shared `lib/docker_logs.sh` used by every Unix script. Each run reports Docker container log sizes, the largest containers, and how many containers have no log size limit, and warns when a log exceeds 100M. New `--docker-logs-truncate[=SIZE]` (empties oversized `json-file` logs in place) and `--docker-log-rotation` (merges `max-size: 50m`, `max-file: 3` into `daemon.json` with a timestamped backup and `dockerd --validate`; Docker is never restarted automatically) on Linux. macOS (Docker Desktop/Colima) and Windows (Docker Desktop) report unlimited containers and print the settings to apply. Neither option is enabled by `--yes`. A failed `--docker-cleanup` no longer aborts the Ubuntu run; Arch and openSUSE scripts are now executable in git. The Ubuntu/Debian script was renamed from `update_util.sh` to `debian_update_util.sh` to match the other platform scripts (`toolkit.sh` users are unaffected). |
 | **v2.7.0** | 2026-08-05 | **Per-Package Progress & Cross-Platform Hardening Release**: Enhanced macOS Homebrew update utility with per-package progress tracking (`[X/Y]`) and individual error handling for formulae and casks; hardened PowerShell scripts for cross-platform CI safety and PSScriptAnalyzer compliance; expanded documentation with Docker cleanup, safety guidelines, and reboot behavior details; updated CI action dependencies. |
 | **v2.6.1** | 2026-07-20 | **Reliability & Compatibility Patch**: Fixed the `curl \| sh` installer's confirmation prompt, which could silently consume the script's own remaining lines instead of reading user input in piped/non-interactive contexts. Fixed Windows color output, which previously only rendered correctly on PowerShell 6+ despite PowerShell 5.1 being the documented minimum. Hardened the Debian and ChromeOS cleanup scripts so a single failed cache clear, snap removal, or `apt-get check` no longer aborts the run before the summary is shown. |
