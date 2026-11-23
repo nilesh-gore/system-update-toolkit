@@ -13,7 +13,7 @@ param(
     [switch]$Version
 )
 
-$ScriptVersion = "3.2.0"
+$ScriptVersion = "3.2.1"
 $script:AutoYes = $Yes
 $script:IsDryRun = $DryRun
 $script:NotifyUser = $Notify
