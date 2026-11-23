@@ -122,18 +122,33 @@ _dl_parse_size() {
     printf '%s\n' "$((_dl_number * _dl_multiplier))"
 }
 
-_dl_daemon_json_path() {
-    case "$(command -v docker)" in
-        /snap/*) printf '/var/snap/docker/current/config/daemon.json\n' ;;
-        *) printf '/etc/docker/daemon.json\n' ;;
+# True when the daemon the CLI talks to is the Snap package. Ask the daemon
+# itself (its data root) rather than trusting the CLI path: a host can have
+# /usr/bin/docker while the running daemon is snap's (or both installed).
+_dl_is_snap_daemon() {
+    case "$(docker info --format '{{.DockerRootDir}}' 2>/dev/null || true)" in
+        /var/snap/docker/*) return 0 ;;
     esac
+    case "$(command -v docker)" in
+        /snap/*) return 0 ;;
+    esac
+    return 1
+}
+
+_dl_daemon_json_path() {
+    if _dl_is_snap_daemon; then
+        printf '/var/snap/docker/current/config/daemon.json\n'
+    else
+        printf '/etc/docker/daemon.json\n'
+    fi
 }
 
 _dl_restart_hint() {
-    case "$(command -v docker)" in
-        /snap/*) printf 'sudo snap restart docker\n' ;;
-        *) printf 'sudo systemctl restart docker\n' ;;
-    esac
+    if _dl_is_snap_daemon; then
+        printf 'sudo snap restart docker\n'
+    else
+        printf 'sudo systemctl restart docker\n'
+    fi
 }
 
 # Docker Desktop (macOS/Windows/Linux) and macOS VMs such as Colima keep
