@@ -2,7 +2,7 @@
 # System Update Utility - Ubuntu/Debian
 # Safe system updates, package repair, cleanup, reporting, and optional notifications.
 
-SCRIPT_VERSION="3.2.0"
+SCRIPT_VERSION="3.2.1"
 AUTO_YES=false
 DRY_RUN=false
 NOTIFY=false
